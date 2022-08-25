@@ -11,6 +11,7 @@ class SessionManager
 constructor(
     val authTokenDao: AuthTokenDao,
     val application: Application
+)
+{
 
-) {
 }

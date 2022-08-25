@@ -8,35 +8,40 @@ import com.kanyandula.nyasa.repository.auth.AuthRepository
 import com.kanyandula.nyasa.session.SessionManager
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
+import javax.inject.Singleton
 
 @Module
-class AuthModule{
+@InstallIn(SingletonComponent::class)
+object AuthModule{
 
-    // TEMPORARY
-    @AuthScope
+
+
+    @Singleton
     @Provides
-    fun provideFakeApiService(): NyasaBlogAuthService{
-        return Retrofit.Builder()
-            .baseUrl("https://open-api.xyz")
+    fun provideNyasaBlogAuthService(retrofitBuilder: Retrofit.Builder): NyasaBlogAuthService {
+        return retrofitBuilder
             .build()
             .create(NyasaBlogAuthService::class.java)
     }
 
-    @AuthScope
-    @Provides
-    fun provideAuthRepository(
-        sessionManager: SessionManager,
-        authTokenDao: AuthTokenDao,
-        accountPropertiesDao: AccountPropertiesDao,
-        openApiAuthService: NyasaBlogAuthService
-        ): AuthRepository {
-        return AuthRepository(
-            authTokenDao,
-            accountPropertiesDao,
-            openApiAuthService,
-            sessionManager
-        )
-    }
+
+
+//    @Provides
+//    fun provideAuthRepository(
+//        sessionManager: SessionManager,
+//        authTokenDao: AuthTokenDao,
+//        accountPropertiesDao: AccountPropertiesDao,
+//        openApiAuthService: NyasaBlogAuthService
+//        ): AuthRepository {
+//        return AuthRepository(
+//            authTokenDao,
+//            accountPropertiesDao,
+//            openApiAuthService,
+//            sessionManager
+//        )
+//    }
 
 }

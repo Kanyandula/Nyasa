@@ -5,9 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.kanyandula.nyasa.R
+import dagger.hilt.android.AndroidEntryPoint
 
-class ForgotPasswordFragment : BaseAuthFragment() {
+@AndroidEntryPoint
+class ForgotPasswordFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -19,6 +22,6 @@ class ForgotPasswordFragment : BaseAuthFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "ForgotPasswordFragment: ${viewModel}")
+
     }
 }

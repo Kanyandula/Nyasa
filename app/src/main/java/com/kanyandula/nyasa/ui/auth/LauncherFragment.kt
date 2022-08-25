@@ -7,9 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_launcher.*
 
-class LauncherFragment :  BaseAuthFragment() {
+
+@AndroidEntryPoint
+class LauncherFragment :  Fragment() {
 
 
     override fun onCreateView(

@@ -2,10 +2,10 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
     id 'kotlin-kapt'
+    id 'kotlin-android-extensions'
     id 'androidx.navigation.safeargs'
-   // id 'dagger.hilt.android.plugin'
+    id 'dagger.hilt.android.plugin'
 
 
 }
@@ -30,6 +30,11 @@ android {
             }
         }
     }
+    kapt {
+        javacOptions {
+            option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
+        }
+    }
 
     buildTypes {
         release {
@@ -45,6 +50,10 @@ android {
         kotlinOptions {
             jvmTarget = "1.8"
         }
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 }
 
@@ -67,26 +76,17 @@ dependencies {
     def glideVersion = '4.12.0'
     implementation "com.github.bumptech.glide:glide:$glideVersion"
 
-    // Dagger Hilt
-//    implementation "com.google.dagger:hilt-android:2.39.1"
-//    kapt "com.google.dagger:hilt-compiler:2.39.1"
-//    androidTestImplementation "com.google.dagger:hilt-android-testing:2.39.1"
-//    kaptAndroidTest "com.google.dagger:hilt-android-compiler:2.39.1"
-//    implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
-//    implementation 'androidx.hilt:hilt-work:1.0.0'
-//    kapt "androidx.hilt:hilt-compiler:1.0.0"
+     //Dagger Hilt
+    implementation "com.google.dagger:hilt-android:2.39.1"
+    annotationProcessor 'com.google.dagger:hilt-compiler:2.39.1'
+    kapt "com.google.dagger:hilt-compiler:2.39.1"
+    //androidTestImplementation "com.google.dagger:hilt-android-testing:2.39.1"
+    kaptAndroidTest "com.google.dagger:hilt-android-compiler:2.39.1"
+    implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
+    implementation 'androidx.hilt:hilt-work:1.0.0'
+    kapt "androidx.hilt:hilt-compiler:1.0.0"
 
-    // Dagger
-    def dagger_version = "2.40.5"
 
-    // Dagger2 core
-    implementation "com.google.dagger:dagger:$dagger_version"
-    kapt "com.google.dagger:dagger-compiler:$dagger_version"
-
-    // Dagger Android
-    implementation "com.google.dagger:dagger-android:$dagger_version"
-    implementation "com.google.dagger:dagger-android-support:$dagger_version"
-    kapt "com.google.dagger:dagger-android-processor:$dagger_version"
 
     // Kotlin stdlib
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10"
