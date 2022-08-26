@@ -13,6 +13,7 @@ import com.kanyandula.nyasa.util.ApiEmptyResponse
 import com.kanyandula.nyasa.util.ApiErrorResponse
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_login.*
@@ -38,6 +39,15 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "LoginFragment: ${viewModel}")
         subscribeObservers()
+
+        login_button.setOnClickListener {
+            viewModel.setAuthToken(
+                AuthToken(
+                    1,
+                    "gdfngidfng4nt43n43jn34jn"
+                )
+            )
+        }
     }
 
     fun subscribeObservers(){

@@ -2,10 +2,15 @@ package com.kanyandula.nyasa.ui
 
 
 import androidx.appcompat.app.AppCompatActivity
+import com.kanyandula.nyasa.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity() {
 
-    private val TAG: String = "AppDebug"
+     val TAG: String = "AppDebug"
+
+    @Inject
+    lateinit var sessionManager: SessionManager
 }
