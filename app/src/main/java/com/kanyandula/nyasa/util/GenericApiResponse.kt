@@ -1,4 +1,4 @@
-package com.codingwithmitch.openapi.util
+package com.kanyandula.nyasa.util
 
 import android.util.Log
 import retrofit2.Response

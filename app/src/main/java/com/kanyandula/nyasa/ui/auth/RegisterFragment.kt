@@ -9,14 +9,16 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import com.codingwithmitch.openapi.util.ApiEmptyResponse
-import com.codingwithmitch.openapi.util.ApiErrorResponse
-import com.codingwithmitch.openapi.util.ApiSuccessResponse
+import com.kanyandula.nyasa.util.ApiEmptyResponse
+import com.kanyandula.nyasa.util.ApiErrorResponse
+import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_register.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-
+@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class RegisterFragment : Fragment() {
 
@@ -30,7 +32,7 @@ class RegisterFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_register, container, false)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+
     private val viewModel: AuthViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -38,20 +40,31 @@ class RegisterFragment : Fragment() {
 
         Log.d(TAG, "RegisterFragment: ${viewModel}")
 
-        viewModel.testRegister().observe(viewLifecycleOwner, Observer { response ->
-
-            when(response){
-                is ApiSuccessResponse ->{
-                    Log.d(TAG, "REGISTER RESPONSE: ${response.body}")
-                }
-                is ApiErrorResponse ->{
-                    Log.d(TAG, "REGISTER RESPONSE: ${response.errorMessage}")
-                }
-                is ApiEmptyResponse ->{
-                    Log.d(TAG, "REGISTER RESPONSE: Empty Response")
-                }
-            }
-        })
+        subscribeObservers()
 
     }
+
+    fun subscribeObservers(){
+        viewModel.viewState.observe(viewLifecycleOwner, Observer{viewState ->
+            viewState.registrationFields?.let {
+                it.registration_email?.let{input_email.setText(it)}
+                it.registration_username?.let{input_username.setText(it)}
+                it.registration_password?.let{input_password.setText(it)}
+                it.registration_confirm_password?.let{input_password_confirm.setText(it)}
+            }
+        })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewModel.setRegistrationFields(
+            RegistrationFields(
+                input_email.text.toString(),
+                input_username.text.toString(),
+                input_password.text.toString(),
+                input_password_confirm.text.toString()
+            )
+        )
+    }
+
 }

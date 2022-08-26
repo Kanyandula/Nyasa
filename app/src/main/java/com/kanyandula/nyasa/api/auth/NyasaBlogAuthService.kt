@@ -1,7 +1,7 @@
 package com.kanyandula.nyasa.api.auth
 
 import androidx.lifecycle.LiveData
-import com.codingwithmitch.openapi.util.GenericApiResponse
+import com.kanyandula.nyasa.util.GenericApiResponse
 import com.kanyandula.nyasa.api.auth.network_responses.LoginResponse
 import com.kanyandula.nyasa.api.auth.network_responses.RegistrationResponse
 import retrofit2.http.Field
