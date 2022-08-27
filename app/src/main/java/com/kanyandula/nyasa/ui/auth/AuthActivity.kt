@@ -10,6 +10,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.BaseActivity
+import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +32,37 @@ class AuthActivity : BaseActivity(){
     }
 
     private fun subscribeObservers(){
+        viewModel.dataState.observe(this, Observer { dataState ->
+            dataState.data?.let { data ->
+                data.data?.let { event ->
+                    event.getContentIfNotHandled()?.let {
+                        it.authToken?.let {
+                            Log.d(TAG, "AuthActivity, DataState: ${it}")
+                            viewModel.setAuthToken(it)
+                        }
+                    }
+                }
+                data.response?.let {event ->
+                    event.getContentIfNotHandled()?.let{
+                        when(it.responseType){
+                            is ResponseType.Dialog ->{
+                                // show dialog
+                            }
+
+                            is ResponseType.Toast ->{
+                                // show toast
+                            }
+
+                            is ResponseType.None ->{
+                                // print to log
+                                Log.e(TAG, "AuthActivity: Response: ${it.message}, ${it.responseType}" )
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
         viewModel.viewState.observe(this, Observer{
             Log.d(TAG, "AuthActivity, subscribeObservers: AuthViewState: ${it}")
             it.authToken?.let{

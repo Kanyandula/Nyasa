@@ -6,6 +6,7 @@ import com.kanyandula.nyasa.repository.auth.AuthRepository
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
+import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
@@ -27,17 +28,27 @@ constructor(
    override fun handleStateEvent(stateEvent: AuthStateEvent): LiveData<DataState<AuthViewState>> {
       when(stateEvent){
 
-         is AuthStateEvent.LoginAttemptEvent -> {
+         is LoginAttemptEvent -> {
+            return authRepository.attemptLogin(
+               stateEvent.email,
+               stateEvent.password
+            )
+         }
+
+         is RegisterAttemptEvent -> {
+            return authRepository.attemptRegistration(
+               stateEvent.email,
+               stateEvent.username,
+               stateEvent.password,
+               stateEvent.confirm_password
+            )
+         }
+
+         is CheckPreviousAuthEvent -> {
             return AbsentLiveData.create()
          }
 
-         is AuthStateEvent.RegisterAttemptEvent -> {
-            return AbsentLiveData.create()
-         }
 
-         is AuthStateEvent.CheckPreviousAuthEvent -> {
-            return AbsentLiveData.create()
-         }
 
 
       }

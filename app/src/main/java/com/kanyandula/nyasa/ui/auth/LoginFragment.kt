@@ -14,12 +14,14 @@ import com.kanyandula.nyasa.util.ApiErrorResponse
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.AuthToken
+import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
+import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-
+@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
 
@@ -32,7 +34,7 @@ class LoginFragment : Fragment() {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
-    @OptIn(ExperimentalCoroutinesApi::class)
+
     private val viewModel: AuthViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -41,14 +43,10 @@ class LoginFragment : Fragment() {
         subscribeObservers()
 
         login_button.setOnClickListener {
-            viewModel.setAuthToken(
-                AuthToken(
-                    1,
-                    "gdfngidfng4nt43n43jn34jn"
-                )
-            )
+            login()
         }
     }
+
 
     fun subscribeObservers(){
         viewModel.viewState.observe(viewLifecycleOwner, Observer{
@@ -57,6 +55,15 @@ class LoginFragment : Fragment() {
                 it.login_password?.let{input_password.setText(it)}
             }
         })
+    }
+
+    fun login(){
+        viewModel.setStateEvent(
+            LoginAttemptEvent(
+                input_email.text.toString(),
+                input_password.text.toString()
+            )
+        )
     }
 
     override fun onDestroyView() {
