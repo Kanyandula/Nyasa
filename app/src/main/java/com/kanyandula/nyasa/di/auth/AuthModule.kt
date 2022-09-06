@@ -1,6 +1,7 @@
 package com.kanyandula.nyasa.di.auth
 
 
+import android.content.SharedPreferences
 import com.kanyandula.nyasa.api.auth.NyasaBlogAuthService
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
@@ -28,20 +29,24 @@ object AuthModule{
     }
 
 
-
-//    @Provides
-//    fun provideAuthRepository(
-//        sessionManager: SessionManager,
-//        authTokenDao: AuthTokenDao,
-//        accountPropertiesDao: AccountPropertiesDao,
-//        openApiAuthService: NyasaBlogAuthService
-//        ): AuthRepository {
-//        return AuthRepository(
-//            authTokenDao,
-//            accountPropertiesDao,
-//            openApiAuthService,
-//            sessionManager
-//        )
-//    }
+    @Singleton
+    @Provides
+    fun provideAuthRepository(
+        sessionManager: SessionManager,
+        authTokenDao: AuthTokenDao,
+        accountPropertiesDao: AccountPropertiesDao,
+        openApiAuthService: NyasaBlogAuthService,
+        preferences: SharedPreferences,
+        editor: SharedPreferences.Editor
+        ): AuthRepository {
+        return AuthRepository(
+            authTokenDao,
+            accountPropertiesDao,
+            openApiAuthService,
+            sessionManager,
+            preferences,
+            editor
+        )
+    }
 
 }

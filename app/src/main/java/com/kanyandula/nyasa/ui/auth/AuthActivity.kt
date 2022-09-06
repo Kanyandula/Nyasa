@@ -15,6 +15,7 @@ import androidx.navigation.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.ResponseType
+import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_auth.*
@@ -38,6 +39,7 @@ class AuthActivity : BaseActivity(),
         findNavController(R.id.auth_nav_host_fragment).addOnDestinationChangedListener(this)
 
         subscribeObservers()
+        checkPreviousAuthUser()
     }
 
     private fun subscribeObservers(){
@@ -78,6 +80,14 @@ class AuthActivity : BaseActivity(),
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun checkPreviousAuthUser(){
+        viewModel.setStateEvent(AuthStateEvent.CheckPreviousAuthEvent())
+    }
+
+    private fun onFinishCheckPreviousAuthUser(){
+        fragment_container.visibility = View.VISIBLE
     }
 
     override fun displayProgressBar(bool: Boolean){
