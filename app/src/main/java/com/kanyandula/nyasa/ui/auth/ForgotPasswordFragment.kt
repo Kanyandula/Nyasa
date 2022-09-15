@@ -27,9 +27,9 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ForgotPasswordFragment : Fragment() {
+class ForgotPasswordFragment : BaseAuthFragment() {
 
-    val TAG: String = "AppDebug"
+
 
     lateinit var webView: WebView
 

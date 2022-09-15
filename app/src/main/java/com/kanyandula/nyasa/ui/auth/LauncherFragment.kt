@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.fragment_launcher.*
 
 
 @AndroidEntryPoint
-class LauncherFragment :  Fragment() {
+class LauncherFragment :  BaseAuthFragment() {
 
 
     override fun onCreateView(

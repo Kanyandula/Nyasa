@@ -15,7 +15,7 @@ abstract class BaseAuthFragment: Fragment() {
 
 
 
-    private val viewModel: AuthViewModel by activityViewModels()
+     val viewModel: AuthViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -6,10 +6,17 @@
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/activity_auth.xml" value="0.14130434782608695" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/activity_base.xml" value="0.15534420289855072" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/activity_main.xml" value="0.13645833333333332" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_account.xml" value="0.1" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_blog.xml" value="0.10326086956521739" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_change_password.xml" value="0.1" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_create_blog.xml" value="0.1" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_forgot_password.xml" value="0.14130434782608695" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_launcher.xml" value="0.14130434782608695" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_login.xml" value="0.14130434782608695" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_registar.xml" value="0.14130434782608695" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_update_account.xml" value="0.1" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_update_blog.xml" value="0.1" />
+        <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/layout/fragment_view_blog.xml" value="0.14666666666666667" />
         <entry key="..\:/Users/admin/AndroidStudioProjects/Nyasa/app/src/main/res/menu/search_menu.xml" value="0.1796875" />
       </map>
     </option>

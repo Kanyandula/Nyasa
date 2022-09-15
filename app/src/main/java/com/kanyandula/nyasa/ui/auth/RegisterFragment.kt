@@ -22,9 +22,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class RegisterFragment : Fragment() {
+class RegisterFragment : BaseAuthFragment() {
 
-    val TAG: String = "AppDebug"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,7 +34,7 @@ class RegisterFragment : Fragment() {
     }
 
 
-    private val viewModel: AuthViewModel by activityViewModels()
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
