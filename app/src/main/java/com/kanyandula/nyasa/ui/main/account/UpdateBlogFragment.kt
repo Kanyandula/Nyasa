@@ -1,4 +1,4 @@
-package com.codingwithmitch.openapi.ui.main.blog
+package com.kanyandula.nyasa.ui.main.account
 
 import android.os.Bundle
 import android.view.LayoutInflater

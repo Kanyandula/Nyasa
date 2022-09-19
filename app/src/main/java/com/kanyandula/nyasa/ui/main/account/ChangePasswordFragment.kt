@@ -1,10 +1,11 @@
-package com.codingwithmitch.openapi.ui.main.account
+package com.kanyandula.nyasa.ui.main.account
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.ui.main.account.BaseAccountFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 

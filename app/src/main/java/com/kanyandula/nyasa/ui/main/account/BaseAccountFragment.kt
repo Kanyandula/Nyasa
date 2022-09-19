@@ -1,4 +1,4 @@
-package com.codingwithmitch.openapi.ui.main.account
+package com.kanyandula.nyasa.ui.main.account
 
 import android.content.Context
 import android.util.Log
