@@ -32,10 +32,14 @@
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
         >
 
-        <FrameLayout
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/main_nav_host_fragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/nav_graph"
             android:layout_marginBottom="?attr/actionBarSize"
             />
 

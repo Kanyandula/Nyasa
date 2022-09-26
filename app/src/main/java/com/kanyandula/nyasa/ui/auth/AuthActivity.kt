@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
+import com.google.android.material.appbar.AppBarLayout
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.ResponseType
@@ -41,6 +42,12 @@ class AuthActivity : BaseActivity(),
         subscribeObservers()
         checkPreviousAuthUser()
     }
+
+    override fun expandAppBar() {
+        findViewById<AppBarLayout>(R.id.app_bar).setExpanded(true)
+    }
+
+
 
     private fun subscribeObservers(){
 

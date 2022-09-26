@@ -5,11 +5,14 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.kanyandula.nyasa.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+@OptIn(DelicateCoroutinesApi::class)
 @AndroidEntryPoint
 abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener {
 
@@ -17,6 +20,7 @@ abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener {
 
     @Inject
     lateinit var sessionManager: SessionManager
+
 
 
     override fun onDataStateChange(dataState: DataState<*>?) {
