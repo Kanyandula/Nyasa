@@ -1,11 +1,8 @@
 package com.kanyandula.nyasa.di.main
 
-import android.content.SharedPreferences
-import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
+
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
-import com.kanyandula.nyasa.persistance.AuthTokenDao
-import com.kanyandula.nyasa.repository.auth.AuthRepository
 import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
 import dagger.Module
