@@ -3,8 +3,7 @@ package com.kanyandula.nyasa.repository.auth
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.switchMap
-import com.kanyandula.nyasa.api.auth.NyasaBlogAuthService
+import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
 import com.kanyandula.nyasa.api.auth.network_responses.LoginResponse
 import com.kanyandula.nyasa.api.auth.network_responses.RegistrationResponse
 import com.kanyandula.nyasa.models.AccountProperties
@@ -28,11 +27,12 @@ import kotlinx.coroutines.Job
 import javax.inject.Inject
 
 
-class AuthRepository @Inject
+class AuthRepository
+@Inject
 constructor(
     val authTokenDao: AuthTokenDao,
     val accountPropertiesDao: AccountPropertiesDao,
-    val nyasaBlogAuthService: NyasaBlogAuthService,
+    val nyasaBlogApiAuthService: NyasaBlogApiAuthService,
     val sessionManager: SessionManager,
     val sharedPreferences: SharedPreferences,
     val sharedPrefsEditor: SharedPreferences.Editor
@@ -103,7 +103,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<LoginResponse>> {
-                return nyasaBlogAuthService.login(email, password)
+                return nyasaBlogApiAuthService.login(email, password)
             }
 
             override fun setJob(job: Job) {
@@ -185,7 +185,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<RegistrationResponse>> {
-                return nyasaBlogAuthService.register(email, username, password, confirmPassword)
+                return nyasaBlogApiAuthService.register(email, username, password, confirmPassword)
             }
 
             override fun setJob(job: Job) {

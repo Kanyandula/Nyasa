@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
@@ -20,6 +21,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 abstract class BaseAccountFragment : Fragment(){
 
     val TAG: String = "AppDebug"
+
+    val viewModel: AccountViewModel by activityViewModels()
 
     lateinit var stateChangeListener: DataStateChangeListener
 

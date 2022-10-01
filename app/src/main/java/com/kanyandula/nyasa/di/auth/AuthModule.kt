@@ -2,10 +2,12 @@ package com.kanyandula.nyasa.di.auth
 
 
 import android.content.SharedPreferences
-import com.kanyandula.nyasa.api.auth.NyasaBlogAuthService
+import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
+import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import com.kanyandula.nyasa.repository.auth.AuthRepository
+import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
 import dagger.Module
 import dagger.Provides
@@ -22,12 +24,11 @@ object AuthModule{
 
     @Singleton
     @Provides
-    fun provideNyasaBlogAuthService(retrofitBuilder: Retrofit.Builder): NyasaBlogAuthService {
+    fun provideNyasaBlogAuthService(retrofitBuilder: Retrofit.Builder): NyasaBlogApiAuthService {
         return retrofitBuilder
             .build()
-            .create(NyasaBlogAuthService::class.java)
+            .create(NyasaBlogApiAuthService::class.java)
     }
-
 
     @Singleton
     @Provides
@@ -35,14 +36,14 @@ object AuthModule{
         sessionManager: SessionManager,
         authTokenDao: AuthTokenDao,
         accountPropertiesDao: AccountPropertiesDao,
-        openApiAuthService: NyasaBlogAuthService,
+        openApiApiAuthService: NyasaBlogApiAuthService,
         preferences: SharedPreferences,
         editor: SharedPreferences.Editor
-        ): AuthRepository {
+    ): AuthRepository {
         return AuthRepository(
             authTokenDao,
             accountPropertiesDao,
-            openApiAuthService,
+            openApiApiAuthService,
             sessionManager,
             preferences,
             editor
