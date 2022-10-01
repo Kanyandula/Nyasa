@@ -1,7 +1,9 @@
 package com.kanyandula.nyasa.ui
 
 
+import android.content.Context
 import android.util.Log
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import com.kanyandula.nyasa.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -86,6 +88,15 @@ abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener {
                     Log.i(TAG, "handleStateError: ${it.response.message}")
                 }
             }
+        }
+    }
+
+    override fun hideSoftKeyboard() {
+        if (currentFocus != null) {
+            val inputMethodManager = getSystemService(
+                Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager
+                .hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
         }
     }
 

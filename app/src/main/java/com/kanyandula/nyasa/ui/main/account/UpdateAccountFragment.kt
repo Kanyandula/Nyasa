@@ -63,6 +63,7 @@ class UpdateAccountFragment : BaseAccountFragment(){
                 input_username.text.toString()
             )
         )
+        stateChangeListener.hideSoftKeyboard()
     }
 
     @Deprecated("Deprecated in Java")
