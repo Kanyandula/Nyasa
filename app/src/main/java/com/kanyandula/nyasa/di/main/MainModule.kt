@@ -29,7 +29,7 @@ class MainModule {
 
     @Singleton
     @Provides
-    fun provideMainRepository(
+    fun provideAccountMainRepository(
         openApiMainService: NyasaBlogApiMainService,
         accountPropertiesDao: AccountPropertiesDao,
         sessionManager: SessionManager

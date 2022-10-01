@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.repository.main
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.switchMap
+import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
@@ -10,7 +11,10 @@ import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.repository.NetworkBoundResource
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
+import com.kanyandula.nyasa.ui.Response
+import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
+import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.GenericApiResponse
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +41,7 @@ constructor(
         return object: NetworkBoundResource<AccountProperties, AccountProperties, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
+            false,
             true
         ){
 
@@ -95,6 +100,64 @@ constructor(
 
         }.asLiveData()
     }
+
+
+    fun saveAccountProperties(authToken: AuthToken, accountProperties: AccountProperties): LiveData<DataState<AccountViewState>> {
+        return object: NetworkBoundResource<GenericResponse, Any, AccountViewState>(
+            sessionManager.isConnectedToTheInternet(),
+            true,
+            true,
+            false,
+
+        ){
+
+            // not applicable
+            override suspend fun createCacheRequestAndReturn() {
+
+            }
+
+            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
+                updateLocalDb(null) // The update does not return a CacheObject
+
+                withContext(Dispatchers.Main){
+                    // finish with success response
+                    onCompleteJob(
+                        DataState.data(
+                            data = null,
+                            response = Response(response.body.response, ResponseType.Toast())
+                        ))
+                }
+            }
+
+            // not used in this case
+            override fun loadFromCache(): LiveData<AccountViewState> {
+                return AbsentLiveData.create()
+            }
+
+            override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
+                return nyasaBlogApiMainService.saveAccountProperties(
+                    "Token ${authToken.token!!}",
+                    accountProperties.email,
+                    accountProperties.username
+                )
+            }
+
+            override suspend fun updateLocalDb(cacheObject: Any?) {
+                return accountPropertiesDao.updateAccountProperties(
+                    accountProperties.pk,
+                    accountProperties.email,
+                    accountProperties.username
+                )
+            }
+
+            override fun setJob(job: Job) {
+                repositoryJob?.cancel()
+                repositoryJob = job
+            }
+
+        }.asLiveData()
+    }
+
 
     fun cancelActiveJobs(){
         Log.d(TAG, "AuthRepository: Cancelling on-going jobs...")
