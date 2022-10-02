@@ -19,7 +19,8 @@ import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 @HiltViewModel
-class BlogViewModel @Inject
+class BlogViewModel
+@Inject
 constructor(
     private val sessionManager: SessionManager,
     private val blogRepository: BlogRepository,
@@ -30,7 +31,12 @@ constructor(
         when(stateEvent){
 
             is BlogSearchEvent ->{
-                return AbsentLiveData.create()
+                return sessionManager.cachedToken.value?.let { authToken ->
+                    blogRepository.searchBlogPosts(
+                        authToken,
+                        viewState.value!!.blogFields.searchQuery
+                    )
+                }?: AbsentLiveData.create()
             }
 
             is None ->{
