@@ -10,6 +10,7 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
+import com.kanyandula.nyasa.repository.JobManager
 import com.kanyandula.nyasa.repository.NetworkBoundResource
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
@@ -37,11 +38,10 @@ constructor(
     val sharedPreferences: SharedPreferences,
     val sharedPrefsEditor: SharedPreferences.Editor
 
-) {
+): JobManager("AuthRepository")
+{
+
     private val TAG: String = "AppDebug"
-
-    private var repositoryJob: Job? = null
-
 
     fun attemptLogin(email: String, password: String): LiveData<DataState<AuthViewState>>{
 
@@ -50,12 +50,22 @@ constructor(
             return returnErrorResponse(loginFieldErrors, ResponseType.Dialog())
         }
 
-        return object: NetworkBoundResource<LoginResponse,Any, AuthViewState>(
+        return object: NetworkBoundResource<LoginResponse, Any, AuthViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
         ){
+
+            // Ignore
+            override fun loadFromCache(): LiveData<AuthViewState> {
+                return AbsentLiveData.create()
+            }
+
+            // Ignore
+            override suspend fun updateLocalDb(cacheObject: Any?) {
+
+            }
 
             // not used in this case
             override suspend fun createCacheRequestAndReturn() {
@@ -109,15 +119,7 @@ constructor(
             }
 
             override fun setJob(job: Job) {
-                repositoryJob?.cancel()
-                repositoryJob = job
-            }
-                //ignore
-            override fun loadFromCache(): LiveData<AuthViewState> {
-                return AbsentLiveData.create()
-            }
-                //ignore
-            override suspend fun updateLocalDb(cacheObject: Any?) {
+                addJob("attemptLogin", job)
             }
 
         }.asLiveData()
@@ -135,13 +137,22 @@ constructor(
             return returnErrorResponse(registrationFieldErrors, ResponseType.Dialog())
         }
 
-        return object: NetworkBoundResource<RegistrationResponse,Any, AuthViewState>(
+        return object: NetworkBoundResource<RegistrationResponse, Any, AuthViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
-
         ){
+            // Ignore
+            override fun loadFromCache(): LiveData<AuthViewState> {
+                return AbsentLiveData.create()
+            }
+
+            // Ignore
+            override suspend fun updateLocalDb(cacheObject: Any?) {
+
+            }
+
             // not used in this case
             override suspend fun createCacheRequestAndReturn() {
 
@@ -201,15 +212,7 @@ constructor(
             }
 
             override fun setJob(job: Job) {
-                repositoryJob?.cancel()
-                repositoryJob = job
-            }
-
-            override fun loadFromCache(): LiveData<AuthViewState> {
-               return AbsentLiveData.create()
-            }
-
-            override suspend fun updateLocalDb(cacheObject: Any?) {
+                addJob("attemptRegistration", job)
             }
 
         }.asLiveData()
@@ -225,18 +228,21 @@ constructor(
             return returnNoTokenFound()
         }
         else{
-            return object: NetworkBoundResource<Void,Any, AuthViewState>(
+            return object: NetworkBoundResource<Void, Any, AuthViewState>(
                 sessionManager.isConnectedToTheInternet(),
                 false,
                 false,
                 false
             ){
 
+                // Ignore
                 override fun loadFromCache(): LiveData<AuthViewState> {
                     return AbsentLiveData.create()
                 }
 
+                // Ignore
                 override suspend fun updateLocalDb(cacheObject: Any?) {
+
                 }
 
                 override suspend fun createCacheRequestAndReturn() {
@@ -282,8 +288,7 @@ constructor(
                 }
 
                 override fun setJob(job: Job) {
-                    repositoryJob?.cancel()
-                    repositoryJob = job
+                    addJob("checkPreviousAuthUser", job)
                 }
 
 
@@ -321,13 +326,6 @@ constructor(
         }
     }
 
-
-
-    fun cancelActiveJobs(){
-        Log.d(TAG, "AuthRepository: Cancelling on-going jobs...")
-        repositoryJob?.cancel()
-    }
-
-
-
 }
+
+

@@ -29,7 +29,18 @@ abstract class BaseAccountFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupActionBarWithNavController(R.id.accountFragment, activity as AppCompatActivity)
+
+        cancelActiveJobs()
     }
+
+    fun cancelActiveJobs(){
+        // When a fragment is destroyed make sure to cancel any on-going requests.
+        // Note: If you wanted a particular request to continue even if the fragment was destroyed, you could write a
+        //       special condition in the repository or something.
+        viewModel.cancelActiveJobs()
+    }
+
+
 
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav

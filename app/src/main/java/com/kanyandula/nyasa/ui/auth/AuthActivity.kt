@@ -18,6 +18,7 @@ import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.MainActivity
+import com.kanyandula.nyasa.util.SuccessHandling.Companion.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_auth.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,11 +44,10 @@ class AuthActivity : BaseActivity(),
         checkPreviousAuthUser()
     }
 
-    override fun expandAppBar() {
-        findViewById<AppBarLayout>(R.id.app_bar).setExpanded(true)
+    override fun onResume() {
+        super.onResume()
+        checkPreviousAuthUser()
     }
-
-
 
     private fun subscribeObservers(){
 
@@ -59,6 +59,15 @@ class AuthActivity : BaseActivity(),
                         it.authToken?.let {
                             Log.d(TAG, "AuthActivity, DataState: ${it}")
                             viewModel.setAuthToken(it)
+                        }
+                    }
+                }
+                data.response?.let{event ->
+                    event.peekContent().let{ response ->
+                        response.message?.let{ message ->
+                            if(message.equals(RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE)){
+                                onFinishCheckPreviousAuthUser()
+                            }
                         }
                     }
                 }
@@ -106,6 +115,10 @@ class AuthActivity : BaseActivity(),
         }
     }
 
+    override fun expandAppBar() {
+        // ignore
+    }
+
     override fun onDestinationChanged(
         controller: NavController,
         destination: NavDestination,
@@ -113,5 +126,5 @@ class AuthActivity : BaseActivity(),
     ) {
         viewModel.cancelActiveJobs()
     }
-
 }
+

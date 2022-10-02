@@ -8,6 +8,7 @@ import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
+import com.kanyandula.nyasa.repository.JobManager
 import com.kanyandula.nyasa.repository.NetworkBoundResource
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
@@ -26,16 +27,13 @@ import javax.inject.Inject
 class AccountRepository
 @Inject
 constructor(
-    val nyasaBlogApiMainService: NyasaBlogApiMainService,
+    val openApiMainService: NyasaBlogApiMainService,
     val accountPropertiesDao: AccountPropertiesDao,
     val sessionManager: SessionManager
-)
+): JobManager("AccountRepository")
 {
 
     private val TAG: String = "AppDebug"
-
-    private var repositoryJob: Job? = null
-
 
     fun getAccountProperties(authToken: AuthToken): LiveData<DataState<AccountViewState>> {
         return object: NetworkBoundResource<AccountProperties, AccountProperties, AccountViewState>(
@@ -85,7 +83,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<AccountProperties>> {
-                return nyasaBlogApiMainService
+                return openApiMainService
                     .getAccountProperties(
                         "Token ${authToken.token!!}"
                     )
@@ -93,22 +91,19 @@ constructor(
 
 
             override fun setJob(job: Job) {
-                repositoryJob?.cancel()
-                repositoryJob = job
+                addJob("getAccountProperties", job)
             }
 
 
         }.asLiveData()
     }
 
-
     fun saveAccountProperties(authToken: AuthToken, accountProperties: AccountProperties): LiveData<DataState<AccountViewState>> {
         return object: NetworkBoundResource<GenericResponse, Any, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
-            false,
-
+            false
         ){
 
             // not applicable
@@ -135,7 +130,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return nyasaBlogApiMainService.saveAccountProperties(
+                return openApiMainService.saveAccountProperties(
                     "Token ${authToken.token!!}",
                     accountProperties.email,
                     accountProperties.username
@@ -151,8 +146,7 @@ constructor(
             }
 
             override fun setJob(job: Job) {
-                repositoryJob?.cancel()
-                repositoryJob = job
+                addJob("saveAccountProperties", job)
             }
 
         }.asLiveData()
@@ -187,7 +181,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return nyasaBlogApiMainService.updatePassword(
+                return openApiMainService.updatePassword(
                     "Token ${authToken.token!!}",
                     currentPassword,
                     newPassword,
@@ -200,21 +194,14 @@ constructor(
             }
 
             override fun setJob(job: Job) {
-                repositoryJob?.cancel()
-                repositoryJob = job
+                addJob("updatePassword", job)
             }
 
         }.asLiveData()
     }
 
-
-
-    fun cancelActiveJobs(){
-        Log.d(TAG, "AuthRepository: Cancelling on-going jobs...")
-        repositoryJob?.cancel()
-    }
-
 }
+
 
 
 

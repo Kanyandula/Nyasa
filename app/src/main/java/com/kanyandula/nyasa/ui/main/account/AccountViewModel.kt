@@ -6,6 +6,7 @@ import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
+import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.*
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
@@ -79,6 +80,21 @@ constructor(
 
     fun logout(){
         sessionManager.logout()
+    }
+
+    fun cancelActiveJobs(){
+        handlePendingData()
+        accountRepository.cancelActiveJobs()
+    }
+
+    fun handlePendingData(){
+        setStateEvent(AccountStateEvent.None())
+    }
+
+
+    override fun onCleared() {
+        super.onCleared()
+        cancelActiveJobs()
     }
 
 }

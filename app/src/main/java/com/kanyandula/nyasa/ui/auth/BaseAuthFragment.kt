@@ -20,7 +20,11 @@ abstract class BaseAuthFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        cancelActiveJobs()
+    }
 
+    private fun cancelActiveJobs(){
+        viewModel.cancelActiveJobs()
     }
 
 }

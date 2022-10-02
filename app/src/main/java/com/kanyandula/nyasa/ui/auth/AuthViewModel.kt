@@ -10,7 +10,6 @@ import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
-import com.kanyandula.nyasa.util.AbsentLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
@@ -22,9 +21,8 @@ class AuthViewModel
 @Inject
 constructor(
    val authRepository: AuthRepository
-): BaseViewModel<AuthStateEvent, AuthViewState>(){
-
-
+): BaseViewModel<AuthStateEvent, AuthViewState>()
+{
    override fun handleStateEvent(stateEvent: AuthStateEvent): LiveData<DataState<AuthViewState>> {
       when(stateEvent){
 
@@ -48,13 +46,16 @@ constructor(
             return authRepository.checkPreviousAuthUser()
          }
 
-
-
-
+         is None ->{
+            return object: LiveData<DataState<AuthViewState>>(){
+               override fun onActive() {
+                  super.onActive()
+                  value = DataState.data(null, null)
+               }
+            }
+         }
       }
    }
-
-
 
    override fun initNewViewState(): AuthViewState {
       return AuthViewState()
@@ -87,13 +88,19 @@ constructor(
       _viewState.value = update
    }
 
+
    fun cancelActiveJobs(){
+      handlePendingData()
       authRepository.cancelActiveJobs()
    }
 
+   fun handlePendingData(){
+      setStateEvent(None())
+   }
 
    override fun onCleared() {
       super.onCleared()
       cancelActiveJobs()
    }
 }
+

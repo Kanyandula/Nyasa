@@ -25,8 +25,13 @@ abstract class BaseCreateBlogFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupActionBarWithNavController(R.id.createBlogFragment, activity as AppCompatActivity)
+
+        cancelActiveJobs()
     }
 
+    fun cancelActiveJobs(){
+//        viewModel.cancelActiveJobs()
+    }
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
         */
