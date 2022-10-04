@@ -13,9 +13,11 @@ import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
+import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.TopSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_blog.*
+import kotlinx.android.synthetic.main.fragment_view_blog.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
@@ -25,8 +27,6 @@ class BlogFragment : BaseBlogFragment(),
     BlogListAdapter.Interaction
 {
 
-    @Inject
-    lateinit var requestManager: RequestManager
 
     private lateinit var recyclerAdapter: BlogListAdapter
 
@@ -82,6 +82,17 @@ class BlogFragment : BaseBlogFragment(),
         })
     }
 
+
+    fun setBlogProperties(blogPost: BlogPost){
+        requestManager
+            .load(blogPost.image)
+            .into(blog_image)
+        blog_title.setText(blogPost.title)
+        blog_author.setText(blogPost.username)
+        blog_update_date.setText(DateUtils.convertLongToStringDate(blogPost.date_updated))
+        blog_body.setText(blogPost.body)
+    }
+
     private fun initRecyclerView(){
 
         blog_post_recyclerview.apply {
@@ -110,7 +121,8 @@ class BlogFragment : BaseBlogFragment(),
 
 
     override fun onItemSelected(position: Int, item: BlogPost) {
-        Log.d(TAG, "onItemSelected: position, BlogPost: $position, ${item}")
+        viewModel.setBlogPost(item)
+        findNavController().navigate(R.id.action_blogFragment_to_viewBlogFragment)
     }
 
     override fun onDestroyView() {

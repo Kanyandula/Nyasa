@@ -10,16 +10,22 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
+import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 abstract class BaseBlogFragment : Fragment(){
 
     val TAG: String = "AppDebug"
+
+
+    @Inject
+    lateinit var requestManager: RequestManager
 
 
     val viewModel: BlogViewModel by activityViewModels()
