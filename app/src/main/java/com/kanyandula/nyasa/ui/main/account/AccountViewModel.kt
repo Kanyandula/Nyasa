@@ -6,6 +6,7 @@ import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
+import com.kanyandula.nyasa.ui.Loading
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.*
@@ -28,13 +29,13 @@ constructor(
     override fun handleStateEvent(stateEvent: AccountStateEvent): LiveData<DataState<AccountViewState>> {
         when(stateEvent){
 
-            is GetAccountPropertiesEvent ->{
+            is GetAccountPropertiesEvent -> {
                 return sessionManager.cachedToken.value?.let { authToken ->
                     accountRepository.getAccountProperties(authToken)
                 }?: AbsentLiveData.create()
             }
-            is UpdateAccountPropertiesEvent ->{
 
+            is UpdateAccountPropertiesEvent ->{
                 return sessionManager.cachedToken.value?.let { authToken ->
                     authToken.account_pk?.let { pk ->
                         val newAccountProperties = AccountProperties(
@@ -49,6 +50,7 @@ constructor(
                     }
                 }?: AbsentLiveData.create()
             }
+
             is ChangePasswordEvent ->{
                 return sessionManager.cachedToken.value?.let { authToken ->
                     accountRepository.updatePassword(
@@ -59,14 +61,16 @@ constructor(
                     )
                 }?: AbsentLiveData.create()
             }
+
             is None ->{
-                return AbsentLiveData.create()
+                return object: LiveData<DataState<AccountViewState>>(){
+                    override fun onActive() {
+                        super.onActive()
+                        value = DataState(null, Loading(false), null)
+                    }
+                }
             }
         }
-    }
-
-    override fun initNewViewState(): AccountViewState {
-        return AccountViewState()
     }
 
     fun setAccountPropertiesData(accountProperties: AccountProperties){
@@ -75,7 +79,11 @@ constructor(
             return
         }
         update.accountProperties = accountProperties
-        _viewState.value = update
+        setViewState(update)
+    }
+
+    override fun initNewViewState(): AccountViewState {
+        return AccountViewState()
     }
 
     fun logout(){
@@ -83,19 +91,18 @@ constructor(
     }
 
     fun cancelActiveJobs(){
-        handlePendingData()
-        accountRepository.cancelActiveJobs()
+        accountRepository.cancelActiveJobs() // cancel active jobs
+        handlePendingData() // hide progress bar
     }
 
     fun handlePendingData(){
-        setStateEvent(AccountStateEvent.None())
+        setStateEvent(None())
     }
-
 
     override fun onCleared() {
         super.onCleared()
         cancelActiveJobs()
     }
-
 }
+
 

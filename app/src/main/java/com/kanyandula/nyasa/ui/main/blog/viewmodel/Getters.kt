@@ -1,0 +1,54 @@
+package com.kanyandula.nyasa.ui.main.blog.viewmodel
+
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.getSearchQuery(): String{
+    getCurrentViewStateOrNew().let{
+        return it.blogFields.searchQuery
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.getPage(): Int{
+    getCurrentViewStateOrNew().let{
+        return it.blogFields.page
+    }
+}
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.getIsQueryExhausted(): Boolean {
+    getCurrentViewStateOrNew().let {
+        return it.blogFields.isQueryExhausted
+    }
+}
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.getIsQueryInProgress(): Boolean {
+    getCurrentViewStateOrNew().let {
+        return it.blogFields.isQueryInProgress
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
