@@ -86,14 +86,14 @@
             </View>
 
             <TextView
+                android:id="@+id/blog_body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/blog_body"
+                android:layout_marginTop="20dp"
+                android:autoLink="web|map|email"
                 android:text="This is some blog content"
                 android:textColor="#000"
-                android:textSize="17sp"
-                android:layout_marginTop="20dp"
-                />
+                android:textSize="17sp" />
 
             <View
                 android:layout_width="match_parent"
