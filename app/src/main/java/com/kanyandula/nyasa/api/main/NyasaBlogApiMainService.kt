@@ -36,6 +36,7 @@ interface NyasaBlogApiMainService {
     fun searchListBlogPosts(
         @Header("Authorization") authorization: String,
         @Query("search") query: String,
+        @Query("ordering") ordering: String,
         @Query("page") page: Int
     ): LiveData<GenericApiResponse<BlogListSearchResponse>>
 

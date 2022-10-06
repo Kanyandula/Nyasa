@@ -44,4 +44,25 @@ fun BlogViewModel.setQueryInProgress(isInProgress: Boolean){
     val update = getCurrentViewStateOrNew()
     update.blogFields.isQueryInProgress = isInProgress
     setViewState(update)
+
+}
+
+
+// Filter can be "date_updated" or "username"
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.setBlogFilter(filter: String?){
+    filter?.let{
+        val update = getCurrentViewStateOrNew()
+        update.blogFields.filter = filter
+        setViewState(update)
+    }
+}
+
+// Order can be "-" or ""
+// Note: "-" = DESC, "" = ASC
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.setBlogOrder(order: String){
+    val update = getCurrentViewStateOrNew()
+    update.blogFields.order = order
+    setViewState(update)
 }

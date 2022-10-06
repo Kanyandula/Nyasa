@@ -2,6 +2,21 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.getFilter(): String {
+    getCurrentViewStateOrNew().let {
+        return it.blogFields.filter
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.getOrder(): String {
+    getCurrentViewStateOrNew().let {
+        return it.blogFields.order
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getSearchQuery(): String{
     getCurrentViewStateOrNew().let{

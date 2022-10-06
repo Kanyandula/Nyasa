@@ -9,11 +9,13 @@ import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
+import com.kanyandula.nyasa.persistance.returnOrderedBlogQuery
 import com.kanyandula.nyasa.repository.JobManager
 import com.kanyandula.nyasa.repository.NetworkBoundResource
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
+import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.*
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.Companion.PAGINATION_PAGE_SIZE
 import com.kanyandula.nyasa.util.DateUtils
@@ -38,6 +40,7 @@ constructor(
     fun searchBlogPosts(
         authToken: AuthToken,
         query: String,
+        filterAndOrder: String,
         page: Int
     ): LiveData<DataState<BlogViewState>> {
         return object: NetworkBoundResource<BlogListSearchResponse, List<BlogPost>, BlogViewState>(
@@ -90,21 +93,24 @@ constructor(
                 return openApiMainService.searchListBlogPosts(
                     "Token ${authToken.token!!}",
                     query = query,
+                    ordering = filterAndOrder,
                     page = page
                 )
             }
 
             override fun loadFromCache(): LiveData<BlogViewState> {
-                return blogPostDao.getAllBlogPosts(
+
+                Log.e(TAG,"BlogRepo: filter and order: $filterAndOrder")
+                return blogPostDao.returnOrderedBlogQuery(
                     query = query,
-                    page = page
-                )
+                    filterAndOrder = filterAndOrder,
+                    page = page)
                     .switchMap {
                         object: LiveData<BlogViewState>(){
                             override fun onActive() {
                                 super.onActive()
                                 value = BlogViewState(
-                                    BlogViewState.BlogFields(
+                                    BlogFields(
                                         blogList = it,
                                         isQueryInProgress = true
                                     )
@@ -121,11 +127,10 @@ constructor(
                         for(blogPost in cacheObject){
                             try{
                                 // Launch each insert as a separate job to be executed in parallel
-                                val j = launch {
+                                launch {
                                     Log.d(TAG, "updateLocalDb: inserting blog: ${blogPost}")
                                     blogPostDao.insert(blogPost)
                                 }
-                                j.join() // wait for completion before proceeding to next
                             }catch (e: Exception){
                                 Log.e(TAG, "updateLocalDb: error updating cache data on blog post with slug: ${blogPost.slug}. " +
                                         "${e.message}")
@@ -148,6 +153,8 @@ constructor(
     }
 
 }
+
+
 
 
 
