@@ -40,6 +40,13 @@ interface NyasaBlogApiMainService {
         @Query("page") page: Int
     ): LiveData<GenericApiResponse<BlogListSearchResponse>>
 
+    @GET("blog/{slug}/is_author")
+    fun isAuthorOfBlogPost(
+        @Header("Authorization") authorization: String,
+        @Path("slug") slug: String
+    ): LiveData<GenericApiResponse<GenericResponse>>
+
+
 }
 
 

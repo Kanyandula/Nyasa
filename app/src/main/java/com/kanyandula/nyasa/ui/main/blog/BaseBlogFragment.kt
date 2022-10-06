@@ -66,4 +66,6 @@ abstract class BaseBlogFragment : Fragment(){
             Log.e(TAG, "$context must implement DataStateChangeListener" )
         }
     }
+
+
 }
