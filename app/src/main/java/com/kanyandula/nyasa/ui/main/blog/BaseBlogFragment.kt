@@ -13,6 +13,7 @@ import androidx.navigation.ui.NavigationUI
 import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
+import com.kanyandula.nyasa.ui.UICommunicationListener
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +28,8 @@ abstract class BaseBlogFragment : Fragment(){
 
     @Inject
     lateinit var requestManager: RequestManager
+
+    lateinit var uiCommunicationListener: UICommunicationListener
 
 
     val viewModel: BlogViewModel by activityViewModels()
@@ -64,6 +67,12 @@ abstract class BaseBlogFragment : Fragment(){
             stateChangeListener = context as DataStateChangeListener
         }catch(e: ClassCastException){
             Log.e(TAG, "$context must implement DataStateChangeListener" )
+        }
+
+        try{
+            uiCommunicationListener = context as UICommunicationListener
+        }catch(e: ClassCastException){
+            Log.e(TAG, "$context must implement UICommunicationListener" )
         }
     }
 
