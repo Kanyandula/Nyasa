@@ -2,9 +2,12 @@ package com.kanyandula.nyasa.api.main
 
 import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.api.GenericResponse
+import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.util.GenericApiResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.*
 
 interface NyasaBlogApiMainService {
@@ -52,6 +55,16 @@ interface NyasaBlogApiMainService {
         @Header("Authorization") authorization: String,
         @Path("slug") slug: String
     ): LiveData<GenericApiResponse<GenericResponse>>
+
+    @Multipart
+    @PUT("blog/{slug}/update")
+    fun updateBlog(
+        @Header("Authorization") authorization: String,
+        @Path("slug") slug: String,
+        @Part("title") title: RequestBody,
+        @Part("body") body: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): LiveData<GenericApiResponse<BlogCreateUpdateResponse>>
 
 }
 

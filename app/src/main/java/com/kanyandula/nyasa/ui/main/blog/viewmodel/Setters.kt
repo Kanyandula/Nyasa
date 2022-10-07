@@ -1,6 +1,7 @@
 package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 
+import android.net.Uri
 import com.kanyandula.nyasa.models.BlogPost
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -81,5 +82,17 @@ fun BlogViewModel.removeDeletedBlogPost(){
     setBlogListData(list)
 //    setViewState(update)
 }
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.setUpdatedBlogFields(title: String?, body: String?, uri: Uri?){
+    val update = getCurrentViewStateOrNew()
+    val updatedBlogFields = update.updatedBlogFields
+    title?.let{ updatedBlogFields.updatedBlogTitle = it }
+    body?.let{ updatedBlogFields.updatedBlogBody = it }
+    uri?.let{ updatedBlogFields.updatedImageUri = it }
+    update.updatedBlogFields = updatedBlogFields
+    setViewState(update)
+}
+
 
 

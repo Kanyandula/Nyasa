@@ -16,6 +16,9 @@ import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_ORDER
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
 import javax.inject.Inject
 
 
@@ -77,6 +80,29 @@ constructor(
                     blogRepository.deleteBlogPost(
                         authToken = authToken,
                         blogPost = getBlogPost()
+                    )
+                }?: AbsentLiveData.create()
+            }
+
+            is UpdateBlogPostEvent -> {
+
+                return sessionManager.cachedToken.value?.let { authToken ->
+
+                    val title = RequestBody.create(
+                        "text/plain".toMediaTypeOrNull(),
+                        stateEvent.title
+                    )
+                    val body = RequestBody.create(
+                        "text/plain".toMediaTypeOrNull(),
+                        stateEvent.body
+                    )
+
+                    blogRepository.updateBlogPost(
+                        authToken = authToken,
+                        slug = getSlug(),
+                        title = title,
+                        body = body,
+                        image = stateEvent.image
                     )
                 }?: AbsentLiveData.create()
             }

@@ -1,7 +1,9 @@
 package com.kanyandula.nyasa.ui.main.blog
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
@@ -10,9 +12,7 @@ import com.kanyandula.nyasa.ui.AreYouSureCallback
 import com.kanyandula.nyasa.ui.UIMessage
 import com.kanyandula.nyasa.ui.UIMessageType
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.isAuthorOfBlogPost
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.removeDeletedBlogPost
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setIsAuthorOfBlogPost
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.*
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_DELETED
 import kotlinx.android.synthetic.main.fragment_view_blog.*
@@ -141,6 +141,17 @@ class ViewBlogFragment : BaseBlogFragment(){
     }
 
     private fun navUpdateBlogFragment(){
-        findNavController().navigate(R.id.action_viewBlogFragment_to_updateBlogFragment)
+        try{
+            // prep for next fragment
+            viewModel.setUpdatedBlogFields(
+                viewModel.getBlogPost().title,
+                viewModel.getBlogPost().body,
+                viewModel.getBlogPost().image.toUri()
+            )
+            findNavController().navigate(R.id.action_viewBlogFragment_to_updateBlogFragment)
+        }catch (e: Exception){
+            // send error report or something. These fields should never be null. Not possible
+            Log.e(TAG, "Exception: ${e.message}")
+        }
     }
 }

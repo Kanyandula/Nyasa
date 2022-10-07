@@ -1,5 +1,6 @@
 package com.kanyandula.nyasa.ui.main.blog.state
 
+import android.net.Uri
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_ORDER_ASC
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.ORDER_BY_ASC_DATE_UPDATED
@@ -12,7 +13,10 @@ data class BlogViewState (
 
 
 // ViewBlogFragment vars
-    var viewBlogFields: ViewBlogFields = ViewBlogFields()
+    var viewBlogFields: ViewBlogFields = ViewBlogFields(),
+
+    // UpdateBlogFragment vars
+    var updatedBlogFields: UpdatedBlogFields = UpdatedBlogFields()
 
 
 )
@@ -30,6 +34,13 @@ data class BlogViewState (
     data class ViewBlogFields(
         var blogPost: BlogPost? = null,
         var isAuthorOfBlogPost: Boolean = false
+    )
+
+
+    data class UpdatedBlogFields(
+        var updatedBlogTitle: String? = null,
+        var updatedBlogBody: String? = null,
+        var updatedImageUri: Uri? = null
     )
 
 
