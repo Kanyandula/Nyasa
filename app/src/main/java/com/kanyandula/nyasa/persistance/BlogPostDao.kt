@@ -2,10 +2,7 @@ package com.kanyandula.nyasa.persistance
 
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.util.Constants.Companion.PAGINATION_PAGE_SIZE
 
@@ -14,6 +11,9 @@ interface BlogPostDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(blogPost: BlogPost): Long
+
+    @Delete
+    suspend fun deleteBlogPost(blogPost: BlogPost)
 
     @Query("""
         SELECT * FROM blog_post 
@@ -77,6 +77,9 @@ interface BlogPostDao {
         page: Int,
         pageSize: Int = PAGINATION_PAGE_SIZE
     ): LiveData<List<BlogPost>>
+
+
+
 }
 
 

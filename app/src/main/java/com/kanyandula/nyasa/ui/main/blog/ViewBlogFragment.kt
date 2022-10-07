@@ -6,7 +6,6 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.BlogPost
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.isAuthorOfBlogPost
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setIsAuthorOfBlogPost
@@ -32,6 +31,16 @@ class ViewBlogFragment : BaseBlogFragment(){
         subscribeObservers()
         checkIsAuthorOfBlogPost()
         stateChangeListener.expandAppBar()
+
+        delete_button.setOnClickListener {
+            deleteBlogPost()
+        }
+    }
+
+    fun deleteBlogPost(){
+        viewModel.setStateEvent(
+            DeleteBlogPostEvent()
+        )
     }
 
 

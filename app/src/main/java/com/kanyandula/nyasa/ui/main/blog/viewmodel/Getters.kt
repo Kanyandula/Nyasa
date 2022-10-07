@@ -1,5 +1,6 @@
 package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
+import com.kanyandula.nyasa.models.BlogPost
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 
@@ -57,6 +58,19 @@ fun BlogViewModel.isAuthorOfBlogPost(): Boolean{
     getCurrentViewStateOrNew().let {
         return it.viewBlogFields.isAuthorOfBlogPost
     }
+}
+
+
+fun BlogViewModel.getBlogPost(): BlogPost {
+    getCurrentViewStateOrNew().let {
+        return it.viewBlogFields.blogPost?.let {
+            return it
+        }?: getDummyBlogPost()
+    }
+}
+
+fun BlogViewModel.getDummyBlogPost(): BlogPost{
+    return BlogPost(-1, "" , "", "", "", 1, "")
 }
 
 
