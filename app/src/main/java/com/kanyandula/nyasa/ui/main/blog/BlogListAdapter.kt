@@ -124,6 +124,20 @@ class BlogListAdapter(
         differ.submitList(newList)
     }
 
+    // Prepare the images that will be displayed in the RecyclerView.
+    // This also ensures if the network connection is lost, they will be in the cache
+    fun preloadGlideImages(
+        requestManager: RequestManager,
+        list: List<BlogPost>
+    ){
+        for(blogPost in list){
+            requestManager
+                .load(blogPost.image)
+                .preload()
+        }
+    }
+
+
     override fun getItemViewType(position: Int): Int {
         if(differ.currentList.get(position).pk > -1){
             return BLOG_ITEM
