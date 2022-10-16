@@ -1,5 +1,7 @@
 package com.kanyandula.nyasa.ui.main.blog
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -40,6 +42,8 @@ class ViewBlogFragment : BaseBlogFragment(){
         delete_button.setOnClickListener {
             confirmDeleteRequest()
         }
+
+
     }
 
     fun confirmDeleteRequest(){
@@ -119,6 +123,15 @@ class ViewBlogFragment : BaseBlogFragment(){
         blog_author.setText(blogPost.username)
         blog_update_date.setText(DateUtils.convertLongToStringDate(blogPost.date_updated))
         blog_body.setText(blogPost.body)
+        val uri = Uri.parse(blogPost.slug)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+//        text_view_creator.apply {
+//            text = "https://nyasablog.com/blog/${blogPost.slug}/detail/"
+//            setOnClickListener {
+//                context.startActivity(intent)
+//            }
+//            paint.isUnderlineText = true
+//        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -154,4 +167,8 @@ class ViewBlogFragment : BaseBlogFragment(){
             Log.e(TAG, "Exception: ${e.message}")
         }
     }
+
+
+
+
 }

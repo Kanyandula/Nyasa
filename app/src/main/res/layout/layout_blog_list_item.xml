@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        app:cardElevation="10dp"
-        app:cardCornerRadius="2dp"
-        app:cardPreventCornerOverlap="false"
-        >
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:cardElevation="10dp"
+    app:cardCornerRadius="2dp"
+    app:cardPreventCornerOverlap="false">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -27,6 +26,7 @@
                 android:layout_margin="0dp"
                 android:adjustViewBounds="true"
                 android:scaleType="fitXY"
+            tools:src="@mipmap/ic_launcher_round"
                 />
 
 
@@ -41,24 +41,25 @@
                 android:padding="10dp"
                 android:id="@+id/container1"
                 >
-            <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/blog_title"
-                    android:text="The Title of a Blog"
-                    android:textColor="#000"
-                    android:textSize="19sp"
-                    />
 
             <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/blog_author"
-                    android:text="Ephraim Kanyandula"
-                    android:textColor="@color/grey5"
-                    android:textSize="15sp"
-                    android:layout_marginTop="10dp"
-                    />
+                android:id="@+id/blog_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/andika"
+                android:text="The Title of a Blog"
+                android:textColor="#000"
+                android:textSize="19sp" />
+
+            <TextView
+                android:id="@+id/blog_author"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Ephraim Kanyandula"
+                android:textColor="@color/grey5"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <TextView
                     android:layout_width="match_parent"

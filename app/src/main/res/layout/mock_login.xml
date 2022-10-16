@@ -22,12 +22,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-
+                <View android:layout_width="0.5dp"
+                    android:layout_height="0.5dp"
+                    android:focusableInTouchMode="true"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:id="@+id/focusable_view">
+                </View>
 
 
                 <ImageView
                     android:id="@+id/imageView"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:scaleType="centerCrop"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -44,7 +51,6 @@
                     android:layout_height="match_parent"
                     android:layout_marginBottom="8dp"
                     app:layout_constraintBottom_toBottomOf="@id/imageView"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:srcCompat="@drawable/white_line" />
 
                 <ImageView
@@ -99,83 +105,83 @@
 
 
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:hint="@string/your_email"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintBottom_toTopOf="@+id/username_input_layout"
-                        android:padding="16dp"
-                        app:helperText="Email"
-                        android:id="@+id/email_input_layout"
-                        app:layout_constraintVertical_chainStyle="packed"
-                        app:layout_constraintVertical_bias=".1"
-                        >
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/email"
-                            android:textColor="#000"
-                            android:textSize="20sp"
-                            app:drawableLeftCompat="@drawable/ic_baseline_email_24" />
+                <com.google.android.material.textfield.TextInputLayout
+                android:hint="@string/your_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/username_input_layout"
+                android:padding="16dp"
+                app:helperText="Email"
+                android:id="@+id/email_input_layout"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintVertical_bias=".1"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/email"
+                    android:textColor="#000"
+                    android:textSize="20sp"
+                    app:drawableLeftCompat="@drawable/ic_baseline_email_24" />
 
-                    </com.google.android.material.textfield.TextInputLayout>
-
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintTop_toBottomOf="@+id/email_input_layout"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintLeft_toLeftOf="parent"
-                        app:layout_constraintBottom_toTopOf="@+id/change_password"
-                        android:hint="@string/your_username"
-                        android:padding="16dp"
-                        app:helperText="Username"
-                        android:id="@+id/username_input_layout"
-                        >
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/username"
-                            android:textColor="#000"
-                            android:drawableLeft="@drawable/ic_baseline_person_24"
-                            android:textSize="20sp"
-                            />
-
-                    </com.google.android.material.textfield.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@+id/email_input_layout"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/change_password"
+                android:hint="@string/your_username"
+                android:padding="16dp"
+                app:helperText="Username"
+                android:id="@+id/username_input_layout"
+                >
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/username"
+                    android:textColor="#000"
+                    android:drawableLeft="@drawable/ic_baseline_person_24"
+                    android:textSize="20sp"
+                    />
+
+            </com.google.android.material.textfield.TextInputLayout>
 
 
-                    <TextView
-                        android:id="@+id/change_password"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="32dp"
-                        android:gravity="center"
-                        android:text="@string/change_password"
-                        android:textColor="@color/link_blue"
-                        android:textSize="18sp"
-                        />
 
-                    <Button
-                        android:id="@+id/logout_button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:layout_marginTop="50dp"
-                        android:layout_marginRight="15dp"
-                        android:layout_marginBottom="30dp"
-                        android:background="@drawable/background_button"
-                        android:text="Log out"
-                        android:textAllCaps="false"
-                        android:textColor="#fff"
-                        android:textSize="16sp"
-                        />
+
+            <TextView
+                android:id="@+id/change_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:text="@string/change_password"
+                android:textColor="@color/link_blue"
+                android:textSize="18sp"
+                 />
+
+            <Button
+                android:id="@+id/logout_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginBottom="30dp"
+                android:background="@drawable/background_button"
+                android:text="Log out"
+                android:textAllCaps="false"
+                android:textColor="#fff"
+                android:textSize="16sp"
+                />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

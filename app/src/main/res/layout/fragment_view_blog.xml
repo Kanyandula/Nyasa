@@ -18,20 +18,20 @@
         >
 
         <TextView
+            android:id="@+id/blog_title"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/blog_image"
-            android:id="@+id/blog_title"
+            android:fontFamily="@font/andika"
             android:gravity="center_vertical"
-            android:layout_marginStart="10dp"
             android:text="The Title of a Blog"
+            android:textAlignment="center"
             android:textColor="#000"
             android:textSize="19sp"
             android:textStyle="bold"
-            />
+            app:layout_constraintBottom_toTopOf="@+id/blog_image"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:layout_width="match_parent"
@@ -43,6 +43,7 @@
             android:id="@+id/blog_image"
             android:scaleType="fitXY"
             android:adjustViewBounds="true"
+            tools:src="@mipmap/ic_launcher_round"
             />
 
         <LinearLayout
@@ -58,13 +59,13 @@
             >
 
             <TextView
+                android:id="@+id/blog_author"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/blog_author"
-                android:text="Mitch Tabian"
+                android:text="Ephraim Kanyandula"
                 android:textColor="@color/grey5"
                 android:textSize="15sp"
-                />
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -75,6 +76,8 @@
                 android:textSize="13sp"
                 android:layout_marginTop="10dp"
                 />
+
+
 
             <View
                 android:layout_width="match_parent"
@@ -109,14 +112,14 @@
                 android:id="@+id/delete_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/red_button_drawable"
+                android:layout_marginTop="50dp"
+                android:layout_marginBottom="30dp"
+                android:background="@drawable/background_button2"
                 android:text="@string/delete"
                 android:textAllCaps="false"
                 android:textColor="#fff"
                 android:textSize="16sp"
-                android:layout_marginTop="50dp"
-                android:layout_marginBottom="30dp"
-                android:visibility="invisible"/>
+                android:visibility="invisible" />
 
         </LinearLayout>
 

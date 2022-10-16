@@ -79,5 +79,6 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="go_to_viewblogfragment">go to ViewBlogFragment</string>
     <string name="apply">Apply</string>
+    <string name="forgot_password">Forgot password</string>
 
 </resources>

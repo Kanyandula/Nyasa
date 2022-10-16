@@ -1,90 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.auth.LauncherFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.auth.LauncherFragment"
-    android:fillViewport="true"
-    android:background="#fff"
-    >
+    android:background="#eff0fc">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        >
-
-        <View android:layout_width="0.5dp"
-            android:layout_height="0.5dp"
-            android:focusableInTouchMode="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            android:id="@+id/focusable_view">
-        </View>
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="75dp"
-            android:id="@+id/app_logo"
-            android:src="@drawable/nyasa"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/login"
-            app:layout_constraintVertical_chainStyle="packed"
-            app:layout_constraintVertical_bias=".4"
-            android:contentDescription="@string/nyasa_blog_logo" />
+        android:layout_height="match_parent">
 
 
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/app_logo"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/register"
-            android:textSize="25sp"
-            android:textColor="#000"
-            android:text="Login"
-            android:id="@+id/login"
-            android:layout_marginTop="30dp"
-            />
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/login"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/forgot_password"
-            android:textSize="25sp"
-            android:textColor="#000"
-            android:text="Register"
-            android:id="@+id/register"
-            android:layout_marginTop="30dp"
-            />
+            <View android:layout_width="0.5dp"
+                android:layout_height="0.5dp"
+                android:focusableInTouchMode="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:id="@+id/focusable_view">
+            </View>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleType="centerCrop"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0"
+                    app:srcCompat="@drawable/top_background" />
+
+                <ImageView
+                    android:id="@+id/imageView3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toBottomOf="@id/imageView"
+                    app:srcCompat="@drawable/white_line" />
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="259dp"
+                    android:layout_height="212dp"
+                    android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/imageView"
+                    app:layout_constraintStart_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:srcCompat="@drawable/women" />
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/register"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:textSize="16sp"
-            android:textColor="@color/link_blue"
-            android:text="Forgot password"
-            android:id="@+id/forgot_password"
-            android:layout_marginTop="30dp"
-            />
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="169dp"
+                    android:layout_height="175dp"
+                    android:layout_marginStart="32dp"
+                    android:fontFamily="@font/andika"
+                    android:text="Welcome to NyasaBlog"
+                    android:textAlignment="center"
+                    android:textColor="#ffffff"
+                    android:textSize="33dp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.528"
+                    app:layout_constraintStart_toStartOf="@+id/imageView"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <Button
+                android:id="@+id/login"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@drawable/background_button"
+                android:text="@string/field_login"
+                android:textAllCaps="false"
+                android:textColor="#fff"
+                android:textSize="16sp"
+                android:layout_margin="15dp"
+                />
 
+            <Button
+                android:text="Register"
+                android:id="@+id/register"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@drawable/background_button"
+                android:textAllCaps="false"
+                android:textColor="#fff"
+                android:textSize="16sp"
+                android:layout_margin="15dp"
+                />
 
-</ScrollView>
+            <TextView
+                android:id="@+id/forgot_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/forgot_password"
+                android:textAlignment="textEnd"
+                android:layout_marginEnd="32dp"
+                android:textColor="@color/link_blue"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -140,6 +140,8 @@ dependencies {
     def matieral_dialogs_version = "3.1.0"
     implementation "com.afollestad.material-dialogs:core:$matieral_dialogs_version"
 
+    implementation 'com.google.android.material:material:1.6.1'
+
 
     // Retrofit + GSON
     implementation "com.squareup.retrofit2:retrofit:2.9.0"
