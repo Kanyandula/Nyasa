@@ -6,15 +6,16 @@ import android.view.*
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentUpdateBlogBinding
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.onBlogPostUpdateSuccess
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
-import kotlinx.android.synthetic.main.fragment_update_blog.*
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MultipartBody
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class UpdateBlogFragment : BaseBlogFragment(){
+class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate){
 
 
     override fun onCreateView(
@@ -60,19 +61,22 @@ class UpdateBlogFragment : BaseBlogFragment(){
     }
 
     fun setBlogProperties(title: String?, body: String?, image: Uri?){
-        requestManager
-            .load(image)
-            .into(blog_image)
-        blog_title.setText(title)
-        blog_body.setText(body)
+        binding?.let {
+            requestManager
+                .load(image)
+                .into(it.blogImage)
+        }
+        binding?.blogTitle
+            ?.setText(title)
+        binding?.blogBody?.setText(body)
     }
 
     private fun saveChanges(){
         var multipartBody: MultipartBody.Part? = null
         viewModel.setStateEvent(
             BlogStateEvent.UpdateBlogPostEvent(
-                blog_title.text.toString(),
-                blog_body.text.toString(),
+                binding?.blogTitle?.text.toString(),
+                binding?.blogBody?.text.toString(),
                 multipartBody
             )
         )
@@ -100,8 +104,8 @@ class UpdateBlogFragment : BaseBlogFragment(){
         super.onPause()
         viewModel.setUpdatedBlogFields(
             uri = null,
-            title = blog_title.text.toString(),
-            body = blog_body.text.toString()
+            title = binding?.blogTitle?.text.toString(),
+            body =  binding?.blogBody?.text.toString()
         )
     }
 

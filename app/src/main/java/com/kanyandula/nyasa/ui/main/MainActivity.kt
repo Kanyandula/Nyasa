@@ -15,15 +15,18 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.ActivityMainBinding
 import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.auth.AuthActivity
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_main.*
+
 
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity()
 {
+
+    private lateinit var binding: ActivityMainBinding
 
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -34,10 +37,10 @@ class MainActivity : BaseActivity()
 
     override fun displayProgressBar(bool: Boolean) {
         if(bool){
-            progress_bar.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
         }
         else{
-            progress_bar.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
         }
     }
 
@@ -46,7 +49,9 @@ class MainActivity : BaseActivity()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val  view = binding.root
+        setContentView(view)
 
         setupActionBar()
 
@@ -79,7 +84,7 @@ class MainActivity : BaseActivity()
     }
 
     private fun setupActionBar(){
-        setSupportActionBar(tool_bar)
+        setSupportActionBar(binding.toolBar)
     }
 
 

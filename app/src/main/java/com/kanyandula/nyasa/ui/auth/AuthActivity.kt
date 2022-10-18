@@ -6,21 +6,18 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
-import com.google.android.material.appbar.AppBarLayout
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.ActivityAuthBinding
 import com.kanyandula.nyasa.ui.BaseActivity
-import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.MainActivity
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_auth.*
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 
@@ -32,11 +29,15 @@ class AuthActivity : BaseActivity(),
 {
 
 
+    private lateinit var binding: ActivityAuthBinding
 
     private val viewModel: AuthViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_auth)
+        binding= ActivityAuthBinding.inflate(layoutInflater)
+        val  view =binding.root
+        //setContentView(R.layout.activity_auth)
+        setContentView(view)
 
         findNavController(R.id.auth_nav_host_fragment).addOnDestinationChangedListener(this)
 
@@ -103,15 +104,17 @@ class AuthActivity : BaseActivity(),
     }
 
     private fun onFinishCheckPreviousAuthUser(){
-        fragment_container.visibility = View.VISIBLE
+       binding.fragmentContainer
+
+           .visibility = View.VISIBLE
     }
 
     override fun displayProgressBar(bool: Boolean){
         if(bool){
-            progress_bar.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
         }
         else{
-            progress_bar.visibility = View.GONE
+            binding.progressBar.visibility = View.GONE
         }
     }
 

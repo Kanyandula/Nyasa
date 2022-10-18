@@ -6,24 +6,21 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import com.kanyandula.nyasa.util.ApiEmptyResponse
-import com.kanyandula.nyasa.util.ApiErrorResponse
-import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.R
-import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
+import com.kanyandula.nyasa.databinding.FragmentRegisterBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_register.*
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class RegisterFragment : BaseAuthFragment() {
 
+    private var _binding: FragmentRegisterBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,9 +36,12 @@ class RegisterFragment : BaseAuthFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Log.d(TAG, "RegisterFragment: $viewModel")
+        _binding = FragmentRegisterBinding.bind(view)
 
-        register_button.setOnClickListener {
+
+        Log.d(TAG, "RegisterFragment: $viewModel")
+        binding.registerButton
+        .setOnClickListener {
             register()
         }
 
@@ -52,10 +52,10 @@ class RegisterFragment : BaseAuthFragment() {
     private fun subscribeObservers(){
         viewModel.viewState.observe(viewLifecycleOwner, Observer{viewState ->
             viewState.registrationFields?.let {
-                it.registration_email?.let{input_email.setText(it)}
-                it.registration_username?.let{input_username.setText(it)}
-                it.registration_password?.let{input_password.setText(it)}
-                it.registration_confirm_password?.let{input_password_confirm.setText(it)}
+                it.registration_email?.let{binding.inputEmail.setText(it)}
+                it.registration_username?.let{binding.inputUsername.setText(it)}
+                it.registration_password?.let{binding.inputPassword.setText(it)}
+                it.registration_confirm_password?.let{binding.inputPasswordConfirm.setText(it)}
             }
         })
     }
@@ -63,24 +63,30 @@ class RegisterFragment : BaseAuthFragment() {
     fun register(){
         viewModel.setStateEvent(
             RegisterAttemptEvent(
-                input_email.text.toString(),
-                input_username.text.toString(),
-                input_password.text.toString(),
-                input_password_confirm.text.toString()
+
+                binding.inputEmail.text.toString(),
+                binding.inputUsername.text.toString(),
+                binding.inputPassword.text.toString(),
+                binding.inputPasswordConfirm.text.toString()
+
             )
         )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         viewModel.setRegistrationFields(
             RegistrationFields(
-                input_email.text.toString(),
-                input_username.text.toString(),
-                input_password.text.toString(),
-                input_password_confirm.text.toString()
+                binding.inputEmail.text.toString(),
+                binding.inputUsername.text.toString(),
+                binding.inputPassword.text.toString(),
+                binding.inputPasswordConfirm.text.toString()
             )
         )
     }
+
+
+
 
 }

@@ -7,37 +7,31 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentAccountBinding
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_account.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class AccountFragment : BaseAccountFragment() {
+class AccountFragment : BaseAccountFragment<FragmentAccountBinding>(FragmentAccountBinding::inflate) {
 
 
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_account, container, false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setHasOptionsMenu(true)
 
-        change_password.setOnClickListener {
-            findNavController().navigate(R.id.action_accountFragment_to_changePasswordFragment)
-        }
+        binding?.changePassword
 
-        logout_button.setOnClickListener {
+            ?.setOnClickListener {
+                findNavController().navigate(R.id.action_accountFragment_to_changePasswordFragment)
+            }
+
+        binding?.logoutButton?.setOnClickListener {
             viewModel.logout()
         }
 
@@ -73,8 +67,8 @@ class AccountFragment : BaseAccountFragment() {
 
 
     private fun setAccountDataFields(accountProperties: AccountProperties){
-        email?.text = accountProperties.email
-        username?.text = accountProperties.username
+        binding?.email?.text = accountProperties.email
+        binding?.username?.text = accountProperties.username
     }
 
     override fun onResume() {

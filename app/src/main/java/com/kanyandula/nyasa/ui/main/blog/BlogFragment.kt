@@ -21,6 +21,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_FILTER_DATE_UPDATED
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_FILTER_USERNAME
@@ -33,7 +34,6 @@ import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.TopSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
 import handleIncomingBlogListData
-import kotlinx.android.synthetic.main.fragment_blog.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import loadFirstPage
 import nextPage
@@ -41,7 +41,7 @@ import nextPage
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class BlogFragment : BaseBlogFragment(),
+class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::inflate),
     BlogListAdapter.Interaction,
         SwipeRefreshLayout.OnRefreshListener
 {
@@ -51,19 +51,11 @@ class BlogFragment : BaseBlogFragment(),
 
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_blog, container, false)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
         setHasOptionsMenu(true)
-        swipe_refresh.setOnRefreshListener(this)
+        binding?.swipeRefresh?.setOnRefreshListener(this)
 
 
         initRecyclerView()
@@ -152,9 +144,11 @@ class BlogFragment : BaseBlogFragment(),
     }
 
     private  fun resetUI(){
-        blog_post_recyclerview.smoothScrollToPosition(0)
+        binding?.blogPostRecyclerview
+            ?.smoothScrollToPosition(0)
         stateChangeListener.hideSoftKeyboard()
-        focusable_view.requestFocus()
+        binding?.focusableView
+            ?.requestFocus()
     }
 
 
@@ -193,27 +187,28 @@ class BlogFragment : BaseBlogFragment(),
 
     private fun initRecyclerView(){
 
-        blog_post_recyclerview.apply {
-            layoutManager = LinearLayoutManager(this@BlogFragment.context)
-            val topSpacingDecorator = TopSpacingItemDecoration(30)
-            removeItemDecoration(topSpacingDecorator) // does nothing if not applied already
-            addItemDecoration(topSpacingDecorator)
+        binding?.blogPostRecyclerview
+            ?.apply {
+                layoutManager = LinearLayoutManager(this@BlogFragment.context)
+                val topSpacingDecorator = TopSpacingItemDecoration(30)
+                removeItemDecoration(topSpacingDecorator) // does nothing if not applied already
+                addItemDecoration(topSpacingDecorator)
 
-            recyclerAdapter = BlogListAdapter(requestManager,  this@BlogFragment)
-            addOnScrollListener(object: RecyclerView.OnScrollListener(){
+                recyclerAdapter = BlogListAdapter(requestManager,  this@BlogFragment)
+                addOnScrollListener(object: RecyclerView.OnScrollListener(){
 
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                    val lastPosition = layoutManager.findLastVisibleItemPosition()
-                    if (lastPosition == recyclerAdapter.itemCount.minus(1)) {
-                        Log.d(TAG, "BlogFragment: attempting to load next page...")
-                        viewModel.nextPage()
+                    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                        super.onScrollStateChanged(recyclerView, newState)
+                        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                        val lastPosition = layoutManager.findLastVisibleItemPosition()
+                        if (lastPosition == recyclerAdapter.itemCount.minus(1)) {
+                            Log.d(TAG, "BlogFragment: attempting to load next page...")
+                            viewModel.nextPage()
+                        }
                     }
-                }
-            })
-            adapter = recyclerAdapter
-        }
+                })
+                adapter = recyclerAdapter
+            }
 
     }
 
@@ -243,12 +238,12 @@ class BlogFragment : BaseBlogFragment(),
     override fun onDestroyView() {
         super.onDestroyView()
         // clear references (can leak memory)
-        blog_post_recyclerview.adapter = null
+        binding?.blogPostRecyclerview?.adapter = null
     }
 
     override fun onRefresh() {
         onBlogSearchOrFilter()
-        swipe_refresh.isRefreshing = false
+       // swipe_refresh.isRefreshing = false
     }
 
     fun showFilterDialog(){

@@ -8,15 +8,15 @@ import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentChangePasswordBinding
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.RESPONSE_PASSWORD_UPDATE_SUCCESS
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_change_password.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class ChangePasswordFragment : BaseAccountFragment(){
+class ChangePasswordFragment : BaseAccountFragment<FragmentChangePasswordBinding>(FragmentChangePasswordBinding::inflate){
 
 
     override fun onCreateView(
@@ -29,16 +29,19 @@ class ChangePasswordFragment : BaseAccountFragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        update_password_button.setOnClickListener {
-            viewModel.setStateEvent(
-                AccountStateEvent.ChangePasswordEvent(
-                    input_current_password.text.toString(),
-                    input_new_password.text.toString(),
-                    input_confirm_new_password.text.toString()
+        binding?.updatePasswordButton
+            ?.setOnClickListener {
+                viewModel.setStateEvent(
+                    AccountStateEvent.ChangePasswordEvent(
+                        binding!!.inputCurrentPassword
+                        .text.toString(),
+                        binding!!.inputNewPassword
+                        .text.toString(),
+                        binding!!.inputConfirmNewPassword
+                        .text.toString()
+                    )
                 )
-            )
-        }
+            }
 
         subscribeObservers()
     }

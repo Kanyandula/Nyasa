@@ -14,13 +14,14 @@ import android.webkit.WebViewClient
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentForgotPasswordBinding
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.DataStateChangeListener
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_forgot_password.*
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Main
@@ -30,6 +31,9 @@ import kotlinx.coroutines.launch
 class ForgotPasswordFragment : BaseAuthFragment() {
 
 
+    private var _binding: FragmentForgotPasswordBinding? = null
+
+    private val binding get() = _binding!!
 
     lateinit var webView: WebView
 
@@ -73,11 +77,12 @@ class ForgotPasswordFragment : BaseAuthFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentForgotPasswordBinding.bind(view)
         webView = view.findViewById(R.id.webview)
 
         loadPasswordResetWebView()
-
-        return_to_launcher_fragment.setOnClickListener {
+        binding.returnToLauncherFragment
+        .setOnClickListener {
             findNavController().popBackStack()
         }
     }
@@ -136,18 +141,24 @@ class ForgotPasswordFragment : BaseAuthFragment() {
 
     fun onPasswordResetLinkSent(){
         CoroutineScope(Main).launch{
-            parent_view.removeView(webView)
+            binding.parentView.removeView(webView)
             webView.destroy()
 
             val animation = TranslateAnimation(
-                password_reset_done_container.width.toFloat(),
+                binding.passwordResetDoneContainer
+                .width.toFloat(),
                 0f,
                 0f,
                 0f
             )
             animation.duration = 500
-            password_reset_done_container.startAnimation(animation)
-            password_reset_done_container.visibility = View.VISIBLE
+            binding.apply {
+                passwordResetDoneContainer.startAnimation(animation)
+                passwordResetDoneContainer.visibility = View.VISIBLE
+
+            }
+
+
         }
     }
 
@@ -158,6 +169,11 @@ class ForgotPasswordFragment : BaseAuthFragment() {
         }catch(e: ClassCastException){
             Log.e(TAG, "$context must implement DataStateChangeListener" )
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
 

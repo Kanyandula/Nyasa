@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentViewBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.AreYouSureCallback
 import com.kanyandula.nyasa.ui.UIMessage
@@ -17,11 +18,11 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.*
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_DELETED
-import kotlinx.android.synthetic.main.fragment_view_blog.*
+
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ViewBlogFragment : BaseBlogFragment(){
+class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate){
 
 
     override fun onCreateView(
@@ -39,7 +40,7 @@ class ViewBlogFragment : BaseBlogFragment(){
         checkIsAuthorOfBlogPost()
         stateChangeListener.expandAppBar()
 
-        delete_button.setOnClickListener {
+        binding?.deleteButton?.setOnClickListener {
             confirmDeleteRequest()
         }
 
@@ -112,17 +113,19 @@ class ViewBlogFragment : BaseBlogFragment(){
 
     private fun adaptViewToAuthorMode() {
         activity?.invalidateOptionsMenu()
-        delete_button.visibility = View.VISIBLE
+        binding?.deleteButton?.visibility
     }
 
     private fun setBlogProperties(blogPost: BlogPost){
-        requestManager
-            .load(blogPost.image)
-            .into(blog_image)
-        blog_title.setText(blogPost.title)
-        blog_author.setText(blogPost.username)
-        blog_update_date.setText(DateUtils.convertLongToStringDate(blogPost.date_updated))
-        blog_body.setText(blogPost.body)
+        binding?.let {
+            requestManager
+                .load(blogPost.image)
+                .into(it.blogImage)
+        }
+        binding?.blogTitle?.setText(blogPost.title)
+        binding?.blogAuthor?.setText(blogPost.username)
+        binding?.blogUpdateDate?.setText(DateUtils.convertLongToStringDate(blogPost.date_updated))
+        binding?.blogBody?.setText(blogPost.body)
         val uri = Uri.parse(blogPost.slug)
         val intent = Intent(Intent.ACTION_VIEW, uri)
 //        text_view_creator.apply {

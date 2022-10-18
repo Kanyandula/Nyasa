@@ -8,11 +8,12 @@ import androidx.recyclerview.widget.*
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.LayoutBlogListItemBinding
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.GenericViewHolder
 
-import kotlinx.android.synthetic.main.layout_blog_list_item.view.*
+
 
 class BlogListAdapter(
     private val requestManager: RequestManager,
@@ -53,6 +54,9 @@ class BlogListAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
+        val  binding =  LayoutBlogListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+
+
         when(viewType){
 
             NO_MORE_RESULTS ->{
@@ -68,15 +72,14 @@ class BlogListAdapter(
 
             BLOG_ITEM ->{
                 return BlogViewHolder(
-                    LayoutInflater.from(parent.context)
-                        .inflate(R.layout.layout_blog_list_item, parent, false),
+                    binding,
                     interaction = interaction,
                     requestManager = requestManager
                 )
             }
             else -> {
                 return BlogViewHolder(
-                    LayoutInflater.from(parent.context).inflate(R.layout.layout_blog_list_item, parent, false),
+                   binding,
                     interaction = interaction,
                     requestManager = requestManager
                 )
@@ -148,23 +151,25 @@ class BlogListAdapter(
 
     class BlogViewHolder
     constructor(
-        itemView: View,
+         val binding: LayoutBlogListItemBinding,
         val requestManager: RequestManager,
         private val interaction: Interaction?
-    ) : RecyclerView.ViewHolder(itemView) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: BlogPost) = with(itemView) {
-            itemView.setOnClickListener {
+            binding.root.setOnClickListener {
                 interaction?.onItemSelected(adapterPosition, item)
             }
+
+
 
             requestManager
                 .load(item.image)
                 .transition(withCrossFade())
-                .into(itemView.blog_image)
-            itemView.blog_title.text = item.title
-            itemView.blog_author.text = item.username
-            itemView.blog_update_date.text = DateUtils.convertLongToStringDate(item.date_updated)
+                .into(binding.blogImage)
+            binding.blogTitle.text = item.title
+            binding.blogAuthor.text = item.username
+            binding.blogUpdateDate.text = DateUtils.convertLongToStringDate(item.date_updated)
         }
     }
 

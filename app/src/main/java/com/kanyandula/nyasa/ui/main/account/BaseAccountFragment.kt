@@ -3,13 +3,16 @@ package com.kanyandula.nyasa.ui.main.account
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
+import androidx.viewbinding.ViewBinding
 import com.kanyandula.nyasa.R
 
 import com.kanyandula.nyasa.ui.DataStateChangeListener
@@ -17,14 +20,23 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@AndroidEntryPoint
-abstract class BaseAccountFragment : Fragment(){
+abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater: (layoutInflater: LayoutInflater) -> T)  : Fragment(){
 
     val TAG: String = "AppDebug"
+
+    // Bindings
+    private var _binding: T? = null
+
+    protected val binding get() = _binding
 
     val viewModel: AccountViewModel by activityViewModels()
 
     lateinit var stateChangeListener: DataStateChangeListener
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _binding = bindingInflater.invoke(inflater)
+        return binding?.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -61,6 +73,11 @@ abstract class BaseAccountFragment : Fragment(){
         }catch(e: ClassCastException){
             Log.e(TAG, "$context must implement DataStateChangeListener" )
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
 

@@ -8,17 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentLauncherBinding
+import com.kanyandula.nyasa.databinding.FragmentLoginBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class LoginFragment : BaseAuthFragment() {
 
-
+    private var _binding: FragmentLoginBinding? =null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,10 +34,11 @@ class LoginFragment : BaseAuthFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentLoginBinding.bind(view)
         Log.d(TAG, "LoginFragment: ${viewModel}")
         subscribeObservers()
 
-        login_button.setOnClickListener {
+        binding.loginButton.setOnClickListener {
             login()
         }
     }
@@ -44,8 +47,8 @@ class LoginFragment : BaseAuthFragment() {
     fun subscribeObservers(){
         viewModel.viewState.observe(viewLifecycleOwner, Observer{
             it.loginFields?.let{
-                it.login_email?.let{input_email.setText(it)}
-                it.login_password?.let{input_password.setText(it)}
+                it.login_email?.let{binding.inputEmail.setText(it)}
+                it.login_password?.let{binding.inputPassword.setText(it)}
             }
         })
     }
@@ -53,21 +56,26 @@ class LoginFragment : BaseAuthFragment() {
     fun login(){
         viewModel.setStateEvent(
             LoginAttemptEvent(
-                input_email.text.toString(),
-                input_password.text.toString()
+                binding.inputEmail.text.toString(),
+                binding.inputPassword.text.toString()
+
             )
         )
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         viewModel.setLoginFields(
             LoginFields(
-                input_email.text.toString(),
-                input_password.text.toString()
+                binding.inputEmail.text.toString(),
+                binding.inputPassword.text.toString()
             )
         )
     }
+
+
+
 
 
 }

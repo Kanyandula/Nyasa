@@ -6,24 +6,18 @@ import android.view.*
 import androidx.lifecycle.Observer
 
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentUpdateAccountBinding
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_update_account.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class UpdateAccountFragment : BaseAccountFragment(){
+class UpdateAccountFragment : BaseAccountFragment<FragmentUpdateAccountBinding>(FragmentUpdateAccountBinding::inflate){
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_update_account, container, false)
-    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -48,19 +42,27 @@ class UpdateAccountFragment : BaseAccountFragment(){
     }
 
     private fun setAccountDataFields(accountProperties: AccountProperties){
-        if(input_email.text.isNullOrBlank()){
-            input_email.setText(accountProperties.email)
+        if(
+            binding?.inputEmail
+                ?.text.isNullOrBlank()){
+            binding?.inputEmail
+                ?.setText(accountProperties.email)
         }
-        if(input_username.text.isNullOrBlank()){
-            input_username.setText(accountProperties.username)
+        if(
+            binding?.inputUsername
+                ?.text.isNullOrBlank()){
+            binding?.inputUsername
+                ?.setText(accountProperties.username)
         }
     }
 
     private fun saveChanges(){
         viewModel.setStateEvent(
             AccountStateEvent.UpdateAccountPropertiesEvent(
-                input_email.text.toString(),
-                input_username.text.toString()
+                binding?.inputEmail
+                    ?.text.toString(),
+                binding?.inputUsername
+                    ?.text.toString()
             )
         )
         stateChangeListener.hideSoftKeyboard()

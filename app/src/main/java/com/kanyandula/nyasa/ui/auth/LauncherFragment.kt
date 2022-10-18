@@ -1,44 +1,44 @@
 package com.kanyandula.nyasa.ui.auth
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
+import com.kanyandula.nyasa.databinding.FragmentLauncherBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_launcher.*
+
 
 
 @AndroidEntryPoint
-class LauncherFragment :  BaseAuthFragment() {
+class LauncherFragment :  Fragment(R.layout.fragment_launcher) {
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_launcher, container, false)
-    }
+    private var _binding: FragmentLauncherBinding? =null
+    private val binding get() = _binding!!
+
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentLauncherBinding.bind(view)
 
-        register.setOnClickListener {
+
+        binding.register.setOnClickListener {
             navRegistration()
         }
 
-        login.setOnClickListener {
+        binding.login.setOnClickListener {
             navLogin()
         }
 
-        forgot_password.setOnClickListener {
+        binding.forgotPassword.setOnClickListener {
             navForgotPassword()
         }
 
-        focusable_view.requestFocus() // reset focus
+        binding.focusableView.requestFocus() // reset focus
     }
 
     fun navLogin(){
@@ -53,5 +53,8 @@ class LauncherFragment :  BaseAuthFragment() {
         findNavController().navigate(R.id.action_launcherFragment_to_forgotPasswordFragment)
     }
 
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
