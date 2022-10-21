@@ -6,8 +6,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        package= 'com.kanyandula.nyasa'
         android:name=".NyasaApp"
-        android:allowBackup="false"
+        android:allowBackup="true"
         android:icon="@drawable/nyasa"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"

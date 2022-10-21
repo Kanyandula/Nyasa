@@ -2,13 +2,14 @@
 
 buildscript {
     ext {
-        navigationVersion = '2.4.1'
+        navigationVersion = '2.5.2'
         hilt_version = '2.40.5'
     }
 
     dependencies {
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
-        classpath 'com.google.gms:google-services:4.3.13'
+        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.google.gms:google-services:4.3.14'
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
     }
 }

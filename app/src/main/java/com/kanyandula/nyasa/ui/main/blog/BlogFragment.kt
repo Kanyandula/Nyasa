@@ -219,6 +219,7 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
         initSearchView(menu)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.action_filter_settings -> {
@@ -239,11 +240,12 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
         super.onDestroyView()
         // clear references (can leak memory)
         binding?.blogPostRecyclerview?.adapter = null
+
     }
 
     override fun onRefresh() {
         onBlogSearchOrFilter()
-       // swipe_refresh.isRefreshing = false
+        binding?.swipeRefresh?.isRefreshing = false
     }
 
     fun showFilterDialog(){
@@ -307,6 +309,8 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
             dialog.show()
         }
     }
+
+
 
 }
 

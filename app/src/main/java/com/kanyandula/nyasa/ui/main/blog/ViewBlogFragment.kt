@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.ui.main.blog
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +7,7 @@ import android.view.*
 import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentViewBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
@@ -18,20 +18,16 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.*
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_DELETED
-
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate){
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_view_blog, container, false)
-    }
+
+
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -40,12 +36,14 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
         checkIsAuthorOfBlogPost()
         stateChangeListener.expandAppBar()
 
+
         binding?.deleteButton?.setOnClickListener {
             confirmDeleteRequest()
         }
 
 
     }
+
 
     fun confirmDeleteRequest(){
         val callback: AreYouSureCallback = object: AreYouSureCallback {
@@ -117,17 +115,30 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
     }
 
     private fun setBlogProperties(blogPost: BlogPost){
-        binding?.let {
-            requestManager
-                .load(blogPost.image)
-                .into(it.blogImage)
+
+
+//        binding?.blogImage?.let {
+//            requestManager
+//                .load(blogPost.image)
+//                .into(it)
+//        }
+
+
+        binding.apply {
+            binding?.let {
+                Glide.with(this@ViewBlogFragment)
+                    .load(blogPost.image)
+                    .into(it.blogImage)
+            }
         }
-        binding?.blogTitle?.setText(blogPost.title)
-        binding?.blogAuthor?.setText(blogPost.username)
-        binding?.blogUpdateDate?.setText(DateUtils.convertLongToStringDate(blogPost.date_updated))
-        binding?.blogBody?.setText(blogPost.body)
+
+
+        binding?.blogTitle?.text = blogPost.title
+        binding?.blogAuthor?.text = blogPost.username
+        binding?.blogUpdateDate?.text = DateUtils.convertLongToStringDate(blogPost.date_updated)
+        binding?.blogBody?.text = blogPost.body
         val uri = Uri.parse(blogPost.slug)
-        val intent = Intent(Intent.ACTION_VIEW, uri)
+       // val intent = Intent(Intent.ACTION_VIEW, uri)
 //        text_view_creator.apply {
 //            text = "https://nyasablog.com/blog/${blogPost.slug}/detail/"
 //            setOnClickListener {
