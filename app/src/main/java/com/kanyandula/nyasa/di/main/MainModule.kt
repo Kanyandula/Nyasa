@@ -7,6 +7,7 @@ import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.repository.main.BlogRepository
+import com.kanyandula.nyasa.repository.main.CreateBlogRepository
 import com.kanyandula.nyasa.session.SessionManager
 import dagger.Module
 import dagger.Provides
@@ -54,6 +55,16 @@ class MainModule {
         sessionManager: SessionManager
     ): BlogRepository {
         return BlogRepository(nyasaBlogApiMainService, blogPostDao, sessionManager)
+    }
+
+    @Singleton
+    @Provides
+    fun provideCreateBlogRepository(
+        nyasaBlogApiMainService: NyasaBlogApiMainService,
+        blogPostDao: BlogPostDao,
+        sessionManager: SessionManager
+    ): CreateBlogRepository {
+        return CreateBlogRepository( nyasaBlogApiMainService, blogPostDao, sessionManager)
     }
 
 

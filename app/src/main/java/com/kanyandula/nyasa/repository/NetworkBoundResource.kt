@@ -152,7 +152,7 @@ abstract class NetworkBoundResource<ResponseObject, CacheObject, ViewStateType>
         result.value = dataState
     }
 
-    @OptIn(InternalCoroutinesApi::class)
+
     private fun initNewJob(): Job{
         Log.d(TAG, "initNewJob: called.")
         job = Job() // create new job

@@ -8,13 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.viewbinding.ViewBinding
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -25,6 +25,8 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
     private var _binding: T? = null
 
     protected val binding get() = _binding
+
+    val viewModel: CreateBlogViewModel by activityViewModels()
 
 
     val TAG: String = "AppDebug"
@@ -37,19 +39,16 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
 
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupActionBarWithNavController(R.id.createBlogFragment, activity as AppCompatActivity)
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
 
         cancelActiveJobs()
-
-
     }
 
    fun cancelActiveJobs(){
-     // viewModel.cancelActiveJobs()
+      viewModel.cancelActiveJobs()
    }
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
