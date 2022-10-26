@@ -35,9 +35,6 @@ class MainActivity : BaseActivity()
 
 
 
-
-
-
     override fun displayProgressBar(bool: Boolean) {
         if(bool){
             binding.progressBar.visibility = View.VISIBLE
@@ -46,8 +43,6 @@ class MainActivity : BaseActivity()
             binding.progressBar.visibility = View.GONE
         }
     }
-
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

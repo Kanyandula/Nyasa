@@ -3,6 +3,9 @@ package com.kanyandula.nyasa.ui.main.account
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 
@@ -23,7 +26,7 @@ class AccountFragment : BaseAccountFragment<FragmentAccountBinding>(FragmentAcco
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setHasOptionsMenu(true)
+        setupMenu()
 
         binding?.changePassword
 
@@ -76,19 +79,28 @@ class AccountFragment : BaseAccountFragment<FragmentAccountBinding>(FragmentAcco
         viewModel.setStateEvent(GetAccountPropertiesEvent())
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.edit_view_menu, menu)
-    }
+    private fun setupMenu() {
+        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
+            override fun onPrepareMenu(menu: Menu) {
+                // Handle for example visibility of menu items
+            }
 
-    @Deprecated("Deprecated in Java")
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.edit -> {
-                findNavController().navigate(R.id.action_accountFragment_to_updateAccountFragment)
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.edit_view_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Validate and handle the selected menu item
+                when(menuItem.itemId){
+                    R.id.edit -> {
+                        findNavController().navigate(R.id.action_accountFragment_to_updateAccountFragment)
+                        return true
+                    }
+                }
                 return true
             }
-        }
-        return super.onOptionsItemSelected(item)
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
+
 }

@@ -3,6 +3,9 @@ package com.kanyandula.nyasa.ui.main.blog
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
@@ -18,17 +21,10 @@ import okhttp3.MultipartBody
 class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate){
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_update_blog, container, false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setHasOptionsMenu(true)
+        setupMenu()
         subscribeObservers()
     }
 
@@ -61,11 +57,11 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
     }
 
     fun setBlogProperties(title: String?, body: String?, image: Uri?){
-        binding?.let {
-            requestManager
-                .load(image)
-                .into(it.blogImage)
-        }
+//        binding?.let {
+//            requestManager
+//                .load(image)
+//                .into(it.blogImage)
+//        }
         binding?.blogTitle
             ?.setText(title)
         binding?.blogBody?.setText(body)
@@ -83,21 +79,33 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         stateChangeListener.hideSoftKeyboard()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.update_menu, menu)
-    }
+    private fun setupMenu() {
+        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
+            override fun onPrepareMenu(menu: Menu) {
+                // Handle for example visibility of menu items
+            }
 
-    @Deprecated("Deprecated in Java")
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.save -> {
-                saveChanges()
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.update_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Validate and handle the selected menu item
+
+                when(menuItem.itemId){
+                    R.id.save -> {
+                        saveChanges()
+                        return true
+                    }
+                }
                 return true
             }
-        }
-        return super.onOptionsItemSelected(item)
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
+
+
+
 
     // To retain the fields content when the user rotates the screen before saving the changes
     override fun onPause() {

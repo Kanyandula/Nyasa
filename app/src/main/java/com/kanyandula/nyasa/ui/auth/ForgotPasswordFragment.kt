@@ -11,7 +11,6 @@ import android.view.animation.TranslateAnimation
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentForgotPasswordBinding
@@ -21,19 +20,13 @@ import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
-
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ForgotPasswordFragment : BaseAuthFragment() {
+class ForgotPasswordFragment : BaseAuthFragment<FragmentForgotPasswordBinding>(FragmentForgotPasswordBinding::inflate) {
 
-
-    private var _binding: FragmentForgotPasswordBinding? = null
-
-    private val binding get() = _binding!!
 
     lateinit var webView: WebView
 
@@ -77,14 +70,13 @@ class ForgotPasswordFragment : BaseAuthFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentForgotPasswordBinding.bind(view)
         webView = view.findViewById(R.id.webview)
 
         loadPasswordResetWebView()
-        binding.returnToLauncherFragment
-        .setOnClickListener {
-            findNavController().popBackStack()
-        }
+        binding?.returnToLauncherFragment
+            ?.setOnClickListener {
+                findNavController().popBackStack()
+            }
     }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
@@ -141,18 +133,22 @@ class ForgotPasswordFragment : BaseAuthFragment() {
 
     fun onPasswordResetLinkSent(){
         CoroutineScope(Main).launch{
-            binding.parentView.removeView(webView)
+            binding?.parentView?.removeView(webView)
             webView.destroy()
 
-            val animation = TranslateAnimation(
-                binding.passwordResetDoneContainer
-                .width.toFloat(),
-                0f,
-                0f,
-                0f
-            )
-            animation.duration = 500
-            binding.apply {
+            val animation = binding?.passwordResetDoneContainer
+                ?.width?.let {
+                    TranslateAnimation(
+                        it.toFloat(),
+                        0f,
+                        0f,
+                        0f
+                    )
+                }
+            if (animation != null) {
+                animation.duration = 500
+            }
+            binding?.apply {
                 passwordResetDoneContainer.startAnimation(animation)
                 passwordResetDoneContainer.visibility = View.VISIBLE
 
@@ -171,9 +167,6 @@ class ForgotPasswordFragment : BaseAuthFragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
+
 }
 

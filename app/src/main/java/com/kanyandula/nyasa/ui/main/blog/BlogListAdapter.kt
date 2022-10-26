@@ -2,7 +2,6 @@ package com.kanyandula.nyasa.ui.main.blog
 
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.*
 import com.bumptech.glide.RequestManager
@@ -163,13 +162,20 @@ class BlogListAdapter(
 
 
 
-            requestManager
-                .load(item.image)
-                .transition(withCrossFade())
-                .into(binding.blogImage)
-            binding.blogTitle.text = item.title
-            binding.blogAuthor.text = item.username
-            binding.blogUpdateDate.text = DateUtils.convertLongToStringDate(item.date_updated)
+
+            binding.apply {
+                requestManager
+                    .load(item.image)
+                    .transition(withCrossFade())
+                    .into(blogImage)
+                blogTitle.text = item.title
+                blogAuthor.text = item.username
+                blogUpdateDate.text = DateUtils.convertLongToStringDate(item.date_updated)
+            }
+
+
+
+
         }
     }
 

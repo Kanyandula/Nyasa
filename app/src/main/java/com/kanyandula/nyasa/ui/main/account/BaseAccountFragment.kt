@@ -41,6 +41,7 @@ abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupActionBarWithNavController(R.id.accountFragment, activity as AppCompatActivity)
+        (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
 
         cancelActiveJobs()
     }
@@ -57,7 +58,7 @@ abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
         */
-    fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity){
+    private fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity){
         val appBarConfiguration = AppBarConfiguration(setOf(fragmentId))
         NavigationUI.setupActionBarWithNavController(
             activity,

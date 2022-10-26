@@ -3,6 +3,9 @@ package com.kanyandula.nyasa.ui.main.account
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 
 import com.kanyandula.nyasa.R
@@ -21,7 +24,7 @@ class UpdateAccountFragment : BaseAccountFragment<FragmentUpdateAccountBinding>(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setHasOptionsMenu(true)
+        setupMenu()
         subscribeObservers()
     }
 
@@ -68,19 +71,28 @@ class UpdateAccountFragment : BaseAccountFragment<FragmentUpdateAccountBinding>(
         stateChangeListener.hideSoftKeyboard()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.update_menu, menu)
-    }
+    private fun setupMenu() {
+        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
+            override fun onPrepareMenu(menu: Menu) {
+                // Handle for example visibility of menu items
+            }
 
-    @Deprecated("Deprecated in Java")
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.save -> {
-                saveChanges()
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.update_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Validate and handle the selected menu item
+                when(menuItem.itemId){
+                    R.id.save -> {
+                        saveChanges()
+                        return true
+                    }
+                }
                 return true
             }
-        }
-        return super.onOptionsItemSelected(item)
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
+    
 }

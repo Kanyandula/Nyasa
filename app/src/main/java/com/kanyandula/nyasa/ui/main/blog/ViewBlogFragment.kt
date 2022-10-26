@@ -1,13 +1,17 @@
 package com.kanyandula.nyasa.ui.main.blog
 
-import android.net.Uri
+
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.core.net.toUri
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentViewBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
@@ -26,17 +30,12 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
 
 
 
-
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setHasOptionsMenu(true)
+        setupMenu()
         subscribeObservers()
         checkIsAuthorOfBlogPost()
         stateChangeListener.expandAppBar()
-
-
         binding?.deleteButton?.setOnClickListener {
             confirmDeleteRequest()
         }
@@ -114,30 +113,42 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
         binding?.deleteButton?.visibility
     }
 
-    private fun setBlogProperties(blogPost: BlogPost){
+     fun setBlogProperties(blogPost: BlogPost){
 
-
-//        binding?.blogImage?.let {
-//            requestManager
-//                .load(blogPost.image)
-//                .into(it)
+//         val glide = requestManager
+//
+//        binding?.apply {
+//            glide.load(blogPost.image)
+//                    .into(blogImage)
 //        }
 
 
-        binding.apply {
+//
+//         binding?.blogImage?.load(blogPost.image){
+//             placeholder(R.drawable.default_image)
+//             transformations(RoundedCornersTransformation(10f))
+//
+//         }
+
+
+
+
             binding?.let {
                 Glide.with(this@ViewBlogFragment)
                     .load(blogPost.image)
                     .into(it.blogImage)
             }
+
+
+        binding?.apply {
+            blogTitle.text = blogPost.title
+            blogAuthor.text = blogPost.username
+            blogUpdateDate.text = DateUtils.convertLongToStringDate(blogPost.date_updated)
+            blogBody.text = blogPost.body
         }
 
 
-        binding?.blogTitle?.text = blogPost.title
-        binding?.blogAuthor?.text = blogPost.username
-        binding?.blogUpdateDate?.text = DateUtils.convertLongToStringDate(blogPost.date_updated)
-        binding?.blogBody?.text = blogPost.body
-        val uri = Uri.parse(blogPost.slug)
+      // val uri = Uri.parse(blogPost.slug)
        // val intent = Intent(Intent.ACTION_VIEW, uri)
 //        text_view_creator.apply {
 //            text = "https://nyasablog.com/blog/${blogPost.slug}/detail/"
@@ -148,24 +159,34 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
 //        }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    private fun setupMenu() {
+        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
+            override fun onPrepareMenu(menu: Menu) {
+                // Handle for example visibility of menu items
+            }
 
-        if(viewModel.isAuthorOfBlogPost()){
-            inflater.inflate(R.menu.edit_view_menu, menu)
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if(viewModel.isAuthorOfBlogPost()){
-            when(item.itemId){
-                R.id.edit -> {
-                    navUpdateBlogFragment()
-                    return true
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                if(viewModel.isAuthorOfBlogPost()){
+                    menuInflater.inflate(R.menu.edit_view_menu, menu)
                 }
             }
-        }
-        return super.onOptionsItemSelected(item)
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Validate and handle the selected menu item
+
+                if(viewModel.isAuthorOfBlogPost()){
+                    when(menuItem.itemId){
+                        R.id.edit -> {
+                            navUpdateBlogFragment()
+                            return true
+                        }
+                    }
+                }
+                return true
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
 
     private fun navUpdateBlogFragment(){
         try{
@@ -181,8 +202,6 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
             Log.e(TAG, "Exception: ${e.message}")
         }
     }
-
-
 
 
 }

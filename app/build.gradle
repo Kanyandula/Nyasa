@@ -160,4 +160,6 @@ dependencies {
     androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
     androidTestImplementation "com.google.truth:truth:1.0.1"
 
+    implementation("io.coil-kt:coil:2.2.2")
+
 }

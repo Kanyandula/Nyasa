@@ -12,6 +12,9 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +23,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
+import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
@@ -37,6 +41,7 @@ import handleIncomingBlogListData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import loadFirstPage
 import nextPage
+import javax.inject.Inject
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,6 +51,8 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
         SwipeRefreshLayout.OnRefreshListener
 {
 
+
+
     private lateinit var searchView: SearchView
     private lateinit var recyclerAdapter: BlogListAdapter
 
@@ -54,13 +61,10 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
-        setHasOptionsMenu(true)
+        setupMenu()
         binding?.swipeRefresh?.setOnRefreshListener(this)
-
-
         initRecyclerView()
         subscribeObservers()
-
         if(savedInstanceState == null){
             viewModel.loadFirstPage()
         }
@@ -212,23 +216,30 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
 
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.search_menu, menu)
-        initSearchView(menu)
-    }
+    private fun setupMenu() {
+        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
+            override fun onPrepareMenu(menu: Menu) {
+                // Handle for example visibility of menu items
+            }
 
-    @Deprecated("Deprecated in Java")
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.action_filter_settings -> {
-                showFilterDialog()
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.search_menu, menu)
+                initSearchView(menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                when(menuItem.itemId){
+                    R.id.action_filter_settings -> {
+                        showFilterDialog()
+                        return true
+                    }
+                }
+                // Validate and handle the selected menu item
                 return true
             }
-        }
-        return super.onOptionsItemSelected(item)
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
+
 
 
     override fun onItemSelected(position: Int, item: BlogPost) {
@@ -309,6 +320,7 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
             dialog.show()
         }
     }
+
 
 
 

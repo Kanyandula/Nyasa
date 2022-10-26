@@ -35,7 +35,7 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
 
 
     @Inject
-    open lateinit var requestManager: RequestManager
+    lateinit var requestManager: RequestManager
 
     lateinit var uiCommunicationListener: UICommunicationListener
 
@@ -54,7 +54,9 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
         setupActionBarWithNavController(R.id.blogFragment, activity as AppCompatActivity)
+
 
 
         cancelActiveJobs()
