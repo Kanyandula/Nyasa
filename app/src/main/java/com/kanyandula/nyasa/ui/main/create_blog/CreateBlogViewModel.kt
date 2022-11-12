@@ -15,6 +15,10 @@ import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.*
 import com.kanyandula.nyasa.util.AbsentLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 import javax.inject.Inject
 
@@ -35,18 +39,30 @@ constructor(
         when(stateEvent){
 
             is CreateNewBlogEvent -> {
-               return AbsentLiveData.create()
+                return sessionManager.cachedToken.value?.let { authToken ->
+
+                    val title = stateEvent.title.toRequestBody("text/plain".toMediaTypeOrNull())
+                    val body = stateEvent.body.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                    createBlogRepository.createNewBlogPost(
+                        authToken,
+                        title,
+                        body,
+                        stateEvent.image
+                    )
+                }?: AbsentLiveData.create()
             }
 
             is None -> {
-                return liveData {
-                    emit(
-                        DataState(
+                return object: LiveData<DataState<CreateBlogViewState>>(){
+                    override fun onActive() {
+                        super.onActive()
+                        value = DataState(
                             null,
                             Loading(false),
                             null
                         )
-                    )
+                    }
                 }
             }
         }

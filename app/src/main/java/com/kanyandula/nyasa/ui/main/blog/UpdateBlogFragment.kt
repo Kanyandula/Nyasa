@@ -1,24 +1,75 @@
 package com.kanyandula.nyasa.ui.main.blog
 
+import android.app.Activity
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import com.github.drjacky.imagepicker.ImagePicker
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentUpdateBlogBinding
+import com.kanyandula.nyasa.ui.*
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.getUpdatedBlogUri
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.onBlogPostUpdateSuccess
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
-
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate){
+
+
+    private val galleryLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+
+            if (it.resultCode == Activity.RESULT_OK) {
+                if (it.data?.hasExtra(ImagePicker.EXTRA_FILE_PATH)!!) {
+                    val uri = it.data?.data!!
+                    activity?.let {
+                        viewModel.setUpdatedBlogFields(
+                            title = null,
+                            body = null,
+                            uri = uri
+                        )
+                    }
+
+                } else {
+
+                    showImageSelectionError()
+                }
+
+            }
+
+        }
+
+    private fun showImageSelectionError(){
+        stateChangeListener.onDataStateChange(
+            DataState(
+                Event(StateError(
+                    Response(
+                        "Something went wrong with the image.",
+                        ResponseType.Dialog()
+                    )
+                )),
+                Loading(isLoading = false),
+                Data(Event.dataEvent(null), null)
+            )
+        )
+    }
 
 
 
@@ -26,6 +77,32 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         super.onViewCreated(view, savedInstanceState)
         setupMenu()
         subscribeObservers()
+
+       binding?. imageContainer?.setOnClickListener {
+            if(stateChangeListener.isStoragePermissionGranted()){
+                pickGalleryImage()
+            }
+        }
+    }
+
+
+    private fun pickGalleryImage() {
+        galleryLauncher.launch(
+            ImagePicker.with(requireActivity())
+                .crop()
+                .galleryOnly()
+                .maxResultSize(1130,561)
+                .setOutputFormat(Bitmap.CompressFormat.WEBP)
+                .cropFreeStyle()
+                .galleryMimeTypes( // no gif images at all
+                    mimeTypes = arrayOf(
+                        "image/png",
+                        "image/jpg",
+                        "image/jpeg"
+                    )
+                )
+                .createIntent()
+        )
     }
 
 
@@ -57,27 +134,64 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
     }
 
     fun setBlogProperties(title: String?, body: String?, image: Uri?){
-//        binding?.let {
-//            requestManager
-//                .load(image)
-//                .into(it.blogImage)
-//        }
+
+        binding?.let {
+            Glide.with(this@UpdateBlogFragment)
+                .load(image)
+                .into(it.blogImage)
+        }
+
         binding?.blogTitle
             ?.setText(title)
         binding?.blogBody?.setText(body)
     }
 
+
+
+
     private fun saveChanges(){
         var multipartBody: MultipartBody.Part? = null
-        viewModel.setStateEvent(
-            BlogStateEvent.UpdateBlogPostEvent(
-                binding?.blogTitle?.text.toString(),
-                binding?.blogBody?.text.toString(),
-                multipartBody
+        viewModel.getUpdatedBlogUri()?.let{ imageUri ->
+            imageUri.path?.let{filePath ->
+                val imageFile = File(filePath)
+                Log.d(TAG, "UpdateBlogFragment, imageFile: file: ${imageFile}")
+                if(imageFile.exists()){
+                    val requestBody =
+                        imageFile
+                            .asRequestBody("image/*".toMediaTypeOrNull())
+                    // name = field name in serializer
+                    // filename = name of the image file
+                    // requestBody = file with file type information
+                    multipartBody = MultipartBody.Part.createFormData(
+                        "image",
+                        imageFile.name,
+                        requestBody
+                    )
+                }
+            }
+
+
+
+        }
+
+
+
+            viewModel.setStateEvent(
+                BlogStateEvent.UpdateBlogPostEvent(
+                    binding?.blogTitle
+                        ?.text.toString(),
+                    binding?.blogBody?.text.toString(),
+                    multipartBody
+                )
             )
-        )
-        stateChangeListener.hideSoftKeyboard()
+            stateChangeListener.hideSoftKeyboard()
+
     }
+
+
+
+
+
 
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
@@ -102,7 +216,6 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
-
 
 
 

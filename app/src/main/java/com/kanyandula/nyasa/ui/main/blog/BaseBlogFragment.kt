@@ -93,6 +93,12 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
         }catch(e: ClassCastException){
             Log.e(TAG, "$context must implement UICommunicationListener" )
         }
+
+        try {
+            requestManager = context as RequestManager
+        }catch (e: ClassCastException){
+            Log.e(TAG, "$context must implement RequestManager" )
+        }
     }
 
     override fun onDestroyView() {

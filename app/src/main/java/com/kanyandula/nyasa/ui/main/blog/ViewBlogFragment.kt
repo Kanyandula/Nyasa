@@ -110,25 +110,11 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
 
     private fun adaptViewToAuthorMode() {
         activity?.invalidateOptionsMenu()
-        binding?.deleteButton?.visibility
+        binding?.deleteButton?.visibility = View.VISIBLE
     }
 
      fun setBlogProperties(blogPost: BlogPost){
 
-//         val glide = requestManager
-//
-//        binding?.apply {
-//            glide.load(blogPost.image)
-//                    .into(blogImage)
-//        }
-
-
-//
-//         binding?.blogImage?.load(blogPost.image){
-//             placeholder(R.drawable.default_image)
-//             transformations(RoundedCornersTransformation(10f))
-//
-//         }
 
 
 

@@ -36,33 +36,34 @@
             />
 
         <ImageView
+            android:id="@+id/blog_image"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/blog_title"
-            app:layout_constraintBottom_toTopOf="@+id/update_textview"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            android:id="@+id/blog_image"
-            android:scaleType="fitXY"
             android:adjustViewBounds="true"
-            />
+            android:scaleType="fitXY"
+            app:layout_constraintBottom_toTopOf="@+id/update_textview"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/blog_title"
+             />
+
+
 
         <TextView
+            android:id="@+id/update_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/blog_image"
-            app:layout_constraintBottom_toTopOf="@+id/container1"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
+            android:background="@drawable/background_button"
+            android:gravity="center"
             android:padding="5dp"
+            android:text="SELECT PHOTO"
             android:textColor="#fff"
             android:textSize="25sp"
             android:textStyle="bold"
-            android:text="Touch to change image"
-            android:id="@+id/update_textview"
-            android:gravity="center"
-            android:background="@color/grey3"
-            />
+            app:layout_constraintBottom_toTopOf="@+id/container1"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/blog_image" />
 
         <LinearLayout
             android:layout_width="match_parent"

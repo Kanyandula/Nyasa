@@ -15,6 +15,7 @@ import androidx.navigation.ui.NavigationUI
 import androidx.viewbinding.ViewBinding
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
+import com.kanyandula.nyasa.ui.UICommunicationListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -32,6 +33,7 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
     val TAG: String = "AppDebug"
 
     lateinit var stateChangeListener: DataStateChangeListener
+    lateinit var uiCommunicationListener: UICommunicationListener
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = bindingInflater.invoke(inflater)
@@ -69,11 +71,19 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
         }catch(e: ClassCastException){
             Log.e(TAG, "$context must implement DataStateChangeListener" )
         }
+
+        try{
+            uiCommunicationListener = context as UICommunicationListener
+        }catch(e: ClassCastException){
+            Log.e(TAG, "$context must implement UICommunicationListener" )
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+
 
 }

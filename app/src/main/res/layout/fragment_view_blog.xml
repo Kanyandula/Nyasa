@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.main.blog.ViewBlogFragment"
     app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-    android:background="#fff"
+    android:background="#eff0fc"
     >
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -22,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:fontFamily="@font/andika"
-            android:gravity="center_vertical"
             android:text="The Title of a Blog"
             android:textAlignment="center"
             android:textColor="#000"
@@ -88,6 +87,7 @@
 
             </View>
 
+
             <TextView
                 android:id="@+id/blog_body"
                 android:layout_width="match_parent"
@@ -97,15 +97,6 @@
                 android:text="This is some blog content"
                 android:textColor="#000"
                 android:textSize="17sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/grey4"
-                android:layout_marginTop="20dp"
-                >
-
-            </View>
 
 
             <Button

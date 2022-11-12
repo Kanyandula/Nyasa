@@ -40,7 +40,7 @@ import javax.inject.Inject
 class BlogRepository
 @Inject
 constructor(
-    val openApiMainService: NyasaBlogApiMainService,
+    val nyasaBlogApiMainService: NyasaBlogApiMainService,
     val blogPostDao: BlogPostDao,
     val sessionManager: SessionManager
 ): JobManager("BlogRepository")
@@ -101,7 +101,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<BlogListSearchResponse>> {
-                return openApiMainService.searchListBlogPosts(
+                return nyasaBlogApiMainService.searchListBlogPosts(
                     "Token ${authToken.token!!}",
                     query = query,
                     ordering = filterAndOrder,
@@ -223,7 +223,7 @@ constructor(
             // Make an update and change nothing.
             // If they are not the author it will return: "You don't have permission to edit that."
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return openApiMainService.isAuthorOfBlogPost(
+                return nyasaBlogApiMainService.isAuthorOfBlogPost(
                     "Token ${authToken.token!!}",
                     slug
                 )
@@ -282,7 +282,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return openApiMainService.deleteBlogPost(
+                return nyasaBlogApiMainService.deleteBlogPost(
                     "Token ${authToken.token!!}",
                     blogPost.slug
                 )
@@ -363,7 +363,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<BlogCreateUpdateResponse>> {
-                return openApiMainService.updateBlog(
+                return nyasaBlogApiMainService.updateBlog(
                     "Token ${authToken.token!!}",
                     slug,
                     title,

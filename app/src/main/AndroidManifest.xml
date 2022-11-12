@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
     <application
         package= 'com.kanyandula.nyasa'
         android:name=".NyasaApp"
@@ -15,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Nyasa"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="s">
         <activity
             android:name=".ui.main.MainActivity"
@@ -39,6 +43,8 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+
     </application>
 
 </manifest>

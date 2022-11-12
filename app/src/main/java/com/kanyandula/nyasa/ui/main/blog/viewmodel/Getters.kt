@@ -62,6 +62,7 @@ fun BlogViewModel.isAuthorOfBlogPost(): Boolean{
 }
 
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getBlogPost(): BlogPost {
     getCurrentViewStateOrNew().let {
         return it.viewBlogFields.blogPost?.let {
@@ -70,11 +71,13 @@ fun BlogViewModel.getBlogPost(): BlogPost {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getDummyBlogPost(): BlogPost{
     return BlogPost(-1, "" , "", "", "", 1, "")
 }
 
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getUpdatedBlogUri(): Uri? {
     getCurrentViewStateOrNew().let {
         it.updatedBlogFields.updatedImageUri?.let {
