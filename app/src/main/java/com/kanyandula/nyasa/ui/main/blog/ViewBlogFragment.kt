@@ -79,21 +79,24 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
 
     fun subscribeObservers(){
         viewModel.dataState.observe(viewLifecycleOwner, Observer{ dataState ->
-            stateChangeListener.onDataStateChange(dataState)
+            if (dataState !=null){
+                stateChangeListener.onDataStateChange(dataState)
 
-            dataState.data?.let { data ->
-                data.data?.getContentIfNotHandled()?.let { viewState ->
-                    viewModel.setIsAuthorOfBlogPost(
-                        viewState.viewBlogFields.isAuthorOfBlogPost
-                    )
-                }
-                data.response?.peekContent()?.let{ response ->
-                    if(response.message.equals(SUCCESS_BLOG_DELETED)){
-                        viewModel.removeDeletedBlogPost()
-                        findNavController().popBackStack()
+                dataState.data?.let { data ->
+                    data.data?.getContentIfNotHandled()?.let { viewState ->
+                        viewModel.setIsAuthorOfBlogPost(
+                            viewState.viewBlogFields.isAuthorOfBlogPost
+                        )
+                    }
+                    data.response?.peekContent()?.let{ response ->
+                        if(response.message.equals(SUCCESS_BLOG_DELETED)){
+                            viewModel.removeDeletedBlogPost()
+                            findNavController().popBackStack()
+                        }
                     }
                 }
             }
+
         })
 
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->

@@ -1,14 +1,16 @@
 package com.kanyandula.nyasa.models
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
 
 /**
  * Docs: https://nyasablog.com/api/
  */
-
+@Parcelize
 @Entity(tableName = "blog_post")
 data class BlogPost(
 
@@ -35,7 +37,7 @@ data class BlogPost(
     var username: String
 
 
-) {
+) : Parcelable {
 
     override fun toString(): String {
         return "BlogPost(pk=$pk, " +

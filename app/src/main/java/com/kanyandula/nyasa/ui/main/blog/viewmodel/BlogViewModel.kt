@@ -2,6 +2,7 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.SavedStateHandle
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.repository.main.BlogRepository
 import com.kanyandula.nyasa.session.SessionManager
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class BlogViewModel
 @Inject
 constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val sessionManager: SessionManager,
     private val blogRepository: BlogRepository,
     private val sharedPreferences: SharedPreferences,

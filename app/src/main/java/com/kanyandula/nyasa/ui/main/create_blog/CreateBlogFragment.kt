@@ -94,20 +94,23 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
 
 
-fun subscribeObservers(){
+    fun subscribeObservers(){
         viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            stateChangeListener.onDataStateChange(dataState)
-            dataState.data?.let { data ->
-                data.response?.let { event ->
-                    event.peekContent().let { response ->
-                        response.message?.let { message ->
-                            if (message.equals(SUCCESS_BLOG_CREATED)) {
-                                viewModel.clearNewBlogFields()
+            if (dataState != null){
+                stateChangeListener.onDataStateChange(dataState)
+                dataState.data?.let { data ->
+                    data.response?.let { event ->
+                        event.peekContent().let { response ->
+                            response.message?.let { message ->
+                                if (message.equals(SUCCESS_BLOG_CREATED)) {
+                                    viewModel.clearNewBlogFields()
+                                }
                             }
                         }
                     }
                 }
             }
+
         })
 
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
@@ -210,9 +213,10 @@ fun subscribeObservers(){
                     it
                 )
             )
-            stateChangeListener.hideSoftKeyboard()
+
         }?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
 
+        stateChangeListener.hideSoftKeyboard()
     }
 
 
@@ -260,7 +264,7 @@ fun subscribeObservers(){
 
 
 
-    fun showErrorDialog(errorMessage: String){
+    private fun showErrorDialog(errorMessage: String){
         stateChangeListener.onDataStateChange(
             DataState(
                 Event(StateError(Response(errorMessage, ResponseType.Dialog()))),

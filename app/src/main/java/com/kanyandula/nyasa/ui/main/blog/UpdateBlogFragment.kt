@@ -21,6 +21,7 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.getUpdatedBlogUri
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.onBlogPostUpdateSuccess
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
+import com.kanyandula.nyasa.util.ErrorHandling
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -47,14 +48,27 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                         )
                     }
 
+
+
                 } else {
 
-                    showImageSelectionError()
+                    showErrorDialog(ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE)
                 }
 
             }
 
         }
+
+
+    fun showErrorDialog(errorMessage: String){
+        stateChangeListener.onDataStateChange(
+            DataState(
+                Event(StateError(Response(errorMessage, ResponseType.Dialog()))),
+                Loading(isLoading = false),
+                Data(Event.dataEvent(null), null)
+            )
+        )
+    }
 
     private fun showImageSelectionError(){
         stateChangeListener.onDataStateChange(
@@ -108,18 +122,22 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
 
     fun subscribeObservers(){
         viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            stateChangeListener.onDataStateChange(dataState)
-            dataState.data?.let{ data ->
-                data.data?.getContentIfNotHandled()?.let{ viewState ->
+            if (dataState !=null){
+                stateChangeListener.onDataStateChange(dataState)
+                dataState.data?.let{ data ->
+                    data.data?.getContentIfNotHandled()?.let{ viewState ->
 
-                    // if this is not null, the blogpost was updated
-                    viewState.viewBlogFields.blogPost?.let{ blogPost ->
-                        viewModel.onBlogPostUpdateSuccess(blogPost).let {
-                            findNavController().popBackStack()
+                        // if this is not null, the blogpost was updated
+                        viewState.viewBlogFields.blogPost?.let{ blogPost ->
+                            viewModel.onBlogPostUpdateSuccess(blogPost).let {
+                                findNavController().popBackStack()
+                            }
                         }
                     }
                 }
+
             }
+
         })
 
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
@@ -169,12 +187,7 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                     )
                 }
             }
-
-
-
         }
-
-
 
             viewModel.setStateEvent(
                 BlogStateEvent.UpdateBlogPostEvent(

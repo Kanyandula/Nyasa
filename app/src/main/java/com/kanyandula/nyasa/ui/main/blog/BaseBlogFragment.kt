@@ -18,7 +18,9 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
 import com.kanyandula.nyasa.ui.UICommunicationListener
+import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
+import com.kanyandula.nyasa.util.Constants.Companion.BLOG_VIEW_STATE_KEY
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
@@ -60,6 +62,24 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
 
 
         cancelActiveJobs()
+    }
+
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let { inState ->
+            (inState[BLOG_VIEW_STATE_KEY] as BlogViewState?)?.let { viewState ->
+                viewModel.setViewState(viewState)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+
+            outState.putParcelable(BLOG_VIEW_STATE_KEY,viewModel.viewState.value)
+
+        super.onSaveInstanceState(outState)
     }
 
     fun cancelActiveJobs(){

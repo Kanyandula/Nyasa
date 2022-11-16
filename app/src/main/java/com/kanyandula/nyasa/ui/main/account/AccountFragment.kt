@@ -43,8 +43,8 @@ class AccountFragment : BaseAccountFragment<FragmentAccountBinding>(FragmentAcco
 
     private fun subscribeObservers(){
         viewModel.dataState.observe(viewLifecycleOwner, Observer{ dataState ->
-            stateChangeListener.onDataStateChange(dataState)
             if(dataState != null){
+                stateChangeListener.onDataStateChange(dataState)
                 dataState.data?.let { data ->
                     data.data?.let{ event ->
                         event.getContentIfNotHandled()?.let{ viewState ->

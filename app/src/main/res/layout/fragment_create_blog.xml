@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.main.create_blog.CreateBlogFragment"
     app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-    android:background="#fff"
+    android:background="#eff0fc"
     >
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -48,12 +48,13 @@
              />
 
 
-
         <TextView
             android:id="@+id/update_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/background_button"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/main_button_drawable"
             android:gravity="center"
             android:padding="5dp"
             android:text="SELECT PHOTO"
