@@ -6,6 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     app:cardElevation="10dp"
     app:cardCornerRadius="2dp"
+    android:background="#eff0fc"
     app:cardPreventCornerOverlap="false">
 
 
@@ -27,7 +28,7 @@
                 android:adjustViewBounds="true"
                 android:scaleType="fitXY"
             tools:src="@mipmap/ic_launcher_round"
-                />
+            android:contentDescription="@string/blog_image" />
 
 
         <LinearLayout
@@ -47,7 +48,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/andika"
-                android:text="The Title of a Blog"
+                android:text="@string/the_title_of_a_blog"
                 android:textColor="#000"
                 android:textSize="19sp" />
 
@@ -56,7 +57,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Ephraim Kanyandula"
+                android:text="@string/first_and_surname"
                 android:textColor="@color/grey5"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -65,7 +66,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/blog_update_date"
-                    android:text="Updated on July 23, 2019"
+                    android:text="@string/updated_on_july_23_2022"
                     android:textColor="@color/grey5"
                     android:textSize="13sp"
                     android:layout_marginTop="10dp"

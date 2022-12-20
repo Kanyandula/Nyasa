@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#eff0fc"
@@ -32,24 +33,25 @@
                 />
 
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/filter_author"
-                android:text="@string/filter_author"
-                android:textSize="16sp"
-                android:textColor="#000"
-                android:layout_marginTop="20dp"
-                />
+            android:id="@+id/filter_author"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:minHeight="48dp"
+            android:text="@string/filter_author"
+            android:textColor="#000"
+            android:textSize="16sp" />
 
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/filter_date"
-                android:text="@string/filter_date"
-                android:textSize="16sp"
-                android:textColor="#000"
-                android:layout_marginTop="20dp"
-                />
+            android:id="@+id/filter_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:minHeight="48dp"
+            android:text="@string/filter_date"
+            android:textColor="#000"
+            android:textSize="16sp"
+            tools:ignore="TextContrastCheck" />
 
     </RadioGroup>
 
@@ -71,24 +73,25 @@
 
 
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/filter_asc"
-                android:text="@string/filter_asc"
-                android:textSize="16sp"
-                android:textColor="#000"
-                android:layout_marginTop="20dp"
-                />
+            android:id="@+id/filter_asc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:minHeight="48dp"
+            android:text="@string/filter_asc"
+            android:textColor="#000"
+            android:textSize="16sp"
+            tools:ignore="TextContrastCheck" />
 
         <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/filter_desc"
-                android:text="@string/filter_desc"
-                android:textSize="16sp"
-                android:textColor="#000"
-                android:layout_marginTop="20dp"
-                />
+            android:id="@+id/filter_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:minHeight="48dp"
+            android:text="@string/filter_desc"
+            android:textColor="#000"
+            android:textSize="16sp" />
 
     </RadioGroup>
 
@@ -101,24 +104,24 @@
             >
 
         <TextView
-                android:id="@+id/negative_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cancel"
-                android:textSize="16sp"
-                android:textColor="@color/colorPrimaryDark"
-                android:layout_marginEnd="30dp"
+            android:id="@+id/negative_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="30dp"
+            android:text="@string/cancel"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="16sp"
 
-                />
+            tools:ignore="TextContrastCheck" />
 
         <TextView
-                android:id="@+id/positive_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/apply"
-                android:textSize="16sp"
-                android:textColor="@color/tealDark"
-                />
+            android:id="@+id/positive_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/apply"
+            android:textColor="@color/tealDark"
+            android:textSize="16sp"
+            tools:ignore="TextContrastCheck" />
 
     </LinearLayout>
 

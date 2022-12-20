@@ -18,22 +18,24 @@
         >
 
         <EditText
+            android:id="@+id/blog_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minLines="2"
-            android:maxLength="60"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/blog_image"
-            android:id="@+id/blog_title"
+            android:autofillHints="Write blog title"
             android:gravity="center_vertical"
-            android:layout_marginStart="10dp"
-            android:hint="Write a blog title..."
+            android:hint="@string/write_a_blog_title"
+            android:inputType="text"
+            android:maxLength="60"
+            android:minLines="2"
             android:textColor="#000"
+            android:textColorHint="#757575"
             android:textSize="19sp"
             android:textStyle="bold"
-            />
+            app:layout_constraintBottom_toTopOf="@+id/blog_image"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
 
         <ImageView
             android:id="@+id/blog_image"
@@ -45,7 +47,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/blog_title"
-             />
+            android:contentDescription="@string/upload_image" />
 
 
         <TextView
@@ -57,14 +59,15 @@
             android:background="@drawable/main_button_drawable"
             android:gravity="center"
             android:padding="5dp"
-            android:text="SELECT PHOTO"
+            android:text="@string/select_photo"
             android:textColor="#fff"
             android:textSize="25sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/container1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/blog_image" />
+            app:layout_constraintTop_toBottomOf="@+id/blog_image"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -83,33 +86,33 @@
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:background="@color/grey4"
-                android:layout_marginTop="10dp"
-                >
+                android:layout_marginTop="10dp"/>
 
-            </View>
 
             <EditText
+                android:id="@+id/blog_body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/blog_body"
-                android:minLines="10"
-                android:gravity="start"
-                android:hint="Write some content..."
-                android:textColor="#000"
-                android:textSize="17sp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="20dp"
+                android:autofillHints="Write some content"
                 android:background="@android:color/transparent"
-                />
+                android:gravity="start"
+                android:hint="@string/write_some_content"
+                android:inputType="text"
+                android:minHeight="48dp"
+                android:minLines="10"
+                android:textColor="#000"
+                android:textColorHint="#546E7A"
+                android:textSize="17sp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:background="@color/grey4"
-                android:layout_marginTop="10dp"
-                >
+                android:layout_marginTop="10dp"/>
 
-            </View>
+
 
         </LinearLayout>
 

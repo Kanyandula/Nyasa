@@ -80,5 +80,25 @@
     <string name="go_to_viewblogfragment">go to ViewBlogFragment</string>
     <string name="apply">Apply</string>
     <string name="forgot_password">Forgot password</string>
+    <string name="first_and_surname">First and Surname</string>
+    <string name="updated_on_july_23_2022">Updated on July 23, 2022</string>
+    <string name="the_title_of_a_blog">The Title of a Blog</string>
+    <string name="blog_image">Blog Image</string>
+    <string name="write_a_blog_title">Write a blog title...</string>
+    <string name="upload_image">Upload Image</string>
+    <string name="select_photo">SELECT PHOTO</string>
+    <string name="write_some_content">Write some content...</string>
+    <string name="top_background">Top background</string>
+    <string name="white_line">white line</string>
+    <string name="woman_on_a_desk">woman on a desk</string>
+    <string name="welcome_to_nyasablog">Welcome to NyasaBlog</string>
+    <string name="login_woman">login woman</string>
+    <string name="writing_woman">writing woman</string>
+    <string name="create_account">Create Account</string>
+    <string name="this_is_some_blog_content">This is some blog content</string>
+    <string name="touch_to_change_image">Touch to change image</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_more_results">No more results...</string>
+    <string name="nyasa_blog">Nyasa Blog</string>
 
 </resources>

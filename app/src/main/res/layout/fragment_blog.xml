@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#eff0fc"
     tools:context=".ui.main.blog.BlogFragment"
 
@@ -15,7 +14,7 @@
         android:layout_width="0.5dp"
         android:layout_height="0.5dp"
         android:focusableInTouchMode="true"
-        tools:ignore="SpeakableTextPresentCheck"></View>
+        tools:ignore="SpeakableTextPresentCheck"/>
 
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout

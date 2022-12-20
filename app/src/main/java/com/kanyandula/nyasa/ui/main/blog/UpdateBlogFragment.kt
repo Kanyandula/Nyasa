@@ -1,9 +1,12 @@
 package com.kanyandula.nyasa.ui.main.blog
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,16 +42,11 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
             if (it.resultCode == Activity.RESULT_OK) {
                 if (it.data?.hasExtra(ImagePicker.EXTRA_FILE_PATH)!!) {
                     val uri = it.data?.data!!
-                    activity?.let {
-                        viewModel.setUpdatedBlogFields(
-                            title = null,
-                            body = null,
-                            uri = uri
-                        )
-                    }
-
-
-
+                    viewModel.setUpdatedBlogFields(
+                        title = null,
+                        body = null,
+                        uri = uri
+                    )
                 } else {
 
                     showErrorDialog(ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE)
@@ -90,10 +88,11 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         super.onViewCreated(view, savedInstanceState)
         setupMenu()
         subscribeObservers()
-
-       binding?. imageContainer?.setOnClickListener {
-            if(stateChangeListener.isStoragePermissionGranted()){
-                pickGalleryImage()
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+            binding?.imageContainer?.setOnClickListener {
+                if (stateChangeListener.isStoragePermissionGranted()) {
+                    pickGalleryImage()
+                }
             }
         }
     }
@@ -101,6 +100,7 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
 
     private fun pickGalleryImage() {
         galleryLauncher.launch(
+
             ImagePicker.with(requireActivity())
                 .crop()
                 .galleryOnly()

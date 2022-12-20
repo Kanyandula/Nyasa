@@ -67,7 +67,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
 
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupMenu()
@@ -145,7 +145,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
     private fun pickFromGallery() {
         pickGalleryImage()
 

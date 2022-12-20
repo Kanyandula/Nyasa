@@ -42,7 +42,7 @@ class RegisterFragment : BaseAuthFragment<FragmentRegisterBinding>(FragmentRegis
                     it.registration_email?.let{ inputEmail.setText(it) }
                     it.registration_username?.let{ inputUsername.setText(it) }
                     it.registration_password?.let{ inputPassword.setText(it) }
-                    it.registration_confirm_password?.let{ inputPasswordConfirm?.setText(it) }
+                    it.registration_confirm_password?.let{ inputPasswordConfirm.setText(it) }
                 }
 
             }

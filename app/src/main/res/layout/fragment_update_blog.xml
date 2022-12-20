@@ -17,7 +17,7 @@
 
         >
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minLines="2"
@@ -29,11 +29,12 @@
             android:id="@+id/blog_title"
             android:gravity="center_vertical"
             android:layout_marginStart="10dp"
-            android:text="The Title of a Blog"
+            android:text="@string/the_title_of_a_blog"
             android:textColor="#000"
             android:textSize="19sp"
             android:textStyle="bold"
-            />
+            android:autofillHints="Title"
+             />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -52,7 +53,8 @@
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:scaleType="fitXY"
-                app:srcCompat="@drawable/default_image" />
+                app:srcCompat="@drawable/default_image"
+                android:contentDescription="@string/upload_image" />
 
             <TextView
                 android:id="@+id/update_textview"
@@ -61,10 +63,11 @@
                 android:background="@color/grey3"
                 android:gravity="center"
                 android:padding="5dp"
-                android:text="Touch to change image"
+                android:text="@string/touch_to_change_image"
                 android:textColor="#fff"
                 android:textSize="25sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="TextContrastCheck" />
 
         </LinearLayout>
 
@@ -86,18 +89,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:background="@color/grey4"
-                android:layout_marginTop="10dp"
-                >
+                android:layout_marginTop="10dp"/>
 
-            </View>
 
-            <EditText
+
+            <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/blog_body"
                 android:minLines="10"
                 android:gravity="start"
-                android:text="This is some blog content"
+                android:text="@string/this_is_some_blog_content"
                 android:textColor="#000"
                 android:textSize="17sp"
                 android:layout_marginTop="10dp"
