@@ -74,19 +74,13 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         binding?.apply {
 
             blogImage.setOnClickListener {
-                if (stateChangeListener.isStoragePermissionGranted()) {
-                    pickFromGallery()
-                }
-            }
-
-            updateTextview.setOnClickListener {
-                if (stateChangeListener.isStoragePermissionGranted()) {
                     pickFromGallery()
 
-                }
-
-
             }
+
+//            updateTextview.setOnClickListener {
+//                    pickFromGallery()
+//            }
         }
 
         subscribeObservers()

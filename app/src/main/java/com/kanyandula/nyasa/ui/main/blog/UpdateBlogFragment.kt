@@ -88,13 +88,11 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         super.onViewCreated(view, savedInstanceState)
         setupMenu()
         subscribeObservers()
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
             binding?.imageContainer?.setOnClickListener {
-                if (stateChangeListener.isStoragePermissionGranted()) {
                     pickGalleryImage()
-                }
+
             }
-        }
+
     }
 
 

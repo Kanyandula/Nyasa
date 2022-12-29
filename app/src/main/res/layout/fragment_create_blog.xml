@@ -10,6 +10,7 @@
     android:background="#eff0fc"
     >
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,7 +35,8 @@
             app:layout_constraintBottom_toTopOf="@+id/blog_image"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            />
 
 
         <ImageView
@@ -42,82 +44,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
+            android:contentDescription="@string/upload_image"
             android:scaleType="fitXY"
-            app:layout_constraintBottom_toTopOf="@+id/update_textview"
+            android:src="@drawable/image_placeholder"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/blog_title"
-            android:contentDescription="@string/upload_image" />
+            app:layout_constraintTop_toBottomOf="@+id/blog_title" />
 
 
-        <TextView
-            android:id="@+id/update_textview"
+        <EditText
+            android:id="@+id/blog_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:background="@drawable/main_button_drawable"
-            android:gravity="center"
-            android:padding="5dp"
-            android:text="@string/select_photo"
-            android:textColor="#fff"
-            android:textSize="25sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/container1"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/blog_image"
-            />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/update_textview"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            android:autofillHints="Write some content"
+            android:gravity="top|start"
+            android:hint="@string/write_some_content"
+            android:inputType="textMultiLine"
+            android:lines="8"
+            android:maxLines="10"
+            android:minLines="6"
+            android:scrollbars="vertical"
+            android:textColor="#000"
+            android:textColorHint="#546E7A"
+            android:textSize="17sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:orientation="vertical"
-            android:padding="10dp"
-            android:id="@+id/container1"
-            >
-
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/grey4"
-                android:layout_marginTop="10dp"/>
-
-
-            <EditText
-                android:id="@+id/blog_body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="20dp"
-                android:autofillHints="Write some content"
-                android:background="@android:color/transparent"
-                android:gravity="start"
-                android:hint="@string/write_some_content"
-                android:inputType="text"
-                android:minHeight="48dp"
-                android:minLines="10"
-                android:textColor="#000"
-                android:textColorHint="#546E7A"
-                android:textSize="17sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/grey4"
-                android:layout_marginTop="10dp"/>
-
-
-
-        </LinearLayout>
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/blog_image" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
 
 
 

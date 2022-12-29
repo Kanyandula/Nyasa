@@ -94,9 +94,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:autoLink="web|map|email"
+                android:linksClickable="true"
+                android:minHeight="48dp"
                 android:text="@string/this_is_some_blog_content"
                 android:textColor="#000"
-                android:textSize="17sp" />
+                android:textSize="17sp"
+                app:emojiCompatEnabled="true" />
 
 
             <Button

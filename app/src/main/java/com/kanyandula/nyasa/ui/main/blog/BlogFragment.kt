@@ -26,6 +26,7 @@ import com.afollestad.materialdialogs.customview.getCustomView
 import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentBlogBinding
+import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_FILTER_DATE_UPDATED
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_FILTER_USERNAME
@@ -52,10 +53,8 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
 {
 
 
-
     private lateinit var searchView: SearchView
     private lateinit var recyclerAdapter: BlogListAdapter
-
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -101,7 +100,11 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
 
             }
         })
+
+
     }
+
+
 
     private fun initSearchView(menu: Menu){
         activity?.apply {

@@ -8,8 +8,10 @@ import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
+import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
+import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.persistance.returnOrderedBlogQuery
 import com.kanyandula.nyasa.repository.JobManager
@@ -18,6 +20,7 @@ import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
+import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.*
 import com.kanyandula.nyasa.util.AbsentLiveData
@@ -42,6 +45,7 @@ class BlogRepository
 constructor(
     val nyasaBlogApiMainService: NyasaBlogApiMainService,
     val blogPostDao: BlogPostDao,
+    val accountPropertiesDao: AccountPropertiesDao,
     val sessionManager: SessionManager
 ): JobManager("BlogRepository")
 {
@@ -389,6 +393,7 @@ constructor(
 
         }.asLiveData()
     }
+
 
 
 

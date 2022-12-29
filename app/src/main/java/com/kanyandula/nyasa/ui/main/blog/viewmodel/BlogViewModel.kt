@@ -28,11 +28,10 @@ import javax.inject.Inject
 class BlogViewModel
 @Inject
 constructor(
-    private val savedStateHandle: SavedStateHandle,
     private val sessionManager: SessionManager,
     private val blogRepository: BlogRepository,
     private val sharedPreferences: SharedPreferences,
-    private val editor: SharedPreferences.Editor
+    private val editor: SharedPreferences.Editor,
 
 ): BaseViewModel<BlogStateEvent, BlogViewState>(){
 
@@ -55,7 +54,7 @@ constructor(
     }
 
     override fun handleStateEvent(stateEvent: BlogStateEvent): LiveData<DataState<BlogViewState>> {
-        when(stateEvent){
+        return when (stateEvent) {
 
             is BlogSearchEvent -> {
                 return sessionManager.cachedToken.value?.let { authToken ->
@@ -65,7 +64,7 @@ constructor(
                         filterAndOrder = getOrder() + getFilter(),
                         page = getPage()
                     )
-                }?: AbsentLiveData.create()
+                } ?: AbsentLiveData.create()
             }
 
             is CheckAuthorOfBlogPost -> {
@@ -74,7 +73,7 @@ constructor(
                         authToken = authToken,
                         slug = getSlug()
                     )
-                }?: AbsentLiveData.create()
+                } ?: AbsentLiveData.create()
             }
 
             is DeleteBlogPostEvent -> {
@@ -83,7 +82,7 @@ constructor(
                         authToken = authToken,
                         blogPost = getBlogPost()
                     )
-                }?: AbsentLiveData.create()
+                } ?: AbsentLiveData.create()
             }
 
             is UpdateBlogPostEvent -> {
@@ -106,19 +105,27 @@ constructor(
                         body = body,
                         image = stateEvent.image
                     )
-                }?: AbsentLiveData.create()
+                } ?: AbsentLiveData.create()
             }
 
-            is None ->{
-                return object: LiveData<DataState<BlogViewState>>(){
+            is None -> {
+                return object : LiveData<DataState<BlogViewState>>() {
                     override fun onActive() {
                         super.onActive()
                         value = DataState(null, Loading(false), null)
                     }
                 }
             }
+
+
+
+
+
         }
     }
+
+
+
 
     override fun initNewViewState(): BlogViewState {
         return BlogViewState()
