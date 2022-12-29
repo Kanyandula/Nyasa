@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
+import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentLoginBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
@@ -23,7 +25,16 @@ class LoginFragment : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBindin
         binding?.loginButton?.setOnClickListener {
             login()
         }
+        binding?.forgotPassword?.setOnClickListener {
+            navForgotPassword()
+        }
     }
+
+    fun navForgotPassword(){
+        findNavController().navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
+    }
+
+
 
 
     fun subscribeObservers(){
@@ -39,7 +50,9 @@ class LoginFragment : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBindin
     }
 
     fun login(){
+
         viewModel.setStateEvent(
+
             LoginAttemptEvent(
                 binding?.inputEmail?.text.toString(),
                 binding?.inputPassword?.text.toString()

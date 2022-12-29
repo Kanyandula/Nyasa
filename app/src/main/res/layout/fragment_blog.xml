@@ -32,25 +32,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="#eff0fc"
-                android:layout_margin="2dp"
-                >
-
-                <TextView
-                    android:id="@+id/welcome"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
-                    android:fontFamily="@font/andika"
-                    android:hint="Welcome"
-                    android:textColor="@color/link_blue"
-                    android:textSize="20sp" />
-
-        </androidx.cardview.widget.CardView>
-
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"

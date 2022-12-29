@@ -46,6 +46,8 @@ abstract class BaseAuthFragment<T : ViewBinding>(private val bindingInflater: (l
         _binding = null
     }
 
+
+
 }
 
 
