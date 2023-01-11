@@ -9,7 +9,5 @@
     <fragment android:id="@+id/createBlogFragment"
             android:name="com.kanyandula.nyasa.ui.main.create_blog.CreateBlogFragment"
             android:label="@string/fragment_create_blog"
-            tools:layout="@layout/fragment_create_blog">
-
-    </fragment>
+            tools:layout="@layout/fragment_create_blog"/>
 </navigation>

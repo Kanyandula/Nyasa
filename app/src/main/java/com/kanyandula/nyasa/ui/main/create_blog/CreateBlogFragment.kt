@@ -1,11 +1,8 @@
 package com.kanyandula.nyasa.ui.main.create_blog
 
-
-
 import android.app.Activity
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -13,11 +10,9 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.github.drjacky.imagepicker.ImagePicker
 import com.github.drjacky.imagepicker.ImagePicker.Companion.EXTRA_FILE_PATH
@@ -25,11 +20,9 @@ import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentCreateBlogBinding
 import com.kanyandula.nyasa.ui.*
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent
-import com.kanyandula.nyasa.util.Constants.Companion.GALLERY_REQUEST_CODE
 import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_MUST_SELECT_IMAGE
 import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SOMETHING_WRONG_WITH_IMAGE
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_CREATED
-import com.kanyandula.nyasa.util.UploadStreamRequestBody
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -78,9 +71,11 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
             }
 
-//            updateTextview.setOnClickListener {
-//                    pickFromGallery()
-//            }
+            publish.setOnClickListener {
+                publishNewBlog()
+            }
+
+
         }
 
         subscribeObservers()
@@ -89,8 +84,8 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
 
     fun subscribeObservers(){
-        viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            if (dataState != null){
+        viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
+            if (dataState != null) {
                 stateChangeListener.onDataStateChange(dataState)
                 dataState.data?.let { data ->
                     data.response?.let { event ->
@@ -105,28 +100,27 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                 }
             }
 
-        })
+        }
 
-        viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
-            viewState.blogFields.let{ newBlogFields ->
+        viewModel.viewState.observe(viewLifecycleOwner) { viewState ->
+            viewState.blogFields.let { newBlogFields ->
                 setBlogProperties(
                     newBlogFields.newBlogTitle,
                     newBlogFields.newBlogBody,
                     newBlogFields.newImageUri
                 )
             }
-        })
+        }
     }
 
 
     private fun pickGalleryImage() {
         galleryLauncher.launch(
             ImagePicker.with(requireActivity())
-                .crop()
+
+                .crop(1130F, 961F)
                 .galleryOnly()
-                .maxResultSize(1130,561)
-                .setOutputFormat(Bitmap.CompressFormat.WEBP)
-                .cropFreeStyle()
+                .setOutputFormat(Bitmap.CompressFormat.JPEG)
                 .galleryMimeTypes( // no gif images at all
                     mimeTypes = arrayOf(
                         "image/png",
@@ -146,7 +140,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
     }
 
 
-    fun setBlogProperties(title: String?, body: String?, image: Uri?){
+    private fun setBlogProperties(title: String?, body: String?, image: Uri?){
 
         if(image != null){
 
@@ -211,6 +205,8 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         }?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
 
         stateChangeListener.hideSoftKeyboard()
+
+
     }
 
 

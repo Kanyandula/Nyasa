@@ -100,5 +100,6 @@
     <string name="cancel">Cancel</string>
     <string name="no_more_results">No more results...</string>
     <string name="nyasa_blog">Nyasa Blog</string>
+    <string name="edit_icon">edit icon</string>
 
 </resources>

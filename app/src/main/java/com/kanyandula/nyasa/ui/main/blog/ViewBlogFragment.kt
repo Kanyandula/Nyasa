@@ -11,7 +11,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestManager
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentViewBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
@@ -23,7 +22,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.*
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_DELETED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import javax.inject.Inject
+
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate){
@@ -44,7 +43,7 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
     }
 
 
-    fun confirmDeleteRequest(){
+    private fun confirmDeleteRequest(){
         val callback: AreYouSureCallback = object: AreYouSureCallback {
 
             override fun proceed() {

@@ -100,11 +100,9 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         galleryLauncher.launch(
 
             ImagePicker.with(requireActivity())
-                .crop()
+                .crop(1130F, 961F)
                 .galleryOnly()
-                .maxResultSize(1130,561)
-                .setOutputFormat(Bitmap.CompressFormat.WEBP)
-                .cropFreeStyle()
+                .setOutputFormat(Bitmap.CompressFormat.JPEG)
                 .galleryMimeTypes( // no gif images at all
                     mimeTypes = arrayOf(
                         "image/png",
