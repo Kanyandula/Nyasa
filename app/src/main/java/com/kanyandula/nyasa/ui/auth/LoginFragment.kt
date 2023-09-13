@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentLoginBinding
@@ -14,7 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class LoginFragment : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBinding::inflate) {
+class LoginFragment() : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBinding::inflate) {
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

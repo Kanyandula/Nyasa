@@ -11,6 +11,7 @@ import android.view.animation.TranslateAnimation
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentForgotPasswordBinding
@@ -25,7 +26,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ForgotPasswordFragment : BaseAuthFragment<FragmentForgotPasswordBinding>(FragmentForgotPasswordBinding::inflate) {
+class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>(FragmentForgotPasswordBinding::inflate) {
 
 
     lateinit var webView: WebView

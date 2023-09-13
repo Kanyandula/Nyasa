@@ -3,11 +3,9 @@ package com.kanyandula.nyasa.ui.auth
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.lifecycle.Observer
-import com.kanyandula.nyasa.R
+import androidx.lifecycle.ViewModelProvider
 import com.kanyandula.nyasa.databinding.FragmentRegisterBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
@@ -17,7 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class RegisterFragment : BaseAuthFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
+class RegisterFragment() : BaseAuthFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
