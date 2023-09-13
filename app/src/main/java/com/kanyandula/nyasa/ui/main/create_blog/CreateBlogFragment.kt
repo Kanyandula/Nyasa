@@ -91,7 +91,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                     data.response?.let { event ->
                         event.peekContent().let { response ->
                             response.message?.let { message ->
-                                if (message.equals(SUCCESS_BLOG_CREATED)) {
+                                if (message == SUCCESS_BLOG_CREATED) {
                                     viewModel.clearNewBlogFields()
                                 }
                             }

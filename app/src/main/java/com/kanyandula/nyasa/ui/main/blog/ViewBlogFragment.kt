@@ -118,9 +118,6 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
      fun setBlogProperties(blogPost: BlogPost){
 
 
-
-
-
             binding?.let {
                 Glide.with(this@ViewBlogFragment)
                     .load(blogPost.image)
