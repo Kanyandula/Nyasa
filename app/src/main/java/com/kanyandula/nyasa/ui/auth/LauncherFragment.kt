@@ -11,7 +11,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class LauncherFragment() :  Fragment(R.layout.fragment_launcher) {
+class LauncherFragment(
+
+) :  Fragment(R.layout.fragment_launcher) {
 
     private var _binding: FragmentLauncherBinding? =null
     private val binding get() = _binding!!

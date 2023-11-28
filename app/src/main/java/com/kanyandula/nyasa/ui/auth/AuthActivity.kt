@@ -17,17 +17,15 @@ import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.MainActivity
 import com.kanyandula.nyasa.util.SuccessHandling.Companion.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import dagger.hilt.android.AndroidEntryPoint
-
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class AuthActivity : BaseActivity(),
     NavController.OnDestinationChangedListener
-
 {
-
 
     private lateinit var binding: ActivityAuthBinding
 
@@ -36,7 +34,7 @@ class AuthActivity : BaseActivity(),
         super.onCreate(savedInstanceState)
         binding= ActivityAuthBinding.inflate(layoutInflater)
         val  view =binding.root
-        //setContentView(R.layout.activity_auth)
+
         setContentView(view)
 
         findNavController(R.id.auth_nav_host_fragment).addOnDestinationChangedListener(this)
@@ -44,6 +42,9 @@ class AuthActivity : BaseActivity(),
         subscribeObservers()
         checkPreviousAuthUser()
     }
+
+
+
 
     override fun onResume() {
         super.onResume()
@@ -104,9 +105,9 @@ class AuthActivity : BaseActivity(),
     }
 
     private fun onFinishCheckPreviousAuthUser(){
-       binding.fragmentContainer
+        binding.fragmentContainer
 
-           .visibility = View.VISIBLE
+            .visibility = View.VISIBLE
     }
 
     override fun displayProgressBar(bool: Boolean){
