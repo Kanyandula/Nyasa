@@ -16,6 +16,8 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.ActivityMainBinding
+import com.kanyandula.nyasa.models.AUTH_TOKEN_BUNDLE_KEY
+import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.auth.AuthActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,7 +71,25 @@ class MainActivity : BaseActivity()
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         subscribeObservers()
+        restoreSession(savedInstanceState)
     }
+
+    private fun restoreSession(savedInstanceState: Bundle?){
+        savedInstanceState?.get(AUTH_TOKEN_BUNDLE_KEY)?.let{ authToken ->
+            sessionManager.setValue(authToken as AuthToken)
+        }
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        // save auth token
+        outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
+
+
+    }
+
+
+
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration)

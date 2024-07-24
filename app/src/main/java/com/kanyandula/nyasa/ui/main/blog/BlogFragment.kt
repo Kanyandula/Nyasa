@@ -201,7 +201,8 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
                 removeItemDecoration(topSpacingDecorator) // does nothing if not applied already
                 addItemDecoration(topSpacingDecorator)
 
-                recyclerAdapter = BlogListAdapter(requestManager,  this@BlogFragment)
+                recyclerAdapter = BlogListAdapter(requestManager,
+                    this@BlogFragment)
                 addOnScrollListener(object: RecyclerView.OnScrollListener(){
 
                     override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -248,6 +249,13 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
     override fun onItemSelected(position: Int, item: BlogPost) {
         viewModel.setBlogPost(item)
         findNavController().navigate(R.id.action_blogFragment_to_viewBlogFragment)
+    }
+
+    override fun restoreListPosition() {
+        viewModel.viewState.value?.blogFields?.layoutManagerState?.let { lmState ->
+          binding?.blogPostRecyclerview?.layoutManager?.onRestoreInstanceState(lmState)
+
+        }
     }
 
     override fun onDestroyView() {
@@ -323,7 +331,6 @@ class BlogFragment : BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::
             dialog.show()
         }
     }
-
 
 
 

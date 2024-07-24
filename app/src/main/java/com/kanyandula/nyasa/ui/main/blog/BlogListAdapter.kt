@@ -123,7 +123,12 @@ class BlogListAdapter(
         val newList = blogList?.toMutableList()
         if (isQueryExhausted)
             newList?.add(NO_MORE_RESULTS_BLOG_MARKER)
-        differ.submitList(newList)
+        val commitCallback = Runnable {
+            // if process died must restore list position
+            // very annoying
+            interaction?.restoreListPosition()
+        }
+        differ.submitList(newList, commitCallback)
     }
 
     // Prepare the images that will be displayed in the RecyclerView.
@@ -181,5 +186,7 @@ class BlogListAdapter(
 
     interface Interaction {
         fun onItemSelected(position: Int, item: BlogPost)
+
+        fun restoreListPosition()
     }
 }

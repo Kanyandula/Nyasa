@@ -53,6 +53,10 @@ class AuthActivity : BaseActivity(),
 
     private fun subscribeObservers(){
 
+
+
+
+
         viewModel.dataState.observe(this, Observer { dataState ->
             onDataStateChange(dataState)
             dataState.data?.let { data ->
@@ -83,6 +87,7 @@ class AuthActivity : BaseActivity(),
             }
         })
 
+
         sessionManager.cachedToken.observe(this, Observer{ dataState ->
             Log.d(TAG, "AuthActivity, subscribeObservers: AuthDataState: ${dataState}")
             dataState.let{ authToken ->
@@ -93,7 +98,7 @@ class AuthActivity : BaseActivity(),
         })
     }
 
-    fun navMainActivity(){
+    private fun navMainActivity(){
         Log.d(TAG, "navMainActivity: called.")
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
@@ -105,9 +110,7 @@ class AuthActivity : BaseActivity(),
     }
 
     private fun onFinishCheckPreviousAuthUser(){
-        binding.fragmentContainer
-
-            .visibility = View.VISIBLE
+        binding.fragmentContainer.visibility = View.VISIBLE
     }
 
     override fun displayProgressBar(bool: Boolean){

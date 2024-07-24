@@ -31,7 +31,7 @@ class LoginFragment() : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBind
         }
     }
 
-    fun navForgotPassword(){
+    private fun navForgotPassword(){
         findNavController().navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
     }
 
