@@ -30,13 +30,16 @@ import com.afollestad.materialdialogs.customview.getCustomView
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentBlogBinding
 import com.kanyandula.nyasa.models.BlogPost
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_FILTER_DATE_UPDATED
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_FILTER_USERNAME
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.BLOG_ORDER_ASC
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_DATE_UPDATED
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_USERNAME
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_ORDER_ASC
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.getFilter
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.getOrder
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.handleIncomingBlogListData
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.loadFirstPage
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.nextPage
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogFilter
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogOrder
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogPost
@@ -45,10 +48,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.setQueryExhausted
 import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.TopSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
-import handleIncomingBlogListData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import loadFirstPage
-import nextPage
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint

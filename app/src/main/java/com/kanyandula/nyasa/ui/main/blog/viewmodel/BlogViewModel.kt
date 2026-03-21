@@ -15,8 +15,8 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.DeleteBlogPostEven
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.None
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.UpdateBlogPostEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_FILTER
-import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_ORDER
+import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
+import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

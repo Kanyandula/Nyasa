@@ -14,7 +14,7 @@ import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.Constants.Companion.RESPONSE_MUST_HAVE_NYASABLOG_UER
+import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.GenericApiResponse
 import kotlinx.coroutines.Dispatchers

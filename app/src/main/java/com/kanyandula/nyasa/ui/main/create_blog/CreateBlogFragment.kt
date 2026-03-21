@@ -31,9 +31,9 @@ import com.kanyandula.nyasa.ui.StateError
 import com.kanyandula.nyasa.ui.UIMessage
 import com.kanyandula.nyasa.ui.UIMessageType
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_MUST_SELECT_IMAGE
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SOMETHING_WRONG_WITH_IMAGE
-import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_CREATED
+import com.kanyandula.nyasa.util.ErrorHandling.ERROR_MUST_SELECT_IMAGE
+import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE
+import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

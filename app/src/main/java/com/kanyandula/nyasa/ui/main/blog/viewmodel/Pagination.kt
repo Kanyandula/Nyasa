@@ -1,3 +1,5 @@
+package com.kanyandula.nyasa.ui.main.blog.viewmodel
+
 import android.util.Log
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.BlogSearchEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState

@@ -7,7 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.kanyandula.nyasa.models.BlogPost
-import com.kanyandula.nyasa.util.Constants.Companion.PAGINATION_PAGE_SIZE
+import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
 
 @Dao
 interface BlogPostDao {

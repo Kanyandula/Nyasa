@@ -19,13 +19,13 @@ import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SAVE_ACCOUNT_PROPERTIES
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SAVE_AUTH_TOKEN
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.GENERIC_AUTH_ERROR
+import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_ACCOUNT_PROPERTIES
+import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_AUTH_TOKEN
+import com.kanyandula.nyasa.util.ErrorHandling.GENERIC_AUTH_ERROR
 import com.kanyandula.nyasa.util.GenericApiResponse
 import com.kanyandula.nyasa.util.InputValidation
 import com.kanyandula.nyasa.util.PreferenceKeys
-import com.kanyandula.nyasa.util.SuccessHandling.Companion.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
+import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import kotlinx.coroutines.Job
 import javax.inject.Inject
 

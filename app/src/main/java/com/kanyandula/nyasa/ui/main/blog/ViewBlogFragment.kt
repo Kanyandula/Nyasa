@@ -27,7 +27,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.removeDeletedBlogPost
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setIsAuthorOfBlogPost
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
 import com.kanyandula.nyasa.util.DateUtils
-import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -2,25 +2,23 @@ package com.kanyandula.nyasa.persistance
 
 import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.models.BlogPost
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.ORDER_BY_ASC_DATE_UPDATED
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.ORDER_BY_ASC_USERNAME
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.ORDER_BY_DESC_DATE_UPDATED
-import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.ORDER_BY_DESC_USERNAME
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.ORDER_BY_ASC_DATE_UPDATED
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.ORDER_BY_ASC_USERNAME
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.ORDER_BY_DESC_DATE_UPDATED
+import com.kanyandula.nyasa.persistance.BlogQueryUtils.ORDER_BY_DESC_USERNAME
 
 object BlogQueryUtils {
 
-    companion object {
-        // values
-        const val BLOG_ORDER_ASC: String = ""
-        const val BLOG_ORDER_DESC: String = "-"
-        const val BLOG_FILTER_USERNAME = "username"
-        const val BLOG_FILTER_DATE_UPDATED = "date_updated"
+    // values
+    const val BLOG_ORDER_ASC: String = ""
+    const val BLOG_ORDER_DESC: String = "-"
+    const val BLOG_FILTER_USERNAME = "username"
+    const val BLOG_FILTER_DATE_UPDATED = "date_updated"
 
-        const val ORDER_BY_ASC_DATE_UPDATED = BLOG_ORDER_ASC + BLOG_FILTER_DATE_UPDATED
-        const val ORDER_BY_DESC_DATE_UPDATED = BLOG_ORDER_DESC + BLOG_FILTER_DATE_UPDATED
-        const val ORDER_BY_ASC_USERNAME = BLOG_ORDER_ASC + BLOG_FILTER_USERNAME
-        const val ORDER_BY_DESC_USERNAME = BLOG_ORDER_DESC + BLOG_FILTER_USERNAME
-    }
+    const val ORDER_BY_ASC_DATE_UPDATED = BLOG_ORDER_ASC + BLOG_FILTER_DATE_UPDATED
+    const val ORDER_BY_DESC_DATE_UPDATED = BLOG_ORDER_DESC + BLOG_FILTER_DATE_UPDATED
+    const val ORDER_BY_ASC_USERNAME = BLOG_ORDER_ASC + BLOG_FILTER_USERNAME
+    const val ORDER_BY_DESC_USERNAME = BLOG_ORDER_DESC + BLOG_FILTER_USERNAME
 }
 
 fun BlogPostDao.returnOrderedBlogQuery(

@@ -10,7 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.kanyandula.nyasa.session.SessionManager
-import com.kanyandula.nyasa.util.Constants.Companion.PERMISSIONS_REQUEST_READ_STORAGE
+import com.kanyandula.nyasa.util.Constants.PERMISSIONS_REQUEST_READ_STORAGE
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

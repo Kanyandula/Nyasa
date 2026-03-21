@@ -9,12 +9,12 @@ import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.util.ApiEmptyResponse
 import com.kanyandula.nyasa.util.ApiErrorResponse
 import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.Constants.Companion.NETWORK_TIMEOUT
-import com.kanyandula.nyasa.util.Constants.Companion.TESTING_CACHE_DELAY
-import com.kanyandula.nyasa.util.Constants.Companion.TESTING_NETWORK_DELAY
+import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
+import com.kanyandula.nyasa.util.Constants.TESTING_CACHE_DELAY
+import com.kanyandula.nyasa.util.Constants.TESTING_NETWORK_DELAY
 import com.kanyandula.nyasa.util.ErrorHandling
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_CHECK_NETWORK_CONNECTION
-import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_UNKNOWN
+import com.kanyandula.nyasa.util.ErrorHandling.ERROR_CHECK_NETWORK_CONNECTION
+import com.kanyandula.nyasa.util.ErrorHandling.ERROR_UNKNOWN
 import com.kanyandula.nyasa.util.GenericApiResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableJob

@@ -7,7 +7,7 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.databinding.FragmentChangePasswordBinding
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
-import com.kanyandula.nyasa.util.SuccessHandling.Companion.RESPONSE_PASSWORD_UPDATE_SUCCESS
+import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_PASSWORD_UPDATE_SUCCESS
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
