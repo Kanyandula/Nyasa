@@ -14,13 +14,13 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.viewbinding.ViewBinding
 import com.kanyandula.nyasa.R
-
 import com.kanyandula.nyasa.ui.DataStateChangeListener
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
-abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater: (layoutInflater: LayoutInflater) -> T)  : Fragment(){
+abstract class BaseAccountFragment<T : ViewBinding>(
+    private val bindingInflater: (layoutInflater: LayoutInflater) -> T
+) : Fragment() {
 
     val TAG: String = "AppDebug"
 
@@ -33,7 +33,11 @@ abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater
 
     lateinit var stateChangeListener: DataStateChangeListener
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         _binding = bindingInflater.invoke(inflater)
         return binding?.root
     }
@@ -46,19 +50,17 @@ abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater
         cancelActiveJobs()
     }
 
-    fun cancelActiveJobs(){
+    fun cancelActiveJobs() {
         // When a fragment is destroyed make sure to cancel any on-going requests.
         // Note: If you wanted a particular request to continue even if the fragment was destroyed, you could write a
         //       special condition in the repository or something.
         viewModel.cancelActiveJobs()
     }
 
-
-
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
         */
-    private fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity){
+    private fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity) {
         val appBarConfiguration = AppBarConfiguration(setOf(fragmentId))
         NavigationUI.setupActionBarWithNavController(
             activity,
@@ -69,10 +71,10 @@ abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        try{
+        try {
             stateChangeListener = context as DataStateChangeListener
-        }catch(e: ClassCastException){
-            Log.e(TAG, "$context must implement DataStateChangeListener" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement DataStateChangeListener")
         }
     }
 
@@ -81,21 +83,3 @@ abstract class BaseAccountFragment <T : ViewBinding>(private val bindingInflater
         _binding = null
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

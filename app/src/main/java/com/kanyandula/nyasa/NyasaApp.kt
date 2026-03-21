@@ -1,11 +1,10 @@
 package com.kanyandula.nyasa
 
-
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class NyasaApp : Application(){
+class NyasaApp : Application() {
 
 //    lateinit var appComponent: AppComponent
 //
@@ -45,6 +44,4 @@ class NyasaApp : Application(){
 //            .application(this)
 //            .build()
 //    }
-
-
 }

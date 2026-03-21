@@ -11,7 +11,6 @@ import android.view.animation.TranslateAnimation
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentForgotPasswordBinding
@@ -26,14 +25,14 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>(FragmentForgotPasswordBinding::inflate) {
-
+class ForgotPasswordFragment :
+    BaseAuthFragment<FragmentForgotPasswordBinding>(FragmentForgotPasswordBinding::inflate) {
 
     lateinit var webView: WebView
 
     lateinit var stateChangeListener: DataStateChangeListener
 
-    private val webInteractionCallback = object: WebAppInterface.OnWebInteractionCallback {
+    private val webInteractionCallback = object : WebAppInterface.OnWebInteractionCallback {
 
         override fun onError(errorMessage: String) {
             Log.e(TAG, "onError: $errorMessage")
@@ -62,7 +61,8 @@ class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
@@ -81,11 +81,11 @@ class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>
     }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
-    fun loadPasswordResetWebView(){
+    fun loadPasswordResetWebView() {
         stateChangeListener.onDataStateChange(
             DataState.loading(isLoading = true, cachedData = null)
         )
-        webView.webViewClient = object: WebViewClient(){
+        webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 stateChangeListener.onDataStateChange(
@@ -97,8 +97,6 @@ class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>
         webView.settings.javaScriptEnabled = true
         webView.addJavascriptInterface(WebAppInterface(webInteractionCallback), "AndroidTextListener")
     }
-
-
 
     class WebAppInterface
     constructor(
@@ -122,7 +120,7 @@ class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>
             callback.onLoading(isLoading)
         }
 
-        interface OnWebInteractionCallback{
+        interface OnWebInteractionCallback {
 
             fun onSuccess(email: String)
 
@@ -132,8 +130,8 @@ class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>
         }
     }
 
-    fun onPasswordResetLinkSent(){
-        CoroutineScope(Main).launch{
+    fun onPasswordResetLinkSent() {
+        CoroutineScope(Main).launch {
             binding?.parentView?.removeView(webView)
             webView.destroy()
 
@@ -152,22 +150,16 @@ class ForgotPasswordFragment() : BaseAuthFragment<FragmentForgotPasswordBinding>
             binding?.apply {
                 passwordResetDoneContainer.startAnimation(animation)
                 passwordResetDoneContainer.visibility = View.VISIBLE
-
             }
-
-
         }
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        try{
+        try {
             stateChangeListener = context as DataStateChangeListener
-        }catch(e: ClassCastException){
-            Log.e(TAG, "$context must implement DataStateChangeListener" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement DataStateChangeListener")
         }
     }
-
-
 }
-

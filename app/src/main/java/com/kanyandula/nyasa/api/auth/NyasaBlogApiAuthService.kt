@@ -1,14 +1,14 @@
 package com.kanyandula.nyasa.api.auth
 
 import androidx.lifecycle.LiveData
-import com.kanyandula.nyasa.util.GenericApiResponse
 import com.kanyandula.nyasa.api.auth.network_responses.LoginResponse
 import com.kanyandula.nyasa.api.auth.network_responses.RegistrationResponse
+import com.kanyandula.nyasa.util.GenericApiResponse
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
-interface  NyasaBlogApiAuthService{
+interface NyasaBlogApiAuthService {
 
     @POST("account/login")
     @FormUrlEncoded
@@ -25,5 +25,4 @@ interface  NyasaBlogApiAuthService{
         @Field("password") password: String,
         @Field("password2") password2: String
     ): LiveData<GenericApiResponse<RegistrationResponse>>
-
 }

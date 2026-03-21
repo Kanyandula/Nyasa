@@ -11,7 +11,6 @@ data class AuthViewState(
     var authToken: AuthToken? = null
 )
 
-
 data class RegistrationFields(
     var registration_email: String? = null,
     var registration_username: String? = null
@@ -20,5 +19,3 @@ data class RegistrationFields(
 data class LoginFields(
     var login_email: String? = null
 )
-
-

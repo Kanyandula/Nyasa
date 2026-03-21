@@ -6,7 +6,4 @@ import androidx.recyclerview.widget.RecyclerView
 class GenericViewHolder
 constructor(
     itemView: View
-): RecyclerView.ViewHolder(itemView){
-
-
-}
+) : RecyclerView.ViewHolder(itemView)

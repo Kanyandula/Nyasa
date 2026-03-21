@@ -6,8 +6,8 @@ plugins {
     id 'kotlin-parcelize'
     id 'androidx.navigation.safeargs'
     id 'dagger.hilt.android.plugin'
-
-
+    id 'io.gitlab.arturbosch.detekt'
+    id 'com.diffplug.spotless'
 }
 
 android {
@@ -58,7 +58,65 @@ android {
     kotlinOptions {
         jvmTarget = '11'
     }
+    lint {
+        abortOnError false
+        warningsAsErrors false
+        htmlReport true
+        htmlOutput file("${project.buildDir}/reports/lint/lint-results.html")
+        xmlReport true
+        xmlOutput file("${project.buildDir}/reports/lint/lint-results.xml")
+        lintConfig file("lint.xml")
+        checkDependencies false
+    }
+
 namespace 'com.kanyandula.nyasa'
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(files("${rootProject.projectDir}/detekt.yml"))
+    source.setFrom(files(
+        "src/main/java",
+        "src/main/kotlin"
+    ))
+    reports {
+        html {
+            required.set(true)
+            outputLocation.set(file("${project.buildDir}/reports/detekt/detekt.html"))
+        }
+        xml {
+            required.set(true)
+            outputLocation.set(file("${project.buildDir}/reports/detekt/detekt.xml"))
+        }
+    }
+}
+
+tasks.withType(io.gitlab.arturbosch.detekt.Detekt).configureEach {
+    jvmTarget = "11"
+}
+tasks.withType(io.gitlab.arturbosch.detekt.DetektCreateBaselineTask).configureEach {
+    jvmTarget = "11"
+}
+
+spotless {
+    kotlin {
+        target '**/*.kt'
+        targetExclude '**/build/**'
+        ktlint('0.48.2')
+            .editorConfigOverride([
+                'ktlint_code_style'              : 'android_studio',
+                'max_line_length'                : '120',
+                'ktlint_standard_no-wildcard-imports': 'disabled',
+                'ktlint_standard_max-line-length'    : 'disabled',
+                'ktlint_standard_package-name'       : 'disabled',
+            ])
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        target '**/*.gradle.kts'
+        ktlint('0.48.2')
+    }
 }
 
 dependencies {

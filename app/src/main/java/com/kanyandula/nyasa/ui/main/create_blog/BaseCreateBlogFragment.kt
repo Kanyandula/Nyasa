@@ -1,3 +1,5 @@
+@file:Suppress("PackageNaming")
+
 package com.kanyandula.nyasa.ui.main.create_blog
 
 import android.content.Context
@@ -19,8 +21,9 @@ import com.kanyandula.nyasa.ui.UICommunicationListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
-abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInflater: (layoutInflater: LayoutInflater) -> T
-)  : Fragment(){
+abstract class BaseCreateBlogFragment<T : ViewBinding>(
+    private val bindingInflater: (layoutInflater: LayoutInflater) -> T
+) : Fragment() {
 
     // Bindings
     private var _binding: T? = null
@@ -29,16 +32,18 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
 
     val viewModel: CreateBlogViewModel by activityViewModels()
 
-
     val TAG: String = "AppDebug"
 
     lateinit var stateChangeListener: DataStateChangeListener
     lateinit var uiCommunicationListener: UICommunicationListener
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         _binding = bindingInflater.invoke(inflater)
         return binding?.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -49,13 +54,14 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
         cancelActiveJobs()
     }
 
-   fun cancelActiveJobs(){
-      viewModel.cancelActiveJobs()
-   }
+    fun cancelActiveJobs() {
+        viewModel.cancelActiveJobs()
+    }
+
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
         */
-    fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity){
+    fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity) {
         val appBarConfiguration = AppBarConfiguration(setOf(fragmentId))
         NavigationUI.setupActionBarWithNavController(
             activity,
@@ -66,16 +72,16 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        try{
+        try {
             stateChangeListener = context as DataStateChangeListener
-        }catch(e: ClassCastException){
-            Log.e(TAG, "$context must implement DataStateChangeListener" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement DataStateChangeListener")
         }
 
-        try{
+        try {
             uiCommunicationListener = context as UICommunicationListener
-        }catch(e: ClassCastException){
-            Log.e(TAG, "$context must implement UICommunicationListener" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement UICommunicationListener")
         }
     }
 
@@ -83,7 +89,4 @@ abstract class BaseCreateBlogFragment <T : ViewBinding>(private val bindingInfla
         super.onDestroyView()
         _binding = null
     }
-
-
-
 }

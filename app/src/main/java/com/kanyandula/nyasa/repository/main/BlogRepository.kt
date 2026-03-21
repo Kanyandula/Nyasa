@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.repository.main
 
-
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.switchMap
@@ -19,7 +18,8 @@ import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.*
+import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.BlogFields
+import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.ViewBlogFields
 import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.Companion.PAGINATION_PAGE_SIZE
@@ -44,8 +44,7 @@ constructor(
     val blogPostDao: BlogPostDao,
     val accountPropertiesDao: AccountPropertiesDao,
     val sessionManager: SessionManager
-): JobManager("BlogRepository")
-{
+) : JobManager("BlogRepository") {
 
     private val TAG: String = "AppDebug"
 
@@ -54,7 +53,7 @@ constructor(
         filterAndOrder: String,
         page: Int
     ): LiveData<DataState<BlogViewState>> {
-        return object: NetworkBoundResource<BlogListSearchResponse, List<BlogPost>, BlogViewState>(
+        return object : NetworkBoundResource<BlogListSearchResponse, List<BlogPost>, BlogViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             false,
@@ -62,12 +61,11 @@ constructor(
         ) {
             // if network is down, view cache only and return
             override suspend fun createCacheRequestAndReturn() {
-                withContext(Dispatchers.Main){
-
+                withContext(Dispatchers.Main) {
                     // finishing by viewing db cache
-                    result.addSource(loadFromCache()){ viewState ->
+                    result.addSource(loadFromCache()) { viewState ->
                         viewState.blogFields.isQueryInProgress = false
-                        if(page * PAGINATION_PAGE_SIZE > viewState.blogFields.blogList.size){
+                        if (page * PAGINATION_PAGE_SIZE > viewState.blogFields.blogList.size) {
                             viewState.blogFields.isQueryExhausted = true
                         }
                         onCompleteJob(DataState.data(viewState, null))
@@ -78,9 +76,8 @@ constructor(
             override suspend fun handleApiSuccessResponse(
                 response: ApiSuccessResponse<BlogListSearchResponse>
             ) {
-
                 val blogPostList: ArrayList<BlogPost> = ArrayList()
-                for(blogPostResponse in response.body.results){
+                for (blogPostResponse in response.body.results) {
                     blogPostList.add(
                         BlogPost(
                             pk = blogPostResponse.pk,
@@ -109,14 +106,14 @@ constructor(
             }
 
             override fun loadFromCache(): LiveData<BlogViewState> {
-
-                Log.e(TAG,"BlogRepo: filter and order: $filterAndOrder")
+                Log.e(TAG, "BlogRepo: filter and order: $filterAndOrder")
                 return blogPostDao.returnOrderedBlogQuery(
                     query = query,
                     filterAndOrder = filterAndOrder,
-                    page = page)
+                    page = page
+                )
                     .switchMap {
-                        object: LiveData<BlogViewState>(){
+                        object : LiveData<BlogViewState>() {
                             override fun onActive() {
                                 super.onActive()
                                 value = BlogViewState(
@@ -132,25 +129,28 @@ constructor(
 
             override suspend fun updateLocalDb(cacheObject: List<BlogPost>?) {
                 // loop through list and update the local db
-                if(cacheObject != null){
+                if (cacheObject != null) {
                     withContext(Dispatchers.IO) {
-                        for(blogPost in cacheObject){
-                            try{
+                        for (blogPost in cacheObject) {
+                            @Suppress("TooGenericExceptionCaught")
+                            try {
                                 // Launch each insert as a separate job to be executed in parallel
                                 launch {
-                                    Log.d(TAG, "updateLocalDb: inserting blog: ${blogPost}")
+                                    Log.d(TAG, "updateLocalDb: inserting blog: $blogPost")
                                     blogPostDao.insert(blogPost)
                                 }
-                            }catch (e: Exception){
-                                Log.e(TAG, "updateLocalDb: error updating cache data on blog post with slug: ${blogPost.slug}. " +
-                                        "${e.message}")
-                                // Could send an error report here or something but I don't think you should throw an error to the UI
-                                // Since there could be many blog posts being inserted/updated.
+                            } catch (e: Exception) {
+                                Log.e(
+                                    TAG,
+                                    "updateLocalDb: error updating cache " +
+                                        "on blog post with slug: ${blogPost.slug}. ${e.message}"
+                                )
+                                // Could send an error report here but don't throw
+                                // to the UI since many posts may be inserted/updated.
                             }
                         }
                     }
-                }
-                else{
+                } else {
                     Log.d(TAG, "updateLocalDb: blog post list is null")
                 }
             }
@@ -158,32 +158,28 @@ constructor(
             override fun setJob(job: Job) {
                 addJob("searchBlogPosts", job)
             }
-
         }.asLiveData()
     }
-
 
     fun isAuthorOfBlogPost(
         slug: String
     ): LiveData<DataState<BlogViewState>> {
-        return object: NetworkBoundResource<GenericResponse, Any, BlogViewState>(
+        return object : NetworkBoundResource<GenericResponse, Any, BlogViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
-        ){
-
+        ) {
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-                withContext(Dispatchers.Main){
-
+                withContext(Dispatchers.Main) {
                     Log.d(TAG, "handleApiSuccessResponse: ${response.body.response}")
-                    if(response.body.response.equals(RESPONSE_NO_PERMISSION_TO_EDIT)){
+                    if (response.body.response.equals(RESPONSE_NO_PERMISSION_TO_EDIT)) {
                         onCompleteJob(
                             DataState.data(
                                 data = BlogViewState(
@@ -194,8 +190,7 @@ constructor(
                                 response = null
                             )
                         )
-                    }
-                    else if(response.body.response.equals(RESPONSE_HAS_PERMISSION_TO_EDIT)){
+                    } else if (response.body.response.equals(RESPONSE_HAS_PERMISSION_TO_EDIT)) {
                         onCompleteJob(
                             DataState.data(
                                 data = BlogViewState(
@@ -206,8 +201,7 @@ constructor(
                                 response = null
                             )
                         )
-                    }
-                    else{
+                    } else {
                         onErrorReturn(ERROR_UNKNOWN, shouldUseDialog = false, shouldUseToast = false)
                     }
                 }
@@ -228,39 +222,34 @@ constructor(
 
             // not applicable
             override suspend fun updateLocalDb(cacheObject: Any?) {
-
+                // no-op
             }
 
             override fun setJob(job: Job) {
                 addJob("isAuthorOfBlogPost", job)
             }
-
-
         }.asLiveData()
     }
 
-
     fun deleteBlogPost(
         blogPost: BlogPost
-    ): LiveData<DataState<BlogViewState>>{
-        return object: NetworkBoundResource<GenericResponse, BlogPost, BlogViewState>(
+    ): LiveData<DataState<BlogViewState>> {
+        return object : NetworkBoundResource<GenericResponse, BlogPost, BlogViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
-        ){
+        ) {
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-
-                if(response.body.response == SUCCESS_BLOG_DELETED){
+                if (response.body.response == SUCCESS_BLOG_DELETED) {
                     updateLocalDb(blogPost)
-                }
-                else{
+                } else {
                     onCompleteJob(
                         DataState.error(
                             Response(
@@ -284,7 +273,7 @@ constructor(
             }
 
             override suspend fun updateLocalDb(cacheObject: BlogPost?) {
-                cacheObject?.let{blogPost ->
+                cacheObject?.let { blogPost ->
                     blogPostDao.deleteBlogPost(blogPost)
                     onCompleteJob(
                         DataState.data(
@@ -298,10 +287,8 @@ constructor(
             override fun setJob(job: Job) {
                 addJob("deleteBlogPost", job)
             }
-
         }.asLiveData()
     }
-
 
     fun updateBlogPost(
         slug: String,
@@ -309,22 +296,21 @@ constructor(
         body: RequestBody,
         image: MultipartBody.Part?
     ): LiveData<DataState<BlogViewState>> {
-        return object: NetworkBoundResource<BlogCreateUpdateResponse, BlogPost, BlogViewState>(
+        return object : NetworkBoundResource<BlogCreateUpdateResponse, BlogPost, BlogViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
-        ){
+        ) {
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(
                 response: ApiSuccessResponse<BlogCreateUpdateResponse>
             ) {
-
                 val updatedBlogPost = BlogPost(
                     response.body.pk,
                     response.body.title,
@@ -337,7 +323,7 @@ constructor(
 
                 updateLocalDb(updatedBlogPost)
 
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     // finish with success response
                     onCompleteJob(
                         DataState.data(
@@ -347,7 +333,8 @@ constructor(
                                 )
                             ),
                             Response(response.body.response, ResponseType.Toast())
-                        ))
+                        )
+                    )
                 }
             }
 
@@ -366,7 +353,7 @@ constructor(
             }
 
             override suspend fun updateLocalDb(cacheObject: BlogPost?) {
-                cacheObject?.let{blogPost ->
+                cacheObject?.let { blogPost ->
                     blogPostDao.updateBlogPost(
                         blogPost.pk,
                         blogPost.title,
@@ -379,27 +366,6 @@ constructor(
             override fun setJob(job: Job) {
                 addJob("updateBlogPost", job)
             }
-
         }.asLiveData()
     }
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

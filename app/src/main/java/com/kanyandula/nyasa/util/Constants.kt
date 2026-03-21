@@ -1,8 +1,8 @@
 package com.kanyandula.nyasa.util
 
-class Constants {
+object Constants {
 
-    companion object{
+    companion object {
 
         const val BASE_URL = "https://nyasablog.com/api/"
         const val PASSWORD_RESET_URL: String = "https://nyasablog.com/password_reset/"

@@ -7,12 +7,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewbinding.ViewBinding
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
-abstract class BaseAuthFragment<T : ViewBinding>(private val bindingInflater: (layoutInflater: LayoutInflater) -> T
-)  : Fragment(){
+abstract class BaseAuthFragment<T : ViewBinding>(
+    private val bindingInflater: (layoutInflater: LayoutInflater) -> T
+) : Fragment() {
 
     val TAG: String = "AppDebug"
 
@@ -21,14 +21,11 @@ abstract class BaseAuthFragment<T : ViewBinding>(private val bindingInflater: (l
 
     protected val binding get() = _binding
 
-
-
-     val viewModel: AuthViewModel by activityViewModels()
+    val viewModel: AuthViewModel by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = bindingInflater.invoke(inflater)
         return binding?.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -37,7 +34,7 @@ abstract class BaseAuthFragment<T : ViewBinding>(private val bindingInflater: (l
         cancelActiveJobs()
     }
 
-    private fun cancelActiveJobs(){
+    private fun cancelActiveJobs() {
         viewModel.cancelActiveJobs()
     }
 
@@ -45,22 +42,4 @@ abstract class BaseAuthFragment<T : ViewBinding>(private val bindingInflater: (l
         super.onDestroyView()
         _binding = null
     }
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

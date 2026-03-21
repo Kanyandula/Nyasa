@@ -8,8 +8,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AuthTokenDao
-import kotlinx.coroutines.*
-
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,29 +33,29 @@ constructor(
     val cachedToken: LiveData<AuthToken>
         get() = _cachedToken
 
-    fun login(newValue: AuthToken){
+    fun login(newValue: AuthToken) {
         setValue(newValue)
     }
 
-    fun logout(){
+    @Suppress("TooGenericExceptionCaught")
+    fun logout() {
         Log.d(TAG, "logout: ")
 
-        scope.launch(Dispatchers.IO){
+        scope.launch(Dispatchers.IO) {
             var errorMessage: String? = null
-            try{
-                _cachedToken.value!!.account_pk?.let { authTokenDao.nullifyToken(it)
+            try {
+                _cachedToken.value!!.account_pk?.let {
+                    authTokenDao.nullifyToken(it)
                 } ?: throw CancellationException("Token Error. Logging out user.")
-            }catch (e: CancellationException) {
+            } catch (e: CancellationException) {
                 Log.e(TAG, "logout: ${e.message}")
                 errorMessage = e.message
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e(TAG, "logout: ${e.message}")
                 errorMessage = errorMessage + "\n" + e.message
-            }
-            finally {
-                errorMessage?.let{
-                    Log.e(TAG, "logout: ${errorMessage}" )
+            } finally {
+                errorMessage?.let {
+                    Log.e(TAG, "logout: $errorMessage")
                 }
                 Log.d(TAG, "logout: finally")
                 setValue(null)
@@ -64,15 +67,14 @@ constructor(
         _cachedToken.postValue(newValue)
     }
 
-    fun isConnectedToTheInternet(): Boolean{
+    @Suppress("TooGenericExceptionCaught")
+    fun isConnectedToTheInternet(): Boolean {
         val cm = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        try{
+        try {
             return cm.activeNetworkInfo?.isConnected == true
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.e(TAG, "isConnectedToTheInternet: ${e.message}")
         }
         return false
     }
-
-
 }

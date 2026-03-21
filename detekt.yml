@@ -1,0 +1,83 @@
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 60
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 10
+    ignoreAnnotated: ['Inject']
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 25
+    thresholdInClasses: 20
+    thresholdInInterfaces: 15
+  LargeClass:
+    active: true
+    threshold: 600
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+  ClassNaming:
+    active: true
+    classPattern: '[A-Z][a-zA-Z0-9]*'
+  PackageNaming:
+    active: true
+    packagePattern: '[a-z]+(\.[a-z][A-Za-z0-9_]*)*'
+  VariableNaming:
+    active: true
+    variablePattern: '(_)?[a-zA-Z][_A-Za-z0-9]*'
+    privateVariablePattern: '(_)?[a-zA-Z][_A-Za-z0-9]*'
+  ConstructorParameterNaming:
+    active: true
+    parameterPattern: '[a-z][_A-Za-z0-9]*'
+  TopLevelPropertyNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*'
+  MatchingDeclarationName:
+    active: true
+    mustBeFirst: true
+
+style:
+  MagicNumber:
+    active: false
+  ReturnCount:
+    active: true
+    max: 6
+  WildcardImport:
+    active: true
+    excludeImports:
+      - 'kotlinx.android.synthetic.*'
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  UnusedImports:
+    active: true
+  UnusedPrivateMember:
+    active: true
+
+potential-bugs:
+  UnsafeCast:
+    active: true
+  LateinitUsage:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - 'Exception'
+      - 'RuntimeException'
+      - 'Throwable'
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  SwallowedException:
+    active: true

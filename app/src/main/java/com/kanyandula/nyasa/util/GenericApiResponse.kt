@@ -18,16 +18,14 @@ sealed class GenericApiResponse<T> {
         }
 
         fun <T> create(response: Response<T>): GenericApiResponse<T> {
-
-            if(response.isSuccessful){
+            if (response.isSuccessful) {
                 val body = response.body()
                 return if (body == null || response.code() == 204) {
                     ApiEmptyResponse()
                 } else {
                     ApiSuccessResponse(body = body)
                 }
-            }
-            else{
+            } else {
                 val msg = response.errorBody()?.string()
                 val errorMsg = if (msg.isNullOrEmpty()) {
                     response.message()
@@ -47,6 +45,6 @@ sealed class GenericApiResponse<T> {
  */
 class ApiEmptyResponse<T> : GenericApiResponse<T>()
 
-data class ApiSuccessResponse<T>(val body: T) : GenericApiResponse<T>() {}
+data class ApiSuccessResponse<T>(val body: T) : GenericApiResponse<T>()
 
 data class ApiErrorResponse<T>(val errorMessage: String) : GenericApiResponse<T>()

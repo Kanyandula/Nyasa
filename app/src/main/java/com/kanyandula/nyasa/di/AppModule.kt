@@ -1,7 +1,6 @@
 package com.kanyandula.nyasa.di
 
 import android.app.Application
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -31,7 +30,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
-
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -85,7 +83,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideRetrofitBuilder(gsonBuilder: Gson, okHttpClient: OkHttpClient): Retrofit.Builder{
+    fun provideRetrofitBuilder(gsonBuilder: Gson, okHttpClient: OkHttpClient): Retrofit.Builder {
         return Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
             .client(okHttpClient)
@@ -128,6 +126,4 @@ object AppModule {
         return Glide.with(application)
             .setDefaultRequestOptions(requestOptions)
     }
-
-
 }

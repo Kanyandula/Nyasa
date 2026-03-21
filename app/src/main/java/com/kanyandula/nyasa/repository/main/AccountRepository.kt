@@ -18,7 +18,6 @@ import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.GenericApiResponse
 import kotlinx.coroutines.Dispatchers
-
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,25 +28,21 @@ constructor(
     val openApiMainService: NyasaBlogApiMainService,
     val accountPropertiesDao: AccountPropertiesDao,
     val sessionManager: SessionManager
-): JobManager("AccountRepository")
-{
-
-    private val TAG: String = "AppDebug"
+) : JobManager("AccountRepository") {
 
     fun getAccountProperties(authToken: AuthToken): LiveData<DataState<AccountViewState>> {
-        return object: NetworkBoundResource<AccountProperties, AccountProperties, AccountViewState>(
+        return object : NetworkBoundResource<AccountProperties, AccountProperties, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             false,
             true
-        ){
+        ) {
 
             // if network is down, view the cache and return
             override suspend fun createCacheRequestAndReturn() {
-                withContext(Dispatchers.Main){
-
+                withContext(Dispatchers.Main) {
                     // finishing by viewing db cache
-                    result.addSource(loadFromCache()){ viewState ->
+                    result.addSource(loadFromCache()) { viewState ->
                         onCompleteJob(DataState.data(viewState, null))
                     }
                 }
@@ -62,7 +57,7 @@ constructor(
             override fun loadFromCache(): LiveData<AccountViewState> {
                 return accountPropertiesDao.searchByPk(authToken.account_pk!!)
                     .switchMap {
-                        object: LiveData<AccountViewState>(){
+                        object : LiveData<AccountViewState>() {
                             override fun onActive() {
                                 super.onActive()
                                 value = AccountViewState(it)
@@ -85,38 +80,36 @@ constructor(
                 return openApiMainService.getAccountProperties()
             }
 
-
             override fun setJob(job: Job) {
                 addJob("getAccountProperties", job)
             }
-
-
         }.asLiveData()
     }
 
     fun saveAccountProperties(accountProperties: AccountProperties): LiveData<DataState<AccountViewState>> {
-        return object: NetworkBoundResource<GenericResponse, Any, AccountViewState>(
+        return object : NetworkBoundResource<GenericResponse, Any, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
-        ){
+        ) {
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
                 updateLocalDb(null) // The update does not return a CacheObject
 
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     // finish with success response
                     onCompleteJob(
                         DataState.data(
                             data = null,
                             response = Response(response.body.response, ResponseType.Toast())
-                        ))
+                        )
+                    )
                 }
             }
 
@@ -143,30 +136,35 @@ constructor(
             override fun setJob(job: Job) {
                 addJob("saveAccountProperties", job)
             }
-
         }.asLiveData()
     }
 
-    fun updatePassword(currentPassword: String, newPassword: String, confirmNewPassword: String): LiveData<DataState<AccountViewState>> {
-        return object: NetworkBoundResource<GenericResponse, Any, AccountViewState>(
+    fun updatePassword(
+        currentPassword: String,
+        newPassword: String,
+        confirmNewPassword: String
+    ): LiveData<DataState<AccountViewState>> {
+        return object : NetworkBoundResource<GenericResponse, Any, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
             true,
             false
-        ){
+        ) {
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     // finish with success response
                     onCompleteJob(
-                        DataState.data(null,
+                        DataState.data(
+                            null,
                             Response(response.body.response, ResponseType.Toast())
-                        ))
+                        )
+                    )
                 }
             }
 
@@ -185,26 +183,12 @@ constructor(
 
             // not used in this case
             override suspend fun updateLocalDb(cacheObject: Any?) {
+                // no-op
             }
 
             override fun setJob(job: Job) {
                 addJob("updatePassword", job)
             }
-
         }.asLiveData()
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

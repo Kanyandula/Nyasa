@@ -6,56 +6,54 @@ import androidx.annotation.StringRes
 import com.afollestad.materialdialogs.MaterialDialog
 import com.kanyandula.nyasa.R
 
-
-fun Activity.displayToast(@StringRes message:Int){
-    Toast.makeText(this,message, Toast.LENGTH_LONG).show()
+fun Activity.displayToast(@StringRes message: Int) {
+    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 }
 
-fun Activity.displayToast(message:String){
-    Toast.makeText(this,message, Toast.LENGTH_LONG).show()
+fun Activity.displayToast(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 }
 
-fun Activity.displaySuccessDialog(message: String?){
+fun Activity.displaySuccessDialog(message: String?) {
     MaterialDialog(this)
-        .show{
+        .show {
             title(R.string.text_success)
             message(text = message)
             positiveButton(R.string.text_ok)
         }
 }
 
-fun Activity.displayErrorDialog(errorMessage: String?){
+fun Activity.displayErrorDialog(errorMessage: String?) {
     MaterialDialog(this)
-        .show{
+        .show {
             title(R.string.text_error)
             message(text = errorMessage)
             positiveButton(R.string.text_ok)
         }
 }
 
-fun Activity.displayInfoDialog(message: String?){
+fun Activity.displayInfoDialog(message: String?) {
     MaterialDialog(this)
-        .show{
+        .show {
             title(R.string.text_info)
             message(text = message)
             positiveButton(R.string.text_ok)
         }
 }
 
-fun Activity.areYouSureDialog(message: String, callback: AreYouSureCallback){
+fun Activity.areYouSureDialog(message: String, callback: AreYouSureCallback) {
     MaterialDialog(this)
-        .show{
+        .show {
             title(R.string.are_you_sure)
             message(text = message)
-            negativeButton(R.string.text_cancel){
+            negativeButton(R.string.text_cancel) {
                 callback.cancel()
             }
-            positiveButton(R.string.text_yes){
+            positiveButton(R.string.text_yes) {
                 callback.proceed()
             }
         }
 }
-
 
 interface AreYouSureCallback {
 
@@ -63,14 +61,3 @@ interface AreYouSureCallback {
 
     fun cancel()
 }
-
-
-
-
-
-
-
-
-
-
-

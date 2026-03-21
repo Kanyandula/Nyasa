@@ -14,7 +14,6 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
 import com.kanyandula.nyasa.ui.UICommunicationListener
@@ -25,8 +24,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (layoutInflater:LayoutInflater) -> T
-)  : Fragment(){
+abstract class BaseBlogFragment<T : ViewBinding>(
+    private val bindingInflater: (layoutInflater: LayoutInflater) -> T
+) : Fragment() {
 
     val TAG: String = "AppDebug"
 
@@ -35,12 +35,10 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
 
     protected val binding get() = _binding
 
-
     @Inject
     lateinit var requestManager: RequestManager
 
     lateinit var uiCommunicationListener: UICommunicationListener
-
 
     val viewModel: BlogViewModel by activityViewModels()
 
@@ -49,9 +47,6 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = bindingInflater.invoke(inflater)
         return binding?.root
-
-
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -59,12 +54,8 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
         setupActionBarWithNavController(R.id.blogFragment, activity as AppCompatActivity)
 
-
-
         cancelActiveJobs()
     }
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,22 +67,19 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-
-            outState.putParcelable(BLOG_VIEW_STATE_KEY,viewModel.viewState.value)
+        outState.putParcelable(BLOG_VIEW_STATE_KEY, viewModel.viewState.value)
 
         super.onSaveInstanceState(outState)
     }
 
-    fun cancelActiveJobs(){
-       viewModel.cancelActiveJobs()
+    fun cancelActiveJobs() {
+        viewModel.cancelActiveJobs()
     }
-
-
 
     /*
           @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
         */
-    fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity){
+    fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity) {
         val appBarConfiguration = AppBarConfiguration(setOf(fragmentId))
         NavigationUI.setupActionBarWithNavController(
             activity,
@@ -102,22 +90,22 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        try{
+        try {
             stateChangeListener = context as DataStateChangeListener
-        }catch(e: ClassCastException){
-            Log.e(TAG, "$context must implement DataStateChangeListener" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement DataStateChangeListener")
         }
 
-        try{
+        try {
             uiCommunicationListener = context as UICommunicationListener
-        }catch(e: ClassCastException){
-            Log.e(TAG, "$context must implement UICommunicationListener" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement UICommunicationListener")
         }
 
         try {
             requestManager = context as RequestManager
-        }catch (e: ClassCastException){
-            Log.e(TAG, "$context must implement RequestManager" )
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement RequestManager")
         }
     }
 
@@ -125,6 +113,4 @@ abstract class BaseBlogFragment <T : ViewBinding>(private val bindingInflater: (
         super.onDestroyView()
         _binding = null
     }
-
-
 }

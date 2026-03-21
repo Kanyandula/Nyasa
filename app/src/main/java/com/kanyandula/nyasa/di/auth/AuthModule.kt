@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.di.auth
 
-
 import android.content.SharedPreferences
 import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
@@ -11,16 +10,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.FlowPreview
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
-
 @Module
 @InstallIn(SingletonComponent::class)
-object AuthModule{
-
-
+object AuthModule {
 
     @Singleton
     @Provides
@@ -49,5 +44,4 @@ object AuthModule{
             editor
         )
     }
-
 }

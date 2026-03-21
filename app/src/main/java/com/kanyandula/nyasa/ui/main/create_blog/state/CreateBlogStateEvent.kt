@@ -1,7 +1,8 @@
+@file:Suppress("PackageNaming")
+
 package com.kanyandula.nyasa.ui.main.create_blog.state
 
 import okhttp3.MultipartBody
-
 
 sealed class CreateBlogStateEvent {
 
@@ -9,7 +10,7 @@ sealed class CreateBlogStateEvent {
         val title: String,
         val body: String,
         val image: MultipartBody.Part
-    ): CreateBlogStateEvent()
+    ) : CreateBlogStateEvent()
 
-    class None: CreateBlogStateEvent()
+    class None : CreateBlogStateEvent()
 }

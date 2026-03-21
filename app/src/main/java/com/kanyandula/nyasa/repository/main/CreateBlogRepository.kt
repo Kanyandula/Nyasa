@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.repository.main
 
-
 import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
@@ -31,9 +30,7 @@ constructor(
     val blogApiMainService: NyasaBlogApiMainService,
     val blogPostDao: BlogPostDao,
     val sessionManager: SessionManager
-): JobManager("CreateBlogRepository") {
-
-    private val TAG: String = "AppDebug"
+) : JobManager("CreateBlogRepository") {
 
     fun createNewBlogPost(
         title: RequestBody,
@@ -50,11 +47,10 @@ constructor(
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<BlogCreateUpdateResponse>) {
-
                 // If they don't have an account it will still return a 200
                 // Need to account for that
 
@@ -104,25 +100,6 @@ constructor(
             override fun setJob(job: Job) {
                 addJob("createNewBlogPost", job)
             }
-
         }.asLiveData()
     }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

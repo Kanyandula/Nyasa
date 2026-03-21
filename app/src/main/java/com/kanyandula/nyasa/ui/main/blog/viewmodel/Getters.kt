@@ -4,7 +4,6 @@ import android.net.Uri
 import com.kanyandula.nyasa.models.BlogPost
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getFilter(): String {
     getCurrentViewStateOrNew().let {
@@ -20,24 +19,26 @@ fun BlogViewModel.getOrder(): String {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.getSearchQuery(): String{
-    getCurrentViewStateOrNew().let{
+fun BlogViewModel.getSearchQuery(): String {
+    getCurrentViewStateOrNew().let {
         return it.blogFields.searchQuery
     }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.getPage(): Int{
-    getCurrentViewStateOrNew().let{
+fun BlogViewModel.getPage(): Int {
+    getCurrentViewStateOrNew().let {
         return it.blogFields.page
     }
 }
+
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getIsQueryExhausted(): Boolean {
     getCurrentViewStateOrNew().let {
         return it.blogFields.isQueryExhausted
     }
 }
+
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getIsQueryInProgress(): Boolean {
     getCurrentViewStateOrNew().let {
@@ -45,7 +46,7 @@ fun BlogViewModel.getIsQueryInProgress(): Boolean {
     }
 }
 
-fun BlogViewModel.getSlug(): String{
+fun BlogViewModel.getSlug(): String {
     getCurrentViewStateOrNew().let {
         it.viewBlogFields.blogPost?.let {
             return it.slug
@@ -55,27 +56,25 @@ fun BlogViewModel.getSlug(): String{
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.isAuthorOfBlogPost(): Boolean{
+fun BlogViewModel.isAuthorOfBlogPost(): Boolean {
     getCurrentViewStateOrNew().let {
         return it.viewBlogFields.isAuthorOfBlogPost
     }
 }
-
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getBlogPost(): BlogPost {
     getCurrentViewStateOrNew().let {
         return it.viewBlogFields.blogPost?.let {
             return it
-        }?: getDummyBlogPost()
+        } ?: getDummyBlogPost()
     }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.getDummyBlogPost(): BlogPost{
-    return BlogPost(-1, "" , "", "", "", 1, "")
+fun BlogViewModel.getDummyBlogPost(): BlogPost {
+    return BlogPost(-1, "", "", "", "", 1, "")
 }
-
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getUpdatedBlogUri(): Uri? {
@@ -86,28 +85,3 @@ fun BlogViewModel.getUpdatedBlogUri(): Uri? {
     }
     return null
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

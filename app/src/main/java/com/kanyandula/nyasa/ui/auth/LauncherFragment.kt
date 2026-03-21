@@ -3,27 +3,20 @@ package com.kanyandula.nyasa.ui.auth
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentLauncherBinding
 import dagger.hilt.android.AndroidEntryPoint
 
-
 @AndroidEntryPoint
-class LauncherFragment(
+class LauncherFragment : Fragment(R.layout.fragment_launcher) {
 
-) :  Fragment(R.layout.fragment_launcher) {
-
-    private var _binding: FragmentLauncherBinding? =null
+    private var _binding: FragmentLauncherBinding? = null
     private val binding get() = _binding!!
-
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentLauncherBinding.bind(view)
-
 
         binding.register.setOnClickListener {
             navRegistration()
@@ -40,15 +33,15 @@ class LauncherFragment(
         binding.focusableView.requestFocus() // reset focus
     }
 
-    fun navLogin(){
+    fun navLogin() {
         findNavController().navigate(R.id.action_launcherFragment_to_loginFragment)
     }
 
-    fun navRegistration(){
+    fun navRegistration() {
         findNavController().navigate(R.id.action_launcherFragment_to_registerFragment)
     }
 
-    fun navForgotPassword(){
+    fun navForgotPassword() {
         findNavController().navigate(R.id.action_launcherFragment_to_forgotPasswordFragment)
     }
 
@@ -57,4 +50,3 @@ class LauncherFragment(
         _binding = null
     }
 }
-

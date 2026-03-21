@@ -8,7 +8,7 @@ import androidx.room.Query
 import com.kanyandula.nyasa.models.AccountProperties
 
 @Dao
-interface  AccountPropertiesDao{
+interface AccountPropertiesDao {
     @Query("SELECT * FROM account_properties WHERE email = :email")
     suspend fun searchByEmail(email: String): AccountProperties?
 

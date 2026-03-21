@@ -37,6 +37,4 @@ class BlogCreateUpdateResponse(
     @Expose
     var username: String
 
-
-
 )

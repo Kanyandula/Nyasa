@@ -1,3 +1,5 @@
+@file:Suppress("PackageNaming")
+
 package com.kanyandula.nyasa.ui.main.create_blog
 
 import android.app.Activity
@@ -18,7 +20,16 @@ import com.github.drjacky.imagepicker.ImagePicker
 import com.github.drjacky.imagepicker.ImagePicker.Companion.EXTRA_FILE_PATH
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentCreateBlogBinding
-import com.kanyandula.nyasa.ui.*
+import com.kanyandula.nyasa.ui.AreYouSureCallback
+import com.kanyandula.nyasa.ui.Data
+import com.kanyandula.nyasa.ui.DataState
+import com.kanyandula.nyasa.ui.Event
+import com.kanyandula.nyasa.ui.Loading
+import com.kanyandula.nyasa.ui.Response
+import com.kanyandula.nyasa.ui.ResponseType
+import com.kanyandula.nyasa.ui.StateError
+import com.kanyandula.nyasa.ui.UIMessage
+import com.kanyandula.nyasa.ui.UIMessageType
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent
 import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_MUST_SELECT_IMAGE
 import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SOMETHING_WRONG_WITH_IMAGE
@@ -30,13 +41,9 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(FragmentCreateBlogBinding::inflate) {
-
-
-
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -53,37 +60,26 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
                     showErrorDialog(ERROR_SOMETHING_WRONG_WITH_IMAGE)
                 }
-
             }
-
         }
-
-
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupMenu()
         binding?.apply {
-
             blogImage.setOnClickListener {
-                    pickFromGallery()
-
+                pickFromGallery()
             }
 
             publish.setOnClickListener {
                 publishNewBlog()
             }
-
-
         }
 
         subscribeObservers()
     }
 
-
-
-    fun subscribeObservers(){
+    fun subscribeObservers() {
         viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
             if (dataState != null) {
                 stateChangeListener.onDataStateChange(dataState)
@@ -99,7 +95,6 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                     }
                 }
             }
-
         }
 
         viewModel.viewState.observe(viewLifecycleOwner) { viewState ->
@@ -113,11 +108,9 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         }
     }
 
-
     private fun pickGalleryImage() {
         galleryLauncher.launch(
             ImagePicker.with(requireActivity())
-
                 .crop(1130F, 961F)
                 .galleryOnly()
                 .setOutputFormat(Bitmap.CompressFormat.JPEG)
@@ -132,18 +125,12 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         )
     }
 
-
-
     private fun pickFromGallery() {
         pickGalleryImage()
-
     }
 
-
-    private fun setBlogProperties(title: String?, body: String?, image: Uri?){
-
-        if(image != null){
-
+    private fun setBlogProperties(title: String?, body: String?, image: Uri?) {
+        if (image != null) {
             binding?.let {
                 Glide.with(this@CreateBlogFragment)
                     .load(image)
@@ -160,19 +147,14 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         binding?.blogBody?.setText(body)
     }
 
-
-
-
-
-    private fun publishNewBlog(){
-
+    private fun publishNewBlog() {
         var multipartBody: MultipartBody.Part? = null
-        viewModel.viewState.value?.blogFields?.newImageUri?.let{ imageUri ->
+        viewModel.viewState.value?.blogFields?.newImageUri?.let { imageUri ->
 
-            imageUri.path?.let{filePath ->
+            imageUri.path?.let { filePath ->
                 val imageFile = File(filePath)
-                Log.d(TAG, "UpdateBlogFragment, imageFile: file: ${imageFile}")
-                if(imageFile.exists()){
+                Log.d(TAG, "UpdateBlogFragment, imageFile: file: $imageFile")
+                if (imageFile.exists()) {
                     val requestBody =
                         imageFile
                             .asRequestBody("image/*".toMediaTypeOrNull())
@@ -186,13 +168,9 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                     )
                 }
             }
-
-
-
         }
 
         multipartBody?.let {
-
             viewModel.setStateEvent(
                 CreateBlogStateEvent.CreateNewBlogEvent(
                     binding?.blogTitle
@@ -201,60 +179,54 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                     it
                 )
             )
-
-        }?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
+        } ?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
 
         stateChangeListener.hideSoftKeyboard()
-
-
     }
-
-
 
     private fun setupMenu() {
-        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
-            override fun onPrepareMenu(menu: Menu) {
-                // Handle for example visibility of menu items
-            }
-
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.publish_menu, menu)
-
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when(menuItem.itemId){
-                    R.id.publish -> {
-                        val callback: AreYouSureCallback = object: AreYouSureCallback {
-
-                            override fun proceed() {
-                                publishNewBlog()
-                            }
-
-                            override fun cancel() {
-                                // ignore
-                            }
-
-                        }
-                        uiCommunicationListener.onUIMessageReceived(
-                            UIMessage(
-                                getString(R.string.are_you_sure_publish),
-                                UIMessageType.AreYouSureDialog(callback)
-                            )
-                        )
-                        return true
-                    }
+        (requireActivity() as MenuHost).addMenuProvider(
+            object : MenuProvider {
+                override fun onPrepareMenu(menu: Menu) {
+                    // Handle for example visibility of menu items
                 }
-                // Validate and handle the selected menu item
-                return true
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.publish_menu, menu)
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.publish -> {
+                            val callback: AreYouSureCallback = object : AreYouSureCallback {
+
+                                override fun proceed() {
+                                    publishNewBlog()
+                                }
+
+                                override fun cancel() {
+                                    // ignore
+                                }
+                            }
+                            uiCommunicationListener.onUIMessageReceived(
+                                UIMessage(
+                                    getString(R.string.are_you_sure_publish),
+                                    UIMessageType.AreYouSureDialog(callback)
+                                )
+                            )
+                            return true
+                        }
+                    }
+                    // Validate and handle the selected menu item
+                    return true
+                }
+            },
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED
+        )
     }
 
-
-
-
-    private fun showErrorDialog(errorMessage: String){
+    private fun showErrorDialog(errorMessage: String) {
         stateChangeListener.onDataStateChange(
             DataState(
                 Event(StateError(Response(errorMessage, ResponseType.Dialog()))),
@@ -267,10 +239,9 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
     override fun onPause() {
         super.onPause()
         viewModel.setNewBlogFields(
-           binding?.blogTitle?.text.toString(),
+            binding?.blogTitle?.text.toString(),
             binding?.blogBody?.text.toString(),
             null
         )
     }
-
 }

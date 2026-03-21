@@ -9,7 +9,11 @@ import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Loading
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.BlogSearchEvent
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.CheckAuthorOfBlogPost
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.DeleteBlogPostEvent
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.None
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.UpdateBlogPostEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_ORDER
@@ -19,19 +23,17 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import javax.inject.Inject
 
-
 @ExperimentalCoroutinesApi
 @HiltViewModel
 class BlogViewModel
 @Inject
 constructor(
-    private val sessionManager: SessionManager,
+    @Suppress("UnusedPrivateMember") private val sessionManager: SessionManager,
     private val blogRepository: BlogRepository,
     private val sharedPreferences: SharedPreferences,
-    private val editor: SharedPreferences.Editor,
+    private val editor: SharedPreferences.Editor
 
-): BaseViewModel<BlogStateEvent, BlogViewState>(){
-
+) : BaseViewModel<BlogStateEvent, BlogViewState>() {
 
     init {
         setBlogFilter(
@@ -52,7 +54,6 @@ constructor(
 
     override fun handleStateEvent(stateEvent: BlogStateEvent): LiveData<DataState<BlogViewState>> {
         return when (stateEvent) {
-
             is BlogSearchEvent -> {
                 return blogRepository.searchBlogPosts(
                     query = getSearchQuery(),
@@ -74,7 +75,6 @@ constructor(
             }
 
             is UpdateBlogPostEvent -> {
-
                 val title = RequestBody.create(
                     "text/plain".toMediaTypeOrNull(),
                     stateEvent.title
@@ -100,22 +100,14 @@ constructor(
                     }
                 }
             }
-
-
-
-
-
         }
     }
-
-
-
 
     override fun initNewViewState(): BlogViewState {
         return BlogViewState()
     }
 
-    fun saveFilterOptions(filter: String, order: String){
+    fun saveFilterOptions(filter: String, order: String) {
         editor.putString(BLOG_FILTER, filter)
         editor.apply()
 
@@ -123,15 +115,12 @@ constructor(
         editor.apply()
     }
 
-
-
-
-    fun cancelActiveJobs(){
+    fun cancelActiveJobs() {
         blogRepository.cancelActiveJobs() // cancel active jobs
         handlePendingData() // hide progress bar
     }
 
-    fun handlePendingData(){
+    fun handlePendingData() {
         setStateEvent(None())
     }
 
@@ -139,12 +128,4 @@ constructor(
         super.onCleared()
         cancelActiveJobs()
     }
-
 }
-
-
-
-
-
-
-

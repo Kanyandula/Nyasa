@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Security -->
+    <issue id="HardcodedDebugMode" severity="error" />
+    <issue id="ExportedContentProvider" severity="warning" />
+    <issue id="ExportedReceiver" severity="warning" />
+    <issue id="ExportedService" severity="warning" />
+    <issue id="SetWorldReadable" severity="error" />
+    <issue id="SetWorldWritable" severity="error" />
+
+    <!-- Performance -->
+    <issue id="ObsoleteLayoutParam" severity="warning" />
+    <issue id="Overdraw" severity="warning" />
+    <issue id="ViewHolder" severity="warning" />
+    <issue id="UseSparseArrays" severity="informational" />
+
+    <!-- Correctness -->
+    <issue id="MissingPermission" severity="error" />
+    <issue id="NewApi" severity="error" />
+    <issue id="InlinedApi" severity="warning" />
+    <issue id="OldTargetApi" severity="warning" />
+
+    <!-- Accessibility -->
+    <issue id="ContentDescription" severity="warning" />
+    <issue id="LabelFor" severity="warning" />
+
+    <!-- Suppress noisy checks initially -->
+    <issue id="UnusedResources" severity="informational" />
+    <issue id="IconMissingDensityFolder" severity="informational" />
+    <issue id="AllowBackup" severity="informational" />
+</lint>

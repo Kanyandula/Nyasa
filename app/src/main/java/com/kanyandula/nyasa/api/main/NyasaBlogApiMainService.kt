@@ -8,13 +8,21 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.util.GenericApiResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.*
+import retrofit2.http.DELETE
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface NyasaBlogApiMainService {
 
     @GET("account/properties")
     fun getAccountProperties(): LiveData<GenericApiResponse<AccountProperties>>
-
 
     @PUT("account/properties/update")
     @FormUrlEncoded
@@ -43,7 +51,6 @@ interface NyasaBlogApiMainService {
         @Path("slug") slug: String
     ): LiveData<GenericApiResponse<GenericResponse>>
 
-
     @DELETE("blog/{slug}/delete")
     fun deleteBlogPost(
         @Path("slug") slug: String
@@ -65,7 +72,4 @@ interface NyasaBlogApiMainService {
         @Part("body") body: RequestBody,
         @Part image: MultipartBody.Part?
     ): LiveData<GenericApiResponse<BlogCreateUpdateResponse>>
-
 }
-
-

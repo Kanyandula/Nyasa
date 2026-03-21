@@ -13,9 +13,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
-class ChangePasswordFragment : BaseAccountFragment<FragmentChangePasswordBinding>(FragmentChangePasswordBinding::inflate){
-
-
+class ChangePasswordFragment :
+    BaseAccountFragment<FragmentChangePasswordBinding>(
+        FragmentChangePasswordBinding::inflate
+    ) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -24,11 +25,11 @@ class ChangePasswordFragment : BaseAccountFragment<FragmentChangePasswordBinding
                 viewModel.setStateEvent(
                     AccountStateEvent.ChangePasswordEvent(
                         binding!!.inputCurrentPassword
-                        .text.toString(),
+                            .text.toString(),
                         binding!!.inputNewPassword
-                        .text.toString(),
+                            .text.toString(),
                         binding!!.inputConfirmNewPassword
-                        .text.toString()
+                            .text.toString()
                     )
                 )
             }
@@ -36,30 +37,26 @@ class ChangePasswordFragment : BaseAccountFragment<FragmentChangePasswordBinding
         subscribeObservers()
     }
 
-    private fun subscribeObservers(){
-        viewModel.dataState.observe(viewLifecycleOwner, Observer{ dataState ->
-            stateChangeListener.onDataStateChange(dataState)
-            Log.d(TAG, "ChangePasswordFragment, DataState: $dataState")
-            if(dataState != null){
-                dataState.data?.let { data ->
-                    data.response?.let{ event ->
-                        if(event.peekContent()
-                                .message
-                                .equals(RESPONSE_PASSWORD_UPDATE_SUCCESS)
-                        ){
-                            stateChangeListener.hideSoftKeyboard()
-                            findNavController().popBackStack()
+    private fun subscribeObservers() {
+        viewModel.dataState.observe(
+            viewLifecycleOwner,
+            Observer { dataState ->
+                stateChangeListener.onDataStateChange(dataState)
+                Log.d(TAG, "ChangePasswordFragment, DataState: $dataState")
+                if (dataState != null) {
+                    dataState.data?.let { data ->
+                        data.response?.let { event ->
+                            if (event.peekContent()
+                                    .message
+                                    .equals(RESPONSE_PASSWORD_UPDATE_SUCCESS)
+                            ) {
+                                stateChangeListener.hideSoftKeyboard()
+                                findNavController().popBackStack()
+                            }
                         }
                     }
                 }
             }
-        })
+        )
     }
 }
-
-
-
-
-
-
-

@@ -9,11 +9,10 @@ import com.kanyandula.nyasa.persistance.BlogQueryUtils.Companion.ORDER_BY_ASC_DA
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class BlogViewState (
+data class BlogViewState(
 
     // BlogFragment vars
     var blogFields: BlogFields = BlogFields(),
-
 
 // ViewBlogFragment vars
     var viewBlogFields: ViewBlogFields = ViewBlogFields(),
@@ -21,8 +20,7 @@ data class BlogViewState (
     // UpdateBlogFragment vars
     var updatedBlogFields: UpdatedBlogFields = UpdatedBlogFields(),
 
-    var accountFields: AccountFields = AccountFields(),
-
+    var accountFields: AccountFields = AccountFields()
 
 ) : Parcelable {
     @Parcelize
@@ -54,7 +52,5 @@ data class BlogViewState (
     data class AccountFields(
         var accountProperties: AccountProperties? = null
 
-    ): Parcelable
-
-
+    ) : Parcelable
 }

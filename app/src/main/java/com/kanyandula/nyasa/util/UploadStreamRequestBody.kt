@@ -9,7 +9,7 @@ import java.io.InputStream
 class UploadStreamRequestBody(
     private val mediaType: String,
     private val inputStream: InputStream,
-    private val onUploadProgress: (Int) -> Unit,
+    private val onUploadProgress: (Int) -> Unit
 ) : RequestBody() {
 
     override fun contentLength(): Long = inputStream.available().toLong()
@@ -25,7 +25,7 @@ class UploadStreamRequestBody(
             while (inputStream.read(buffer).also { read = it } != -1) { // Reads the stream until the content ends
                 sink.write(buffer, 0, read)
                 uploaded += read
-                onUploadProgress((100*uploaded/contentLength).toInt())
+                onUploadProgress((100 * uploaded / contentLength).toInt())
             }
         }
     }
