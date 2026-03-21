@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 
-@OptIn(InternalCoroutinesApi::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
+@OptIn(InternalCoroutinesApi::class)
 abstract class NetworkBoundResource<ResponseObject, CacheObject, ViewStateType>
     (
     isNetworkAvailable: Boolean, // is their a network connection?
@@ -93,7 +93,7 @@ abstract class NetworkBoundResource<ResponseObject, CacheObject, ViewStateType>
             }
         }
 
-        GlobalScope.launch(IO){
+        coroutineScope.launch {
             delay(NETWORK_TIMEOUT)
 
             if(!job.isCompleted){
@@ -121,9 +121,11 @@ abstract class NetworkBoundResource<ResponseObject, CacheObject, ViewStateType>
     }
 
     fun onCompleteJob(dataState: DataState<ViewStateType>){
-        GlobalScope.launch(Main) {
-            job.complete()
-            setValue(dataState)
+        coroutineScope.launch {
+            withContext(Main) {
+                job.complete()
+                setValue(dataState)
+            }
         }
     }
 

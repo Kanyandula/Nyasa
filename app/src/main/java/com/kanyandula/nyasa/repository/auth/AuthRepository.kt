@@ -17,8 +17,6 @@ import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
-import com.kanyandula.nyasa.ui.auth.state.LoginFields
-import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import com.kanyandula.nyasa.util.*
 import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SAVE_ACCOUNT_PROPERTIES
 import com.kanyandula.nyasa.util.ErrorHandling.Companion.ERROR_SAVE_AUTH_TOKEN
@@ -45,9 +43,9 @@ constructor(
 
     fun attemptLogin(email: String, password: String): LiveData<DataState<AuthViewState>>{
 
-        val loginFieldErrors = LoginFields(email, password).isValidForLogin()
-        if(!loginFieldErrors.equals(LoginFields.LoginError.none())){
-            return returnErrorResponse(loginFieldErrors, ResponseType.Dialog())
+        val loginFieldError = InputValidation.validateLoginFields(email, password)
+        if(loginFieldError != null){
+            return returnErrorResponse(loginFieldError, ResponseType.Dialog())
         }
 
         return object: NetworkBoundResource<LoginResponse, Any, AuthViewState>(
@@ -132,9 +130,9 @@ constructor(
         confirmPassword: String
     ): LiveData<DataState<AuthViewState>>{
 
-        val registrationFieldErrors = RegistrationFields(email, username, password, confirmPassword).isValidForRegistration()
-        if(!registrationFieldErrors.equals(RegistrationFields.RegistrationError.none())){
-            return returnErrorResponse(registrationFieldErrors, ResponseType.Dialog())
+        val registrationFieldError = InputValidation.validateRegistrationFields(email, username, password, confirmPassword)
+        if(registrationFieldError != null){
+            return returnErrorResponse(registrationFieldError, ResponseType.Dialog())
         }
 
         return object: NetworkBoundResource<RegistrationResponse, Any, AuthViewState>(

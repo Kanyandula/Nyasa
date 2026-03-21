@@ -7,7 +7,6 @@ import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Loading
-import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.*
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
@@ -44,7 +43,6 @@ constructor(
                             stateEvent.username
                         )
                         accountRepository.saveAccountProperties(
-                            authToken,
                             newAccountProperties
                         )
                     }
@@ -52,14 +50,11 @@ constructor(
             }
 
             is ChangePasswordEvent ->{
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    accountRepository.updatePassword(
-                        authToken,
-                        stateEvent.currentPassword,
-                        stateEvent.newPassword,
-                        stateEvent.confirmNewPassword
-                    )
-                }?: AbsentLiveData.create()
+                return accountRepository.updatePassword(
+                    stateEvent.currentPassword,
+                    stateEvent.newPassword,
+                    stateEvent.confirmNewPassword
+                )
             }
 
             is None ->{

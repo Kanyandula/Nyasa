@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.kanyandula.nyasa.databinding.FragmentRegisterBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.*
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
@@ -39,8 +38,6 @@ class RegisterFragment() : BaseAuthFragment<FragmentRegisterBinding>(FragmentReg
                 binding?.apply {
                     it.registration_email?.let{ inputEmail.setText(it) }
                     it.registration_username?.let{ inputUsername.setText(it) }
-                    it.registration_password?.let{ inputPassword.setText(it) }
-                    it.registration_confirm_password?.let{ inputPasswordConfirm.setText(it) }
                 }
 
             }
@@ -66,9 +63,7 @@ class RegisterFragment() : BaseAuthFragment<FragmentRegisterBinding>(FragmentReg
         viewModel.setRegistrationFields(
             RegistrationFields(
                 binding?.inputEmail?.text.toString(),
-                binding?.inputUsername?.text.toString(),
-                binding?.inputPassword?.text.toString(),
-                binding?.inputPasswordConfirm?.text.toString()
+                binding?.inputUsername?.text.toString()
             )
         )
     }

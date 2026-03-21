@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentLoginBinding
@@ -43,7 +42,6 @@ class LoginFragment() : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBind
             it.loginFields?.let{
                 binding?.apply {
                     it.login_email?.let{ inputEmail.setText(it) }
-                    it.login_password?.let{ inputPassword.setText(it) }
                 }
 
             }
@@ -66,8 +64,7 @@ class LoginFragment() : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBind
         super.onDestroyView()
         viewModel.setLoginFields(
             LoginFields(
-                binding?.inputEmail?.text.toString(),
-                binding?.inputPassword?.text.toString()
+                binding?.inputEmail?.text.toString()
             )
         )
     }

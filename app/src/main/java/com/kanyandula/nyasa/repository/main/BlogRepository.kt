@@ -8,8 +8,6 @@ import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
-import com.kanyandula.nyasa.models.AccountProperties
-import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.BlogPostDao
@@ -20,7 +18,6 @@ import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
-import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.*
 import com.kanyandula.nyasa.util.AbsentLiveData
@@ -53,7 +50,6 @@ constructor(
     private val TAG: String = "AppDebug"
 
     fun searchBlogPosts(
-        authToken: AuthToken,
         query: String,
         filterAndOrder: String,
         page: Int
@@ -106,7 +102,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<BlogListSearchResponse>> {
                 return nyasaBlogApiMainService.searchListBlogPosts(
-                    "Token ${authToken.token!!}",
                     query = query,
                     ordering = filterAndOrder,
                     page = page
@@ -169,7 +164,6 @@ constructor(
 
 
     fun isAuthorOfBlogPost(
-        authToken: AuthToken,
         slug: String
     ): LiveData<DataState<BlogViewState>> {
         return object: NetworkBoundResource<GenericResponse, Any, BlogViewState>(
@@ -228,7 +222,6 @@ constructor(
             // If they are not the author it will return: "You don't have permission to edit that."
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
                 return nyasaBlogApiMainService.isAuthorOfBlogPost(
-                    "Token ${authToken.token!!}",
                     slug
                 )
             }
@@ -248,7 +241,6 @@ constructor(
 
 
     fun deleteBlogPost(
-        authToken: AuthToken,
         blogPost: BlogPost
     ): LiveData<DataState<BlogViewState>>{
         return object: NetworkBoundResource<GenericResponse, BlogPost, BlogViewState>(
@@ -287,7 +279,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
                 return nyasaBlogApiMainService.deleteBlogPost(
-                    "Token ${authToken.token!!}",
                     blogPost.slug
                 )
             }
@@ -313,7 +304,6 @@ constructor(
 
 
     fun updateBlogPost(
-        authToken: AuthToken,
         slug: String,
         title: RequestBody,
         body: RequestBody,
@@ -368,7 +358,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<BlogCreateUpdateResponse>> {
                 return nyasaBlogApiMainService.updateBlog(
-                    "Token ${authToken.token!!}",
                     slug,
                     title,
                     body,

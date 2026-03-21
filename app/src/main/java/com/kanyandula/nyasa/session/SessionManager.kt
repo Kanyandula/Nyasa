@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.session
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
@@ -24,6 +23,8 @@ constructor(
 
     private val TAG: String = "AppDebug"
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     private val _cachedToken = MutableLiveData<AuthToken>()
 
     val cachedToken: LiveData<AuthToken>
@@ -36,8 +37,7 @@ constructor(
     fun logout(){
         Log.d(TAG, "logout: ")
 
-
-        CoroutineScope(Dispatchers.IO).launch{
+        scope.launch(Dispatchers.IO){
             var errorMessage: String? = null
             try{
                 _cachedToken.value!!.account_pk?.let { authTokenDao.nullifyToken(it)
@@ -60,13 +60,8 @@ constructor(
         }
     }
 
-    @SuppressLint("NullSafeMutableLiveData")
     fun setValue(newValue: AuthToken?) {
-        GlobalScope.launch(Dispatchers.Main) {
-            if (_cachedToken.value != newValue) {
-                _cachedToken.value = newValue
-            }
-        }
+        _cachedToken.postValue(newValue)
     }
 
     fun isConnectedToTheInternet(): Boolean{

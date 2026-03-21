@@ -4,7 +4,6 @@ package com.kanyandula.nyasa.repository.main
 import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
-import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.repository.JobManager
@@ -37,7 +36,6 @@ constructor(
     private val TAG: String = "AppDebug"
 
     fun createNewBlogPost(
-        authToken: AuthToken,
         title: RequestBody,
         body: RequestBody,
         image: MultipartBody.Part?
@@ -86,7 +84,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<BlogCreateUpdateResponse>> {
                 return blogApiMainService.createBlog(
-                    "Token ${authToken.token!!}",
                     title,
                     body,
                     image

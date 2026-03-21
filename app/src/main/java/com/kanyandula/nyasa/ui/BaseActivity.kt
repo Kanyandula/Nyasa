@@ -11,15 +11,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.util.Constants.Companion.PERMISSIONS_REQUEST_READ_STORAGE
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-@OptIn(DelicateCoroutinesApi::class)
 @AndroidEntryPoint
 abstract class BaseActivity : AppCompatActivity(),
     DataStateChangeListener,
@@ -59,7 +57,7 @@ abstract class BaseActivity : AppCompatActivity(),
 
     override fun onDataStateChange(dataState: DataState<*>?) {
         dataState?.let{
-            GlobalScope.launch(Dispatchers.Main){
+            lifecycleScope.launch(Dispatchers.Main){
                 displayProgressBar(it.loading.isLoading)
 
                 it.error?.let { errorEvent ->

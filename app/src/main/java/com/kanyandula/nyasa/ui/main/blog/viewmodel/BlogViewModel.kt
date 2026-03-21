@@ -2,7 +2,6 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.SavedStateHandle
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.repository.main.BlogRepository
 import com.kanyandula.nyasa.session.SessionManager
@@ -12,12 +11,10 @@ import com.kanyandula.nyasa.ui.Loading
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_ORDER
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import javax.inject.Inject
@@ -57,55 +54,42 @@ constructor(
         return when (stateEvent) {
 
             is BlogSearchEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    blogRepository.searchBlogPosts(
-                        authToken = authToken,
-                        query = getSearchQuery(),
-                        filterAndOrder = getOrder() + getFilter(),
-                        page = getPage()
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.searchBlogPosts(
+                    query = getSearchQuery(),
+                    filterAndOrder = getOrder() + getFilter(),
+                    page = getPage()
+                )
             }
 
             is CheckAuthorOfBlogPost -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    blogRepository.isAuthorOfBlogPost(
-                        authToken = authToken,
-                        slug = getSlug()
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.isAuthorOfBlogPost(
+                    slug = getSlug()
+                )
             }
 
             is DeleteBlogPostEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    blogRepository.deleteBlogPost(
-                        authToken = authToken,
-                        blogPost = getBlogPost()
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.deleteBlogPost(
+                    blogPost = getBlogPost()
+                )
             }
 
             is UpdateBlogPostEvent -> {
 
-                return sessionManager.cachedToken.value?.let { authToken ->
+                val title = RequestBody.create(
+                    "text/plain".toMediaTypeOrNull(),
+                    stateEvent.title
+                )
+                val body = RequestBody.create(
+                    "text/plain".toMediaTypeOrNull(),
+                    stateEvent.body
+                )
 
-                    val title = RequestBody.create(
-                        "text/plain".toMediaTypeOrNull(),
-                        stateEvent.title
-                    )
-                    val body = RequestBody.create(
-                        "text/plain".toMediaTypeOrNull(),
-                        stateEvent.body
-                    )
-
-                    blogRepository.updateBlogPost(
-                        authToken = authToken,
-                        slug = getSlug(),
-                        title = title,
-                        body = body,
-                        image = stateEvent.image
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.updateBlogPost(
+                    slug = getSlug(),
+                    title = title,
+                    body = body,
+                    image = stateEvent.image
+                )
             }
 
             is None -> {

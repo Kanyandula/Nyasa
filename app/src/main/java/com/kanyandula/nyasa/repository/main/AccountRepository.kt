@@ -82,10 +82,7 @@ constructor(
             }
 
             override fun createCall(): LiveData<GenericApiResponse<AccountProperties>> {
-                return openApiMainService
-                    .getAccountProperties(
-                        "Token ${authToken.token!!}"
-                    )
+                return openApiMainService.getAccountProperties()
             }
 
 
@@ -97,7 +94,7 @@ constructor(
         }.asLiveData()
     }
 
-    fun saveAccountProperties(authToken: AuthToken, accountProperties: AccountProperties): LiveData<DataState<AccountViewState>> {
+    fun saveAccountProperties(accountProperties: AccountProperties): LiveData<DataState<AccountViewState>> {
         return object: NetworkBoundResource<GenericResponse, Any, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
@@ -130,7 +127,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
                 return openApiMainService.saveAccountProperties(
-                    "Token ${authToken.token!!}",
                     accountProperties.email,
                     accountProperties.username
                 )
@@ -151,7 +147,7 @@ constructor(
         }.asLiveData()
     }
 
-    fun updatePassword(authToken: AuthToken, currentPassword: String, newPassword: String, confirmNewPassword: String): LiveData<DataState<AccountViewState>> {
+    fun updatePassword(currentPassword: String, newPassword: String, confirmNewPassword: String): LiveData<DataState<AccountViewState>> {
         return object: NetworkBoundResource<GenericResponse, Any, AccountViewState>(
             sessionManager.isConnectedToTheInternet(),
             true,
@@ -181,7 +177,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
                 return openApiMainService.updatePassword(
-                    "Token ${authToken.token!!}",
                     currentPassword,
                     newPassword,
                     confirmNewPassword
