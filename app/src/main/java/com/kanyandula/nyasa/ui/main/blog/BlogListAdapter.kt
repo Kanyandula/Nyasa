@@ -3,7 +3,11 @@ package com.kanyandula.nyasa.ui.main.blog
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.AsyncDifferConfig
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListUpdateCallback
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.kanyandula.nyasa.R
@@ -12,12 +16,10 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.GenericViewHolder
 
-
-
 class BlogListAdapter(
     private val requestManager: RequestManager,
     private val interaction: Interaction? = null
-    ) :
+) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val TAG: String = "AppDebug"
@@ -25,7 +27,7 @@ class BlogListAdapter(
     private val BLOG_ITEM = 0
     private val NO_MORE_RESULTS_BLOG_MARKER = BlogPost(
         NO_MORE_RESULTS,
-        "" ,
+        "",
         "",
         "",
         "",
@@ -42,7 +44,6 @@ class BlogListAdapter(
         override fun areContentsTheSame(oldItem: BlogPost, newItem: BlogPost): Boolean {
             return oldItem == newItem
         }
-
     }
     private val differ =
         AsyncListDiffer(
@@ -50,15 +51,11 @@ class BlogListAdapter(
             AsyncDifferConfig.Builder(DIFF_CALLBACK).build()
         )
 
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val binding = LayoutBlogListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
-        val  binding =  LayoutBlogListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-
-
-        when(viewType){
-
-            NO_MORE_RESULTS ->{
+        when (viewType) {
+            NO_MORE_RESULTS -> {
                 Log.e(TAG, "onCreateViewHolder: No more results...")
                 return GenericViewHolder(
                     LayoutInflater.from(parent.context).inflate(
@@ -69,7 +66,7 @@ class BlogListAdapter(
                 )
             }
 
-            BLOG_ITEM ->{
+            BLOG_ITEM -> {
                 return BlogViewHolder(
                     binding,
                     interaction = interaction,
@@ -78,7 +75,7 @@ class BlogListAdapter(
             }
             else -> {
                 return BlogViewHolder(
-                   binding,
+                    binding,
                     interaction = interaction,
                     requestManager = requestManager
                 )
@@ -119,10 +116,11 @@ class BlogListAdapter(
         return differ.currentList.size
     }
 
-    fun submitList(blogList: List<BlogPost>?, isQueryExhausted: Boolean){
+    fun submitList(blogList: List<BlogPost>?, isQueryExhausted: Boolean) {
         val newList = blogList?.toMutableList()
-        if (isQueryExhausted)
+        if (isQueryExhausted) {
             newList?.add(NO_MORE_RESULTS_BLOG_MARKER)
+        }
         val commitCallback = Runnable {
             // if process died must restore list position
             // very annoying
@@ -136,26 +134,24 @@ class BlogListAdapter(
     fun preloadGlideImages(
         requestManager: RequestManager,
         list: List<BlogPost>
-    ){
-        for(blogPost in list){
+    ) {
+        for (blogPost in list) {
             requestManager
                 .load(blogPost.image)
                 .preload()
         }
     }
 
-
     override fun getItemViewType(position: Int): Int {
-        if(differ.currentList.get(position).pk > -1){
+        if (differ.currentList.get(position).pk > -1) {
             return BLOG_ITEM
         }
         return differ.currentList.get(position).pk
     }
 
-
     class BlogViewHolder
     constructor(
-         val binding: LayoutBlogListItemBinding,
+        val binding: LayoutBlogListItemBinding,
         val requestManager: RequestManager,
         private val interaction: Interaction?
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -164,9 +160,6 @@ class BlogListAdapter(
             binding.root.setOnClickListener {
                 interaction?.onItemSelected(adapterPosition, item)
             }
-
-
-
 
             binding.apply {
                 requestManager
@@ -177,10 +170,6 @@ class BlogListAdapter(
                 blogAuthor.text = item.username
                 blogUpdateDate.text = DateUtils.convertLongToStringDate(item.date_updated)
             }
-
-
-
-
         }
     }
 

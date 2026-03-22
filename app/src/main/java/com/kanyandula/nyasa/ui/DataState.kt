@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.ui
 
-
 data class DataState<T>(
     var error: Event<StateError>? = null,
     var loading: Loading = Loading(false),
@@ -33,7 +32,8 @@ data class DataState<T>(
                 data = Data(
                     Event.dataEvent(
                         cachedData
-                    ), null
+                    ),
+                    null
                 )
             )
         }

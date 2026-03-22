@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.di.main
 
-
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AppDatabase
@@ -28,9 +27,6 @@ class MainModule {
             .create(NyasaBlogApiMainService::class.java)
     }
 
-
-
-
     @Singleton
     @Provides
     fun provideAccountMainRepository(
@@ -55,7 +51,7 @@ class MainModule {
         accountPropertiesDao: AccountPropertiesDao,
         sessionManager: SessionManager
     ): BlogRepository {
-        return BlogRepository(nyasaBlogApiMainService, blogPostDao,accountPropertiesDao, sessionManager)
+        return BlogRepository(nyasaBlogApiMainService, blogPostDao, accountPropertiesDao, sessionManager)
     }
 
     @Singleton
@@ -65,8 +61,6 @@ class MainModule {
         blogPostDao: BlogPostDao,
         sessionManager: SessionManager
     ): CreateBlogRepository {
-        return CreateBlogRepository( nyasaBlogApiMainService, blogPostDao, sessionManager)
+        return CreateBlogRepository(nyasaBlogApiMainService, blogPostDao, sessionManager)
     }
-
-
 }

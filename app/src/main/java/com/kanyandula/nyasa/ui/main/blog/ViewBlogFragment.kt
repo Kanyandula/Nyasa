@@ -1,9 +1,11 @@
 package com.kanyandula.nyasa.ui.main.blog
 
-
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import androidx.core.net.toUri
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -17,17 +19,19 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.AreYouSureCallback
 import com.kanyandula.nyasa.ui.UIMessage
 import com.kanyandula.nyasa.ui.UIMessageType
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.*
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.CheckAuthorOfBlogPost
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.DeleteBlogPostEvent
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.getBlogPost
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.isAuthorOfBlogPost
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.removeDeletedBlogPost
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.setIsAuthorOfBlogPost
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
 import com.kanyandula.nyasa.util.DateUtils
-import com.kanyandula.nyasa.util.SuccessHandling.Companion.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
-class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate){
-
-
+class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -38,13 +42,10 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
         binding?.deleteButton?.setOnClickListener {
             confirmDeleteRequest()
         }
-
-
     }
 
-
-    private fun confirmDeleteRequest(){
-        val callback: AreYouSureCallback = object: AreYouSureCallback {
+    private fun confirmDeleteRequest() {
+        val callback: AreYouSureCallback = object : AreYouSureCallback {
 
             override fun proceed() {
                 deleteBlogPost()
@@ -53,7 +54,6 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
             override fun cancel() {
                 // ignore
             }
-
         }
         uiCommunicationListener.onUIMessageReceived(
             UIMessage(
@@ -63,67 +63,66 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
         )
     }
 
-    fun deleteBlogPost(){
+    fun deleteBlogPost() {
         viewModel.setStateEvent(
             DeleteBlogPostEvent()
         )
     }
 
-
-    fun checkIsAuthorOfBlogPost(){
+    fun checkIsAuthorOfBlogPost() {
         viewModel.setIsAuthorOfBlogPost(false) // reset
         viewModel.setStateEvent(CheckAuthorOfBlogPost())
     }
 
+    fun subscribeObservers() {
+        viewModel.dataState.observe(
+            viewLifecycleOwner,
+            Observer { dataState ->
+                if (dataState != null) {
+                    stateChangeListener.onDataStateChange(dataState)
 
-    fun subscribeObservers(){
-        viewModel.dataState.observe(viewLifecycleOwner, Observer{ dataState ->
-            if (dataState !=null){
-                stateChangeListener.onDataStateChange(dataState)
-
-                dataState.data?.let { data ->
-                    data.data?.getContentIfNotHandled()?.let { viewState ->
-                        viewModel.setIsAuthorOfBlogPost(
-                            viewState.viewBlogFields.isAuthorOfBlogPost
-                        )
-                    }
-                    data.response?.peekContent()?.let{ response ->
-                        if(response.message.equals(SUCCESS_BLOG_DELETED)){
-                            viewModel.removeDeletedBlogPost()
-                            findNavController().popBackStack()
+                    dataState.data?.let { data ->
+                        data.data?.getContentIfNotHandled()?.let { viewState ->
+                            viewModel.setIsAuthorOfBlogPost(
+                                viewState.viewBlogFields.isAuthorOfBlogPost
+                            )
+                        }
+                        data.response?.peekContent()?.let { response ->
+                            if (response.message.equals(SUCCESS_BLOG_DELETED)) {
+                                viewModel.removeDeletedBlogPost()
+                                findNavController().popBackStack()
+                            }
                         }
                     }
                 }
             }
+        )
 
-        })
+        viewModel.viewState.observe(
+            viewLifecycleOwner,
+            Observer { viewState ->
+                viewState.viewBlogFields.blogPost?.let { blogPost ->
+                    setBlogProperties(blogPost)
+                }
 
-        viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
-            viewState.viewBlogFields.blogPost?.let{ blogPost ->
-                setBlogProperties(blogPost)
+                if (viewState.viewBlogFields.isAuthorOfBlogPost) {
+                    adaptViewToAuthorMode()
+                }
             }
-
-            if(viewState.viewBlogFields.isAuthorOfBlogPost){
-                adaptViewToAuthorMode()
-            }
-        })
+        )
     }
-
 
     private fun adaptViewToAuthorMode() {
         activity?.invalidateOptionsMenu()
         binding?.deleteButton?.visibility = View.VISIBLE
     }
 
-     fun setBlogProperties(blogPost: BlogPost){
-
-
-            binding?.let {
-                Glide.with(this@ViewBlogFragment)
-                    .load(blogPost.image)
-                    .into(it.blogImage)
-            }
-
+    fun setBlogProperties(blogPost: BlogPost) {
+        binding?.let {
+            Glide.with(this@ViewBlogFragment)
+                .load(blogPost.image)
+                .into(it.blogImage)
+        }
 
         binding?.apply {
             blogTitle.text = blogPost.title
@@ -132,9 +131,8 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
             blogBody.text = blogPost.body
         }
 
-
-      // val uri = Uri.parse(blogPost.slug)
-       // val intent = Intent(Intent.ACTION_VIEW, uri)
+        // val uri = Uri.parse(blogPost.slug)
+        // val intent = Intent(Intent.ACTION_VIEW, uri)
 //        text_view_creator.apply {
 //            text = "https://nyasablog.com/blog/${blogPost.slug}/detail/"
 //            setOnClickListener {
@@ -145,36 +143,40 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
     }
 
     private fun setupMenu() {
-        (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
-            override fun onPrepareMenu(menu: Menu) {
-                // Handle for example visibility of menu items
-            }
-
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                if(viewModel.isAuthorOfBlogPost()){
-                    menuInflater.inflate(R.menu.edit_view_menu, menu)
+        (requireActivity() as MenuHost).addMenuProvider(
+            object : MenuProvider {
+                override fun onPrepareMenu(menu: Menu) {
+                    // Handle for example visibility of menu items
                 }
-            }
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                // Validate and handle the selected menu item
-
-                if(viewModel.isAuthorOfBlogPost()){
-                    when(menuItem.itemId){
-                        R.id.edit -> {
-                            navUpdateBlogFragment()
-                            return true
-                        }
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    if (viewModel.isAuthorOfBlogPost()) {
+                        menuInflater.inflate(R.menu.edit_view_menu, menu)
                     }
                 }
-                return true
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    // Validate and handle the selected menu item
+
+                    if (viewModel.isAuthorOfBlogPost()) {
+                        when (menuItem.itemId) {
+                            R.id.edit -> {
+                                navUpdateBlogFragment()
+                                return true
+                            }
+                        }
+                    }
+                    return true
+                }
+            },
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED
+        )
     }
 
-
-    private fun navUpdateBlogFragment(){
-        try{
+    @Suppress("TooGenericExceptionCaught")
+    private fun navUpdateBlogFragment() {
+        try {
             // prep for next fragment
             viewModel.setUpdatedBlogFields(
                 viewModel.getBlogPost().title,
@@ -182,11 +184,9 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
                 viewModel.getBlogPost().image.toUri()
             )
             findNavController().navigate(R.id.action_viewBlogFragment_to_updateBlogFragment)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             // send error report or something. These fields should never be null. Not possible
             Log.e(TAG, "Exception: ${e.message}")
         }
     }
-
-
 }

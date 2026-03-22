@@ -1,13 +1,12 @@
+package com.kanyandula.nyasa.ui.main.blog.viewmodel
+
 import android.util.Log
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.BlogSearchEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.resetPage(){
+fun BlogViewModel.resetPage() {
     val update = getCurrentViewStateOrNew()
     update.blogFields.page = 1
     setViewState(update)
@@ -23,7 +22,7 @@ fun BlogViewModel.loadFirstPage() {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-private fun BlogViewModel.incrementPageNumber(){
+private fun BlogViewModel.incrementPageNumber() {
     val update = getCurrentViewStateOrNew()
     val page = update.copy().blogFields.page // get current page
     update.blogFields.page = page + 1
@@ -31,9 +30,10 @@ private fun BlogViewModel.incrementPageNumber(){
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.nextPage(){
-    if(!getIsQueryInProgress()
-        && !getIsQueryExhausted()){
+fun BlogViewModel.nextPage() {
+    if (!getIsQueryInProgress() &&
+        !getIsQueryExhausted()
+    ) {
         Log.d(TAG, "BlogViewModel: Attempting to load next page...")
         incrementPageNumber()
         setQueryInProgress(true)
@@ -42,15 +42,19 @@ fun BlogViewModel.nextPage(){
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.handleIncomingBlogListData(viewState: BlogViewState){
-    Log.d(TAG, "BlogViewModel, DataState: ${viewState}")
-    Log.d(TAG, "BlogViewModel, DataState: isQueryInProgress?: " +
-            "${viewState.blogFields.isQueryInProgress}")
-    Log.d(TAG, "BlogViewModel, DataState: isQueryExhausted?: " +
-            "${viewState.blogFields.isQueryExhausted}")
+fun BlogViewModel.handleIncomingBlogListData(viewState: BlogViewState) {
+    Log.d(TAG, "BlogViewModel, DataState: $viewState")
+    Log.d(
+        TAG,
+        "BlogViewModel, DataState: isQueryInProgress?: " +
+            "${viewState.blogFields.isQueryInProgress}"
+    )
+    Log.d(
+        TAG,
+        "BlogViewModel, DataState: isQueryExhausted?: " +
+            "${viewState.blogFields.isQueryExhausted}"
+    )
     setQueryInProgress(viewState.blogFields.isQueryInProgress)
     setQueryExhausted(viewState.blogFields.isQueryExhausted)
     setBlogListData(viewState.blogFields.blogList)
 }
-
-

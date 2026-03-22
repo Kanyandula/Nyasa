@@ -1,13 +1,13 @@
 package com.kanyandula.nyasa.ui.main.account.state
 
-sealed class AccountStateEvent{
+sealed class AccountStateEvent {
 
-    class GetAccountPropertiesEvent: AccountStateEvent()
+    class GetAccountPropertiesEvent : AccountStateEvent()
 
     data class UpdateAccountPropertiesEvent(
         val email: String,
         val username: String
-    ): AccountStateEvent()
+    ) : AccountStateEvent()
 
     data class ChangePasswordEvent(
         val currentPassword: String,
@@ -15,5 +15,5 @@ sealed class AccountStateEvent{
         val confirmNewPassword: String
     ) : AccountStateEvent()
 
-    class None: AccountStateEvent()
+    class None : AccountStateEvent()
 }

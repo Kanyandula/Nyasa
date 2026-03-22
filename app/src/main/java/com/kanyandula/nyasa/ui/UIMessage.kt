@@ -5,15 +5,15 @@ data class UIMessage(
     val uiMessageType: UIMessageType
 )
 
-sealed class UIMessageType{
+sealed class UIMessageType {
 
-    class Toast: UIMessageType()
+    class Toast : UIMessageType()
 
-    class Dialog: UIMessageType()
+    class Dialog : UIMessageType()
 
     class AreYouSureDialog(
         val callback: AreYouSureCallback
-    ): UIMessageType()
+    ) : UIMessageType()
 
-    class None: UIMessageType()
+    class None : UIMessageType()
 }

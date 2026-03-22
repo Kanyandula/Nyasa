@@ -27,10 +27,11 @@ class RegistrationResponse(
 
     @SerializedName("token")
     @Expose
-    var token: String)
-{
+    var token: String
+) {
 
     override fun toString(): String {
-        return "RegistrationResponse(response='$response', errorMessage='$errorMessage', email='$email', username='$username', token='$token')"
+        return "RegistrationResponse(response='$response', errorMessage='$errorMessage', " +
+            "email='$email', username='$username', token='$token')"
     }
 }

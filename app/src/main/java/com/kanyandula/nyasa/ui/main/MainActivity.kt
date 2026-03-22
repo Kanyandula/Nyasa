@@ -22,11 +22,8 @@ import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.auth.AuthActivity
 import dagger.hilt.android.AndroidEntryPoint
 
-
-
 @AndroidEntryPoint
-class MainActivity : BaseActivity()
-{
+class MainActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -35,22 +32,18 @@ class MainActivity : BaseActivity()
 
     private lateinit var bottomNavigationView: BottomNavigationView
 
-
-
     override fun displayProgressBar(bool: Boolean) {
-        if(bool){
+        if (bool) {
             binding.progressBar.visibility = View.VISIBLE
-        }
-        else{
+        } else {
             binding.progressBar.visibility = View.GONE
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val  view = binding.root
+        val view = binding.root
         setContentView(view)
 
         setupActionBar()
@@ -60,13 +53,12 @@ class MainActivity : BaseActivity()
         ) as NavHostFragment
         navController = navHostFragment.navController
 
-
         bottomNavigationView = findViewById(R.id.bottom_navigation_view)
         bottomNavigationView.setupWithNavController(navController)
 
         // Setup the ActionBar with navController and 3 top level destinations
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.blogFragment, R.id.createBlogFragment,  R.id.accountFragment)
+            setOf(R.id.blogFragment, R.id.createBlogFragment, R.id.accountFragment)
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
@@ -74,8 +66,8 @@ class MainActivity : BaseActivity()
         restoreSession(savedInstanceState)
     }
 
-    private fun restoreSession(savedInstanceState: Bundle?){
-        savedInstanceState?.get(AUTH_TOKEN_BUNDLE_KEY)?.let{ authToken ->
+    private fun restoreSession(savedInstanceState: Bundle?) {
+        savedInstanceState?.get(AUTH_TOKEN_BUNDLE_KEY)?.let { authToken ->
             sessionManager.setValue(authToken as AuthToken)
         }
     }
@@ -84,55 +76,44 @@ class MainActivity : BaseActivity()
 
         // save auth token
         outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
-
-
     }
-
-
-
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration)
     }
 
-
-
     override fun expandAppBar() {
         findViewById<AppBarLayout>(R.id.app_bar).setExpanded(true)
     }
 
-    private fun setupActionBar(){
+    private fun setupActionBar() {
         setSupportActionBar(binding.toolBar)
     }
 
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
-        when(item.itemId){
+        when (item.itemId) {
             android.R.id.home -> onBackPressed()
         }
 
         return super.onOptionsItemSelected(item)
     }
 
-
-
-
-    fun subscribeObservers(){
-        sessionManager.cachedToken.observe(this, Observer{ authToken ->
-            Log.d(TAG, "MainActivity, subscribeObservers: ViewState: ${authToken}")
-            if(authToken == null || authToken.account_pk == -1 || authToken.token == null){
-                navAuthActivity()
-                finish()
+    fun subscribeObservers() {
+        sessionManager.cachedToken.observe(
+            this,
+            Observer { authToken ->
+                Log.d(TAG, "MainActivity, subscribeObservers: ViewState: $authToken")
+                if (authToken == null || authToken.account_pk == -1 || authToken.token == null) {
+                    navAuthActivity()
+                    finish()
+                }
             }
-        })
+        )
     }
 
-    private fun navAuthActivity(){
+    private fun navAuthActivity() {
         val intent = Intent(this, AuthActivity::class.java)
         startActivity(intent)
         finish()
     }
-
-
 }

@@ -6,7 +6,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
-
 /**
  * Docs: https://nyasablog.com/api/
  */
@@ -36,17 +35,14 @@ data class BlogPost(
     @ColumnInfo(name = "username")
     var username: String
 
-
 ) : Parcelable {
 
     override fun toString(): String {
         return "BlogPost(pk=$pk, " +
-                "title='$title', " +
-                "slug='$slug', " +
-                "image='$image', " +
-                "date_updated=$date_updated, " +
-                "username='$username')"
+            "title='$title', " +
+            "slug='$slug', " +
+            "image='$image', " +
+            "date_updated=$date_updated, " +
+            "username='$username')"
     }
-
-
 }

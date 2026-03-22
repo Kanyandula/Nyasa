@@ -7,9 +7,11 @@ import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Loading
-import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
-import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.*
+import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.ChangePasswordEvent
+import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.GetAccountPropertiesEvent
+import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.None
+import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.UpdateAccountPropertiesEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.util.AbsentLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,19 +25,17 @@ class AccountViewModel
 constructor(
     val sessionManager: SessionManager,
     val accountRepository: AccountRepository
-)
-    : BaseViewModel<AccountStateEvent, AccountViewState>()
-{
+) :
+    BaseViewModel<AccountStateEvent, AccountViewState>() {
     override fun handleStateEvent(stateEvent: AccountStateEvent): LiveData<DataState<AccountViewState>> {
-        when(stateEvent){
-
+        when (stateEvent) {
             is GetAccountPropertiesEvent -> {
                 return sessionManager.cachedToken.value?.let { authToken ->
                     accountRepository.getAccountProperties(authToken)
-                }?: AbsentLiveData.create()
+                } ?: AbsentLiveData.create()
             }
 
-            is UpdateAccountPropertiesEvent ->{
+            is UpdateAccountPropertiesEvent -> {
                 return sessionManager.cachedToken.value?.let { authToken ->
                     authToken.account_pk?.let { pk ->
                         val newAccountProperties = AccountProperties(
@@ -44,26 +44,22 @@ constructor(
                             stateEvent.username
                         )
                         accountRepository.saveAccountProperties(
-                            authToken,
                             newAccountProperties
                         )
                     }
-                }?: AbsentLiveData.create()
+                } ?: AbsentLiveData.create()
             }
 
-            is ChangePasswordEvent ->{
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    accountRepository.updatePassword(
-                        authToken,
-                        stateEvent.currentPassword,
-                        stateEvent.newPassword,
-                        stateEvent.confirmNewPassword
-                    )
-                }?: AbsentLiveData.create()
+            is ChangePasswordEvent -> {
+                return accountRepository.updatePassword(
+                    stateEvent.currentPassword,
+                    stateEvent.newPassword,
+                    stateEvent.confirmNewPassword
+                )
             }
 
-            is None ->{
-                return object: LiveData<DataState<AccountViewState>>(){
+            is None -> {
+                return object : LiveData<DataState<AccountViewState>>() {
                     override fun onActive() {
                         super.onActive()
                         value = DataState(null, Loading(false), null)
@@ -73,9 +69,9 @@ constructor(
         }
     }
 
-    fun setAccountPropertiesData(accountProperties: AccountProperties){
+    fun setAccountPropertiesData(accountProperties: AccountProperties) {
         val update = getCurrentViewStateOrNew()
-        if(update.accountProperties == accountProperties){
+        if (update.accountProperties == accountProperties) {
             return
         }
         update.accountProperties = accountProperties
@@ -86,16 +82,16 @@ constructor(
         return AccountViewState()
     }
 
-    fun logout(){
+    fun logout() {
         sessionManager.logout()
     }
 
-    fun cancelActiveJobs(){
+    fun cancelActiveJobs() {
         accountRepository.cancelActiveJobs() // cancel active jobs
         handlePendingData() // hide progress bar
     }
 
-    fun handlePendingData(){
+    fun handlePendingData() {
         setStateEvent(None())
     }
 
@@ -104,5 +100,3 @@ constructor(
         cancelActiveJobs()
     }
 }
-
-

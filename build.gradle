@@ -18,9 +18,20 @@ plugins {
     id 'com.android.application' version '7.3.1' apply false
     id 'com.android.library' version '7.3.1' apply false
     id 'org.jetbrains.kotlin.android' version '1.6.20' apply false
-
+    id 'io.gitlab.arturbosch.detekt' version '1.22.0' apply false
+    id 'com.diffplug.spotless' version '6.25.0' apply false
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task installGitHook(type: Copy) {
+    description 'Installs the pre-commit git hook'
+    group 'git hooks'
+    from("${rootProject.projectDir}/scripts/pre-commit")
+    into("${rootProject.projectDir}/.git/hooks")
+    fileMode 0755
+}
+
+tasks.getByPath(':app:preBuild').dependsOn(installGitHook)

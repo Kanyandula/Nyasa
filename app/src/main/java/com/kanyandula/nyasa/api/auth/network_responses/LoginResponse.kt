@@ -24,9 +24,9 @@ class LoginResponse(
     @SerializedName("email")
     @Expose
     var email: String
-)
-{
+) {
     override fun toString(): String {
-        return "LoginResponse(response='$response', errorMessage='$errorMessage', token='$token', pk=$pk, email='$email')"
+        return "LoginResponse(response='$response', errorMessage='$errorMessage', " +
+            "token='$token', pk=$pk, email='$email')"
     }
 }

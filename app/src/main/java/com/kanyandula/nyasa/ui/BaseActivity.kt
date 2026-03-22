@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.ui
 
-
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -9,22 +8,19 @@ import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.kanyandula.nyasa.session.SessionManager
-import com.kanyandula.nyasa.util.Constants.Companion.PERMISSIONS_REQUEST_READ_STORAGE
+import com.kanyandula.nyasa.util.Constants.PERMISSIONS_REQUEST_READ_STORAGE
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
-@OptIn(DelicateCoroutinesApi::class)
 @AndroidEntryPoint
-abstract class BaseActivity : AppCompatActivity(),
+abstract class BaseActivity :
+    AppCompatActivity(),
     DataStateChangeListener,
-    UICommunicationListener
-{
+    UICommunicationListener {
 
     val TAG: String = "AppDebug"
 
@@ -32,8 +28,7 @@ abstract class BaseActivity : AppCompatActivity(),
     lateinit var sessionManager: SessionManager
 
     override fun onUIMessageReceived(uiMessage: UIMessage) {
-        when(uiMessage.uiMessageType){
-
+        when (uiMessage.uiMessageType) {
             is UIMessageType.AreYouSureDialog -> {
                 areYouSureDialog(
                     uiMessage.message,
@@ -55,11 +50,9 @@ abstract class BaseActivity : AppCompatActivity(),
         }
     }
 
-
-
     override fun onDataStateChange(dataState: DataState<*>?) {
-        dataState?.let{
-            GlobalScope.launch(Dispatchers.Main){
+        dataState?.let {
+            lifecycleScope.launch(Dispatchers.Main) {
                 displayProgressBar(it.loading.isLoading)
 
                 it.error?.let { errorEvent ->
@@ -77,18 +70,17 @@ abstract class BaseActivity : AppCompatActivity(),
 
     abstract fun displayProgressBar(bool: Boolean)
 
-    private fun handleStateResponse(event: Event<Response>){
-        event.getContentIfNotHandled()?.let{
-
-            when(it.responseType){
-                is ResponseType.Toast ->{
-                    it.message?.let{message ->
+    private fun handleStateResponse(event: Event<Response>) {
+        event.getContentIfNotHandled()?.let {
+            when (it.responseType) {
+                is ResponseType.Toast -> {
+                    it.message?.let { message ->
                         displayToast(message)
                     }
                 }
 
-                is ResponseType.Dialog ->{
-                    it.message?.let{ message ->
+                is ResponseType.Dialog -> {
+                    it.message?.let { message ->
                         displaySuccessDialog(message)
                     }
                 }
@@ -97,21 +89,20 @@ abstract class BaseActivity : AppCompatActivity(),
                     Log.i(TAG, "handleStateResponse: ${it.message}")
                 }
             }
-
         }
     }
 
-    private fun handleStateError(event: Event<StateError>){
-        event.getContentIfNotHandled()?.let{
-            when(it.response.responseType){
-                is ResponseType.Toast ->{
-                    it.response.message?.let{message ->
+    private fun handleStateError(event: Event<StateError>) {
+        event.getContentIfNotHandled()?.let {
+            when (it.response.responseType) {
+                is ResponseType.Toast -> {
+                    it.response.message?.let { message ->
                         displayToast(message)
                     }
                 }
 
-                is ResponseType.Dialog ->{
-                    it.response.message?.let{ message ->
+                is ResponseType.Dialog -> {
+                    it.response.message?.let { message ->
                         displayErrorDialog(message)
                     }
                 }
@@ -126,23 +117,28 @@ abstract class BaseActivity : AppCompatActivity(),
     override fun hideSoftKeyboard() {
         if (currentFocus != null) {
             val inputMethodManager = getSystemService(
-                Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                Context.INPUT_METHOD_SERVICE
+            ) as InputMethodManager
             inputMethodManager
                 .hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
         }
     }
 
-    override fun isStoragePermissionGranted(): Boolean{
+    override fun isStoragePermissionGranted(): Boolean {
         if (
-            ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
             != PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED  ) {
-
-
-            ActivityCompat.requestPermissions(this,
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
                 arrayOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -156,10 +152,4 @@ abstract class BaseActivity : AppCompatActivity(),
             return true
         }
     }
-
 }
-
-
-
-
-

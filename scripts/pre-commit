@@ -1,0 +1,33 @@
+#!/bin/bash
+
+echo "Running pre-commit checks..."
+
+# Run detekt
+echo ">>> Running detekt..."
+./gradlew detekt --daemon 2>/dev/null
+DETEKT_STATUS=$?
+
+# Run spotlessCheck
+echo ">>> Running spotlessCheck..."
+./gradlew spotlessCheck --daemon 2>/dev/null
+SPOTLESS_STATUS=$?
+
+# Run Android lint (debug variant)
+echo ">>> Running lintDebug..."
+./gradlew lintDebug --daemon 2>/dev/null
+LINT_STATUS=$?
+
+# Report results
+if [ $DETEKT_STATUS -ne 0 ] || [ $SPOTLESS_STATUS -ne 0 ] || [ $LINT_STATUS -ne 0 ]; then
+    echo ""
+    echo "Pre-commit checks failed:"
+    [ $DETEKT_STATUS -ne 0 ] && echo "  - detekt: FAILED (run './gradlew detekt' for details)"
+    [ $SPOTLESS_STATUS -ne 0 ] && echo "  - spotless: FAILED (run './gradlew spotlessApply' to auto-fix)"
+    [ $LINT_STATUS -ne 0 ] && echo "  - lint: FAILED (run './gradlew lintDebug' for details)"
+    echo ""
+    echo "Commit aborted. Fix issues and try again."
+    exit 1
+fi
+
+echo "All pre-commit checks passed."
+exit 0

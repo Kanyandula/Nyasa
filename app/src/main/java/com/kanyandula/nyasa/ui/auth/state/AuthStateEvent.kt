@@ -1,20 +1,20 @@
 package com.kanyandula.nyasa.ui.auth.state
 
-sealed class AuthStateEvent{
+sealed class AuthStateEvent {
 
     data class LoginAttemptEvent(
         val email: String,
         val password: String
-    ): AuthStateEvent()
+    ) : AuthStateEvent()
 
     data class RegisterAttemptEvent(
         val email: String,
         val username: String,
         val password: String,
         val confirm_password: String
-    ): AuthStateEvent()
+    ) : AuthStateEvent()
 
-    class CheckPreviousAuthEvent(): AuthStateEvent()
+    class CheckPreviousAuthEvent : AuthStateEvent()
 
-    class None: AuthStateEvent()
+    class None : AuthStateEvent()
 }

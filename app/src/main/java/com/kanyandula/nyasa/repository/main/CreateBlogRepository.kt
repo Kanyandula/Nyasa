@@ -1,10 +1,8 @@
 package com.kanyandula.nyasa.repository.main
 
-
 import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
-import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.repository.JobManager
@@ -16,7 +14,7 @@ import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.Constants.Companion.RESPONSE_MUST_HAVE_NYASABLOG_UER
+import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.GenericApiResponse
 import kotlinx.coroutines.Dispatchers
@@ -32,12 +30,9 @@ constructor(
     val blogApiMainService: NyasaBlogApiMainService,
     val blogPostDao: BlogPostDao,
     val sessionManager: SessionManager
-): JobManager("CreateBlogRepository") {
-
-    private val TAG: String = "AppDebug"
+) : JobManager("CreateBlogRepository") {
 
     fun createNewBlogPost(
-        authToken: AuthToken,
         title: RequestBody,
         body: RequestBody,
         image: MultipartBody.Part?
@@ -52,11 +47,10 @@ constructor(
 
             // not applicable
             override suspend fun createCacheRequestAndReturn() {
-
+                // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<BlogCreateUpdateResponse>) {
-
                 // If they don't have an account it will still return a 200
                 // Need to account for that
 
@@ -86,7 +80,6 @@ constructor(
 
             override fun createCall(): LiveData<GenericApiResponse<BlogCreateUpdateResponse>> {
                 return blogApiMainService.createBlog(
-                    "Token ${authToken.token!!}",
                     title,
                     body,
                     image
@@ -107,25 +100,6 @@ constructor(
             override fun setJob(job: Job) {
                 addJob("createNewBlogPost", job)
             }
-
         }.asLiveData()
     }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

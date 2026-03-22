@@ -1,27 +1,24 @@
+@file:Suppress("PackageNaming")
+
 package com.kanyandula.nyasa.ui.main.create_blog
 
 import android.net.Uri
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
 import com.kanyandula.nyasa.repository.main.CreateBlogRepository
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Loading
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent
-import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent.*
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent.CreateNewBlogEvent
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent.None
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
-import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.*
-import com.kanyandula.nyasa.util.AbsentLiveData
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-
 import javax.inject.Inject
-
 
 @ExperimentalCoroutinesApi
 @HiltViewModel
@@ -30,31 +27,25 @@ class CreateBlogViewModel
 constructor(
     val createBlogRepository: CreateBlogRepository,
     val sessionManager: SessionManager
-): BaseViewModel<CreateBlogStateEvent, CreateBlogViewState>() {
+) : BaseViewModel<CreateBlogStateEvent, CreateBlogViewState>() {
 
     override fun handleStateEvent(
         stateEvent: CreateBlogStateEvent
     ): LiveData<DataState<CreateBlogViewState>> {
-
-        when(stateEvent){
-
+        when (stateEvent) {
             is CreateNewBlogEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
+                val title = stateEvent.title.toRequestBody("text/plain".toMediaTypeOrNull())
+                val body = stateEvent.body.toRequestBody("text/plain".toMediaTypeOrNull())
 
-                    val title = stateEvent.title.toRequestBody("text/plain".toMediaTypeOrNull())
-                    val body = stateEvent.body.toRequestBody("text/plain".toMediaTypeOrNull())
-
-                    createBlogRepository.createNewBlogPost(
-                        authToken,
-                        title,
-                        body,
-                        stateEvent.image
-                    )
-                }?: AbsentLiveData.create()
+                return createBlogRepository.createNewBlogPost(
+                    title,
+                    body,
+                    stateEvent.image
+                )
             }
 
             is None -> {
-                return object: LiveData<DataState<CreateBlogViewState>>(){
+                return object : LiveData<DataState<CreateBlogViewState>>() {
                     override fun onActive() {
                         super.onActive()
                         value = DataState(
@@ -72,28 +63,28 @@ constructor(
         return CreateBlogViewState()
     }
 
-    fun setNewBlogFields(title: String?, body: String?, uri: Uri?){
+    fun setNewBlogFields(title: String?, body: String?, uri: Uri?) {
         val update = getCurrentViewStateOrNew()
         val newBlogFields = update.blogFields
-        title?.let{ newBlogFields.newBlogTitle = it }
-        body?.let{ newBlogFields.newBlogBody = it }
-        uri?.let{ newBlogFields.newImageUri = it }
+        title?.let { newBlogFields.newBlogTitle = it }
+        body?.let { newBlogFields.newBlogBody = it }
+        uri?.let { newBlogFields.newImageUri = it }
         update.blogFields = newBlogFields
         _viewState.value = update
     }
 
-    fun clearNewBlogFields(){
+    fun clearNewBlogFields() {
         val update = getCurrentViewStateOrNew()
         update.blogFields = NewBlogFields()
         setViewState(update)
     }
 
-    fun cancelActiveJobs(){
+    fun cancelActiveJobs() {
         createBlogRepository.cancelActiveJobs()
         handlePendingData()
     }
 
-    fun handlePendingData(){
+    fun handlePendingData() {
         setStateEvent(None())
     }
 
@@ -101,16 +92,4 @@ constructor(
         super.onCleared()
         cancelActiveJobs()
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -2,7 +2,6 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.SavedStateHandle
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.repository.main.BlogRepository
 import com.kanyandula.nyasa.session.SessionManager
@@ -10,31 +9,31 @@ import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Loading
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.*
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.BlogSearchEvent
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.CheckAuthorOfBlogPost
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.DeleteBlogPostEvent
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.None
+import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.UpdateBlogPostEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import com.kanyandula.nyasa.util.AbsentLiveData
-import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_FILTER
-import com.kanyandula.nyasa.util.PreferenceKeys.Companion.BLOG_ORDER
+import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
+import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import javax.inject.Inject
-
 
 @ExperimentalCoroutinesApi
 @HiltViewModel
 class BlogViewModel
 @Inject
 constructor(
-    private val sessionManager: SessionManager,
+    @Suppress("UnusedPrivateMember") private val sessionManager: SessionManager,
     private val blogRepository: BlogRepository,
     private val sharedPreferences: SharedPreferences,
-    private val editor: SharedPreferences.Editor,
+    private val editor: SharedPreferences.Editor
 
-): BaseViewModel<BlogStateEvent, BlogViewState>(){
-
+) : BaseViewModel<BlogStateEvent, BlogViewState>() {
 
     init {
         setBlogFilter(
@@ -55,57 +54,42 @@ constructor(
 
     override fun handleStateEvent(stateEvent: BlogStateEvent): LiveData<DataState<BlogViewState>> {
         return when (stateEvent) {
-
             is BlogSearchEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    blogRepository.searchBlogPosts(
-                        authToken = authToken,
-                        query = getSearchQuery(),
-                        filterAndOrder = getOrder() + getFilter(),
-                        page = getPage()
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.searchBlogPosts(
+                    query = getSearchQuery(),
+                    filterAndOrder = getOrder() + getFilter(),
+                    page = getPage()
+                )
             }
 
             is CheckAuthorOfBlogPost -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    blogRepository.isAuthorOfBlogPost(
-                        authToken = authToken,
-                        slug = getSlug()
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.isAuthorOfBlogPost(
+                    slug = getSlug()
+                )
             }
 
             is DeleteBlogPostEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
-                    blogRepository.deleteBlogPost(
-                        authToken = authToken,
-                        blogPost = getBlogPost()
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.deleteBlogPost(
+                    blogPost = getBlogPost()
+                )
             }
 
             is UpdateBlogPostEvent -> {
+                val title = RequestBody.create(
+                    "text/plain".toMediaTypeOrNull(),
+                    stateEvent.title
+                )
+                val body = RequestBody.create(
+                    "text/plain".toMediaTypeOrNull(),
+                    stateEvent.body
+                )
 
-                return sessionManager.cachedToken.value?.let { authToken ->
-
-                    val title = RequestBody.create(
-                        "text/plain".toMediaTypeOrNull(),
-                        stateEvent.title
-                    )
-                    val body = RequestBody.create(
-                        "text/plain".toMediaTypeOrNull(),
-                        stateEvent.body
-                    )
-
-                    blogRepository.updateBlogPost(
-                        authToken = authToken,
-                        slug = getSlug(),
-                        title = title,
-                        body = body,
-                        image = stateEvent.image
-                    )
-                } ?: AbsentLiveData.create()
+                return blogRepository.updateBlogPost(
+                    slug = getSlug(),
+                    title = title,
+                    body = body,
+                    image = stateEvent.image
+                )
             }
 
             is None -> {
@@ -116,22 +100,14 @@ constructor(
                     }
                 }
             }
-
-
-
-
-
         }
     }
-
-
-
 
     override fun initNewViewState(): BlogViewState {
         return BlogViewState()
     }
 
-    fun saveFilterOptions(filter: String, order: String){
+    fun saveFilterOptions(filter: String, order: String) {
         editor.putString(BLOG_FILTER, filter)
         editor.apply()
 
@@ -139,15 +115,12 @@ constructor(
         editor.apply()
     }
 
-
-
-
-    fun cancelActiveJobs(){
+    fun cancelActiveJobs() {
         blogRepository.cancelActiveJobs() // cancel active jobs
         handlePendingData() // hide progress bar
     }
 
-    fun handlePendingData(){
+    fun handlePendingData() {
         setStateEvent(None())
     }
 
@@ -155,12 +128,4 @@ constructor(
         super.onCleared()
         cancelActiveJobs()
     }
-
 }
-
-
-
-
-
-
-
