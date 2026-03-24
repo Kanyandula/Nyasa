@@ -14,9 +14,9 @@ import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
-import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.GenericApiResponse
+import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -38,10 +38,8 @@ constructor(
             true
         ) {
 
-            // if network is down, view the cache and return
             override suspend fun createCacheRequestAndReturn() {
                 withContext(Dispatchers.Main) {
-                    // finishing by viewing db cache
                     result.addSource(loadFromCache()) { viewState ->
                         onCompleteJob(DataState.data(viewState, null))
                     }
@@ -50,7 +48,6 @@ constructor(
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<AccountProperties>) {
                 updateLocalDb(response.body)
-
                 createCacheRequestAndReturn()
             }
 
@@ -76,8 +73,8 @@ constructor(
                 }
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<AccountProperties>> {
-                return openApiMainService.getAccountProperties()
+            override suspend fun createCall(): GenericApiResponse<AccountProperties> {
+                return safeApiCall { openApiMainService.getAccountProperties() }
             }
 
             override fun setJob(job: Job) {
@@ -94,16 +91,14 @@ constructor(
             false
         ) {
 
-            // not applicable
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-                updateLocalDb(null) // The update does not return a CacheObject
+                updateLocalDb(null)
 
                 withContext(Dispatchers.Main) {
-                    // finish with success response
                     onCompleteJob(
                         DataState.data(
                             data = null,
@@ -113,16 +108,17 @@ constructor(
                 }
             }
 
-            // not used in this case
             override fun loadFromCache(): LiveData<AccountViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<AccountViewState>() {}
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return openApiMainService.saveAccountProperties(
-                    accountProperties.email,
-                    accountProperties.username
-                )
+            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
+                return safeApiCall {
+                    openApiMainService.saveAccountProperties(
+                        accountProperties.email,
+                        accountProperties.username
+                    )
+                }
             }
 
             override suspend fun updateLocalDb(cacheObject: Any?) {
@@ -151,14 +147,12 @@ constructor(
             false
         ) {
 
-            // not applicable
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
                 withContext(Dispatchers.Main) {
-                    // finish with success response
                     onCompleteJob(
                         DataState.data(
                             null,
@@ -168,20 +162,20 @@ constructor(
                 }
             }
 
-            // not used in this case
             override fun loadFromCache(): LiveData<AccountViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<AccountViewState>() {}
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return openApiMainService.updatePassword(
-                    currentPassword,
-                    newPassword,
-                    confirmNewPassword
-                )
+            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
+                return safeApiCall {
+                    openApiMainService.updatePassword(
+                        currentPassword,
+                        newPassword,
+                        confirmNewPassword
+                    )
+                }
             }
 
-            // not used in this case
             override suspend fun updateLocalDb(cacheObject: Any?) {
                 // no-op
             }

@@ -12,11 +12,11 @@ import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
-import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.GenericApiResponse
+import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -45,15 +45,11 @@ constructor(
                 false
             ) {
 
-            // not applicable
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
 
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<BlogCreateUpdateResponse>) {
-                // If they don't have an account it will still return a 200
-                // Need to account for that
-
                 if (!response.body.response.equals(RESPONSE_MUST_HAVE_NYASABLOG_UER)) {
                     val updatedBlogPost = BlogPost(
                         response.body.pk,
@@ -68,7 +64,6 @@ constructor(
                 }
 
                 withContext(Dispatchers.Main) {
-                    // finish with success response
                     onCompleteJob(
                         DataState.data(
                             null,
@@ -78,17 +73,12 @@ constructor(
                 }
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<BlogCreateUpdateResponse>> {
-                return blogApiMainService.createBlog(
-                    title,
-                    body,
-                    image
-                )
+            override suspend fun createCall(): GenericApiResponse<BlogCreateUpdateResponse> {
+                return safeApiCall { blogApiMainService.createBlog(title, body, image) }
             }
 
-            // not applicable
             override fun loadFromCache(): LiveData<CreateBlogViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<CreateBlogViewState>() {}
             }
 
             override suspend fun updateLocalDb(cacheObject: BlogPost?) {

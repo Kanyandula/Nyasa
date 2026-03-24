@@ -1,13 +1,12 @@
 package com.kanyandula.nyasa.api.main
 
-import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
 import com.kanyandula.nyasa.models.AccountProperties
-import com.kanyandula.nyasa.util.GenericApiResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -22,54 +21,54 @@ import retrofit2.http.Query
 interface NyasaBlogApiMainService {
 
     @GET("account/properties")
-    fun getAccountProperties(): LiveData<GenericApiResponse<AccountProperties>>
+    suspend fun getAccountProperties(): Response<AccountProperties>
 
     @PUT("account/properties/update")
     @FormUrlEncoded
-    fun saveAccountProperties(
+    suspend fun saveAccountProperties(
         @Field("email") email: String,
         @Field("username") username: String
-    ): LiveData<GenericApiResponse<GenericResponse>>
+    ): Response<GenericResponse>
 
     @PUT("account/change_password/")
     @FormUrlEncoded
-    fun updatePassword(
+    suspend fun updatePassword(
         @Field("old_password") currentPassword: String,
         @Field("new_password") newPassword: String,
         @Field("confirm_new_password") confirmNewPassword: String
-    ): LiveData<GenericApiResponse<GenericResponse>>
+    ): Response<GenericResponse>
 
     @GET("blog/list")
-    fun searchListBlogPosts(
+    suspend fun searchListBlogPosts(
         @Query("search") query: String,
         @Query("ordering") ordering: String,
         @Query("page") page: Int
-    ): LiveData<GenericApiResponse<BlogListSearchResponse>>
+    ): Response<BlogListSearchResponse>
 
     @GET("blog/{slug}/is_author")
-    fun isAuthorOfBlogPost(
+    suspend fun isAuthorOfBlogPost(
         @Path("slug") slug: String
-    ): LiveData<GenericApiResponse<GenericResponse>>
+    ): Response<GenericResponse>
 
     @DELETE("blog/{slug}/delete")
-    fun deleteBlogPost(
+    suspend fun deleteBlogPost(
         @Path("slug") slug: String
-    ): LiveData<GenericApiResponse<GenericResponse>>
+    ): Response<GenericResponse>
 
     @Multipart
     @PUT("blog/{slug}/update")
-    fun updateBlog(
+    suspend fun updateBlog(
         @Path("slug") slug: String,
         @Part("title") title: RequestBody,
         @Part("body") body: RequestBody,
         @Part image: MultipartBody.Part?
-    ): LiveData<GenericApiResponse<BlogCreateUpdateResponse>>
+    ): Response<BlogCreateUpdateResponse>
 
     @Multipart
     @POST("blog/create")
-    fun createBlog(
+    suspend fun createBlog(
         @Part("title") title: RequestBody,
         @Part("body") body: RequestBody,
         @Part image: MultipartBody.Part?
-    ): LiveData<GenericApiResponse<BlogCreateUpdateResponse>>
+    ): Response<BlogCreateUpdateResponse>
 }
