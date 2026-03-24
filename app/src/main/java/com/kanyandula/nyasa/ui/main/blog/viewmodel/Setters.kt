@@ -1,8 +1,16 @@
 package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.net.Uri
+import android.os.Parcelable
 import com.kanyandula.nyasa.models.BlogPost
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun BlogViewModel.setLayoutManagerState(state: Parcelable) {
+    val update = getCurrentViewStateOrNew()
+    update.blogFields.layoutManagerState = state
+    setViewState(update)
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setQuery(query: String) {

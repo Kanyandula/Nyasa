@@ -3,7 +3,6 @@ package com.kanyandula.nyasa.ui.main.blog
 import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
@@ -43,6 +42,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.nextPage
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogFilter
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogOrder
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogPost
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.setLayoutManagerState
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setQuery
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setQueryExhausted
 import com.kanyandula.nyasa.util.ErrorHandling
@@ -64,12 +64,9 @@ class BlogFragment :
         super.onViewCreated(view, savedInstanceState)
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
         setupMenu()
-        // Restore the layout manager state
-        if (layoutManagerState != null) {
-            binding?.blogPostRecyclerview?.layoutManager?.onRestoreInstanceState(layoutManagerState)
-        }
         binding?.swipeRefresh?.setOnRefreshListener(this)
         initRecyclerView()
+        restoreLayoutManagerState()
         subscribeObservers()
         if (savedInstanceState == null) {
             viewModel.loadFirstPage()
@@ -189,18 +186,21 @@ class BlogFragment :
     private fun initRecyclerView() {
         binding?.blogPostRecyclerview?.apply {
             layoutManager = LinearLayoutManager(this@BlogFragment.context)
-            val topSpacingDecorator = TopSpacingItemDecoration(30)
-            addItemDecoration(topSpacingDecorator)
+            if (itemDecorationCount == 0) {
+                addItemDecoration(TopSpacingItemDecoration(30))
+            }
 
             recyclerAdapter = BlogListAdapter(requestManager, this@BlogFragment)
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
-                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                    val lastPosition = layoutManager.findLastVisibleItemPosition()
-                    if (lastPosition == recyclerAdapter.itemCount - 1 && recyclerAdapter.itemCount > 0) {
-                        Log.d(TAG, "BlogFragment: attempting to load next page...")
-                        viewModel.nextPage()
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                        val lastPosition = layoutManager.findLastVisibleItemPosition()
+                        if (lastPosition == recyclerAdapter.itemCount - 1 && recyclerAdapter.itemCount > 0) {
+                            Log.d(TAG, "BlogFragment: attempting to load next page...")
+                            viewModel.nextPage()
+                        }
                     }
                 }
             })
@@ -241,19 +241,25 @@ class BlogFragment :
         findNavController().navigate(R.id.action_blogFragment_to_viewBlogFragment)
     }
 
-    private var layoutManagerState: Parcelable? = null
-
     override fun onPause() {
         super.onPause()
-        layoutManagerState = binding?.blogPostRecyclerview?.layoutManager?.onSaveInstanceState()
+        saveLayoutManagerState()
+    }
+
+    private fun saveLayoutManagerState() {
+        binding?.blogPostRecyclerview?.layoutManager?.onSaveInstanceState()?.let { state ->
+            viewModel.setLayoutManagerState(state)
+        }
+    }
+
+    private fun restoreLayoutManagerState() {
+        viewModel.viewState.value?.blogFields?.layoutManagerState?.let { lmState ->
+            binding?.blogPostRecyclerview?.layoutManager?.onRestoreInstanceState(lmState)
+        }
     }
 
     override fun restoreListPosition() {
-        viewModel.viewState.value?.blogFields?.layoutManagerState?.let { lmState ->
-            layoutManagerState?.let { lmState ->
-                binding?.blogPostRecyclerview?.layoutManager?.onRestoreInstanceState(lmState)
-            }
-        }
+        restoreLayoutManagerState()
     }
 
     override fun onDestroyView() {

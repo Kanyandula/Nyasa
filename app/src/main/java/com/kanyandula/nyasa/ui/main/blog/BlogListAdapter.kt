@@ -92,15 +92,15 @@ class BlogListAdapter(
         }
 
         override fun onInserted(position: Int, count: Int) {
-            adapter.notifyItemRangeChanged(position, count)
+            adapter.notifyItemRangeInserted(position, count)
         }
 
         override fun onMoved(fromPosition: Int, toPosition: Int) {
-            adapter.notifyDataSetChanged()
+            adapter.notifyItemMoved(fromPosition, toPosition)
         }
 
         override fun onRemoved(position: Int, count: Int) {
-            adapter.notifyDataSetChanged()
+            adapter.notifyItemRangeRemoved(position, count)
         }
     }
 
@@ -158,7 +158,10 @@ class BlogListAdapter(
 
         fun bind(item: BlogPost) = with(itemView) {
             binding.root.setOnClickListener {
-                interaction?.onItemSelected(adapterPosition, item)
+                val position = this@BlogViewHolder.bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    interaction?.onItemSelected(position, item)
+                }
             }
 
             binding.apply {

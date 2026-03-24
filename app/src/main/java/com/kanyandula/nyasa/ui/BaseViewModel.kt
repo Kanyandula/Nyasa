@@ -2,8 +2,8 @@ package com.kanyandula.nyasa.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.switchMap
 
 abstract class BaseViewModel<StateEvent, ViewState> : ViewModel() {
 
@@ -15,8 +15,8 @@ abstract class BaseViewModel<StateEvent, ViewState> : ViewModel() {
     val viewState: LiveData<ViewState>
         get() = _viewState
 
-    val dataState: LiveData<DataState<ViewState>> = Transformations
-        .switchMap(_stateEvent) { stateEvent ->
+    val dataState: LiveData<DataState<ViewState>> = _stateEvent
+        .switchMap { stateEvent ->
             stateEvent?.let {
                 handleStateEvent(stateEvent)
             }
