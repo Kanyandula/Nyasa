@@ -87,8 +87,8 @@ constructor(
     }
 
     fun cancelActiveJobs() {
-        accountRepository.cancelActiveJobs() // cancel active jobs
-        handlePendingData() // hide progress bar
+        accountRepository.cancelActiveJobs()
+        handlePendingData()
     }
 
     fun handlePendingData() {

@@ -68,7 +68,7 @@ class MainActivity : BaseActivity() {
 
     private fun restoreSession(savedInstanceState: Bundle?) {
         savedInstanceState?.get(AUTH_TOKEN_BUNDLE_KEY)?.let { authToken ->
-            sessionManager.setValue(authToken as AuthToken)
+            sessionManager.login(authToken as AuthToken)
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {

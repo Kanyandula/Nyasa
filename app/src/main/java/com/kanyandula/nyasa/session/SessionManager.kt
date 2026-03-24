@@ -63,7 +63,7 @@ constructor(
         }
     }
 
-    fun setValue(newValue: AuthToken?) {
+    private fun setValue(newValue: AuthToken?) {
         _cachedToken.postValue(newValue)
     }
 

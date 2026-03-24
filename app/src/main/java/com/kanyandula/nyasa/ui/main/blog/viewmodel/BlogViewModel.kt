@@ -109,15 +109,13 @@ constructor(
 
     fun saveFilterOptions(filter: String, order: String) {
         editor.putString(BLOG_FILTER, filter)
-        editor.apply()
-
         editor.putString(BLOG_ORDER, order)
         editor.apply()
     }
 
     fun cancelActiveJobs() {
-        blogRepository.cancelActiveJobs() // cancel active jobs
-        handlePendingData() // hide progress bar
+        blogRepository.cancelActiveJobs()
+        handlePendingData()
     }
 
     fun handlePendingData() {
