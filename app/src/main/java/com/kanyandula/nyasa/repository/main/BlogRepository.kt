@@ -20,7 +20,6 @@ import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.BlogFields
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.ViewBlogFields
-import com.kanyandula.nyasa.util.AbsentLiveData
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
 import com.kanyandula.nyasa.util.DateUtils
@@ -29,6 +28,7 @@ import com.kanyandula.nyasa.util.GenericApiResponse
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_HAS_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_NO_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -59,10 +59,8 @@ constructor(
             false,
             true
         ) {
-            // if network is down, view cache only and return
             override suspend fun createCacheRequestAndReturn() {
                 withContext(Dispatchers.Main) {
-                    // finishing by viewing db cache
                     result.addSource(loadFromCache()) { viewState ->
                         viewState.blogFields.isQueryInProgress = false
                         if (page * PAGINATION_PAGE_SIZE > viewState.blogFields.blogList.size) {
@@ -93,16 +91,17 @@ constructor(
                     )
                 }
                 updateLocalDb(blogPostList)
-
                 createCacheRequestAndReturn()
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<BlogListSearchResponse>> {
-                return nyasaBlogApiMainService.searchListBlogPosts(
-                    query = query,
-                    ordering = filterAndOrder,
-                    page = page
-                )
+            override suspend fun createCall(): GenericApiResponse<BlogListSearchResponse> {
+                return safeApiCall {
+                    nyasaBlogApiMainService.searchListBlogPosts(
+                        query = query,
+                        ordering = filterAndOrder,
+                        page = page
+                    )
+                }
             }
 
             override fun loadFromCache(): LiveData<BlogViewState> {
@@ -128,30 +127,23 @@ constructor(
             }
 
             override suspend fun updateLocalDb(cacheObject: List<BlogPost>?) {
-                // loop through list and update the local db
                 if (cacheObject != null) {
                     withContext(Dispatchers.IO) {
                         for (blogPost in cacheObject) {
-                            @Suppress("TooGenericExceptionCaught")
-                            try {
-                                // Launch each insert as a separate job to be executed in parallel
-                                launch {
-                                    Log.d(TAG, "updateLocalDb: inserting blog: $blogPost")
+                            launch {
+                                @Suppress("TooGenericExceptionCaught")
+                                try {
                                     blogPostDao.insert(blogPost)
+                                } catch (e: Exception) {
+                                    Log.e(
+                                        TAG,
+                                        "updateLocalDb: error updating cache " +
+                                            "on blog post with slug: ${blogPost.slug}. ${e.message}"
+                                    )
                                 }
-                            } catch (e: Exception) {
-                                Log.e(
-                                    TAG,
-                                    "updateLocalDb: error updating cache " +
-                                        "on blog post with slug: ${blogPost.slug}. ${e.message}"
-                                )
-                                // Could send an error report here but don't throw
-                                // to the UI since many posts may be inserted/updated.
                             }
                         }
                     }
-                } else {
-                    Log.d(TAG, "updateLocalDb: blog post list is null")
                 }
             }
 
@@ -171,7 +163,6 @@ constructor(
             false
         ) {
 
-            // not applicable
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
@@ -207,20 +198,14 @@ constructor(
                 }
             }
 
-            // not applicable
             override fun loadFromCache(): LiveData<BlogViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<BlogViewState>() {}
             }
 
-            // Make an update and change nothing.
-            // If they are not the author it will return: "You don't have permission to edit that."
-            override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return nyasaBlogApiMainService.isAuthorOfBlogPost(
-                    slug
-                )
+            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
+                return safeApiCall { nyasaBlogApiMainService.isAuthorOfBlogPost(slug) }
             }
 
-            // not applicable
             override suspend fun updateLocalDb(cacheObject: Any?) {
                 // no-op
             }
@@ -241,7 +226,6 @@ constructor(
             false
         ) {
 
-            // not applicable
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
@@ -261,15 +245,12 @@ constructor(
                 }
             }
 
-            // not applicable
             override fun loadFromCache(): LiveData<BlogViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<BlogViewState>() {}
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<GenericResponse>> {
-                return nyasaBlogApiMainService.deleteBlogPost(
-                    blogPost.slug
-                )
+            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
+                return safeApiCall { nyasaBlogApiMainService.deleteBlogPost(blogPost.slug) }
             }
 
             override suspend fun updateLocalDb(cacheObject: BlogPost?) {
@@ -303,7 +284,6 @@ constructor(
             false
         ) {
 
-            // not applicable
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
@@ -324,7 +304,6 @@ constructor(
                 updateLocalDb(updatedBlogPost)
 
                 withContext(Dispatchers.Main) {
-                    // finish with success response
                     onCompleteJob(
                         DataState.data(
                             BlogViewState(
@@ -338,18 +317,14 @@ constructor(
                 }
             }
 
-            // not applicable
             override fun loadFromCache(): LiveData<BlogViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<BlogViewState>() {}
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<BlogCreateUpdateResponse>> {
-                return nyasaBlogApiMainService.updateBlog(
-                    slug,
-                    title,
-                    body,
-                    image
-                )
+            override suspend fun createCall(): GenericApiResponse<BlogCreateUpdateResponse> {
+                return safeApiCall {
+                    nyasaBlogApiMainService.updateBlog(slug, title, body, image)
+                }
             }
 
             override suspend fun updateLocalDb(cacheObject: BlogPost?) {

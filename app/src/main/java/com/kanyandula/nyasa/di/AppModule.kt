@@ -19,7 +19,6 @@ import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.AppDatabase.Companion.DATABASE_NAME
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import com.kanyandula.nyasa.util.Constants
-import com.kanyandula.nyasa.util.LiveDataCallAdapterFactory
 import com.kanyandula.nyasa.util.PreferenceKeys
 import dagger.Module
 import dagger.Provides
@@ -87,7 +86,6 @@ object AppModule {
         return Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
             .client(okHttpClient)
-            .addCallAdapterFactory(LiveDataCallAdapterFactory())
             .addConverterFactory(GsonConverterFactory.create(gsonBuilder))
     }
 

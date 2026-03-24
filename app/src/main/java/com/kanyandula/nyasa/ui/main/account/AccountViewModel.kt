@@ -1,6 +1,7 @@
 package com.kanyandula.nyasa.ui.main.account
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
@@ -13,7 +14,6 @@ import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.GetAccountPr
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.None
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.UpdateAccountPropertiesEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
-import com.kanyandula.nyasa.util.AbsentLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
@@ -32,7 +32,7 @@ constructor(
             is GetAccountPropertiesEvent -> {
                 return sessionManager.cachedToken.value?.let { authToken ->
                     accountRepository.getAccountProperties(authToken)
-                } ?: AbsentLiveData.create()
+                } ?: MutableLiveData()
             }
 
             is UpdateAccountPropertiesEvent -> {
@@ -47,7 +47,7 @@ constructor(
                             newAccountProperties
                         )
                     }
-                } ?: AbsentLiveData.create()
+                } ?: MutableLiveData()
             }
 
             is ChangePasswordEvent -> {

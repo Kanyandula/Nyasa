@@ -5,7 +5,8 @@ import com.kanyandula.nyasa.models.BlogPost
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun BlogViewModel.getFilter(): String {
+fun BlogViewModel
+    .getFilter(): String {
     getCurrentViewStateOrNew().let {
         return it.blogFields.filter
     }
@@ -46,6 +47,7 @@ fun BlogViewModel.getIsQueryInProgress(): Boolean {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.getSlug(): String {
     getCurrentViewStateOrNew().let {
         it.viewBlogFields.blogPost?.let {

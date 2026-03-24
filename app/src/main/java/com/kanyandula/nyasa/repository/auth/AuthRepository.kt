@@ -17,7 +17,7 @@ import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
-import com.kanyandula.nyasa.util.AbsentLiveData
+import com.kanyandula.nyasa.util.ApiEmptyResponse
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_ACCOUNT_PROPERTIES
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_AUTH_TOKEN
@@ -26,6 +26,7 @@ import com.kanyandula.nyasa.util.GenericApiResponse
 import com.kanyandula.nyasa.util.InputValidation
 import com.kanyandula.nyasa.util.PreferenceKeys
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
+import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Job
 import javax.inject.Inject
 
@@ -56,17 +57,14 @@ constructor(
             false
         ) {
 
-            // Ignore
             override fun loadFromCache(): LiveData<AuthViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<AuthViewState>() {}
             }
 
-            // Ignore
             override suspend fun updateLocalDb(cacheObject: Any?) {
                 // no-op
             }
 
-            // not used in this case
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
@@ -74,13 +72,10 @@ constructor(
             override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<LoginResponse>) {
                 Log.d(TAG, "handleApiSuccessResponse: $response")
 
-                // Incorrect login credentials counts as a 200 response from server, so need to handle that
                 if (response.body.response.equals(GENERIC_AUTH_ERROR)) {
                     return onErrorReturn(response.body.errorMessage, true, false)
                 }
 
-                // Don't care about result here. Just insert if it doesn't exist b/c of foreign key relationship
-                // with AuthToken
                 accountPropertiesDao.insertOrIgnore(
                     AccountProperties(
                         response.body.pk,
@@ -89,7 +84,6 @@ constructor(
                     )
                 )
 
-                // will return -1 if failure
                 val result = authTokenDao.insert(
                     AuthToken(
                         response.body.pk,
@@ -115,8 +109,8 @@ constructor(
                 )
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<LoginResponse>> {
-                return nyasaBlogApiAuthService.login(email, password)
+            override suspend fun createCall(): GenericApiResponse<LoginResponse> {
+                return safeApiCall { nyasaBlogApiAuthService.login(email, password) }
             }
 
             override fun setJob(job: Job) {
@@ -147,17 +141,14 @@ constructor(
             true,
             false
         ) {
-            // Ignore
             override fun loadFromCache(): LiveData<AuthViewState> {
-                return AbsentLiveData.create()
+                return object : LiveData<AuthViewState>() {}
             }
 
-            // Ignore
             override suspend fun updateLocalDb(cacheObject: Any?) {
                 // no-op
             }
 
-            // not used in this case
             override suspend fun createCacheRequestAndReturn() {
                 // no-op
             }
@@ -177,7 +168,6 @@ constructor(
                     )
                 )
 
-                // will return -1 if failure
                 if (result1 < 0) {
                     onCompleteJob(
                         DataState.error(
@@ -187,7 +177,6 @@ constructor(
                     return
                 }
 
-                // will return -1 if failure
                 val result2 = authTokenDao.insert(
                     AuthToken(
                         response.body.pk,
@@ -214,8 +203,10 @@ constructor(
                 )
             }
 
-            override fun createCall(): LiveData<GenericApiResponse<RegistrationResponse>> {
-                return nyasaBlogApiAuthService.register(email, username, password, confirmPassword)
+            override suspend fun createCall(): GenericApiResponse<RegistrationResponse> {
+                return safeApiCall {
+                    nyasaBlogApiAuthService.register(email, username, password, confirmPassword)
+                }
             }
 
             override fun setJob(job: Job) {
@@ -239,12 +230,10 @@ constructor(
                 false
             ) {
 
-                // Ignore
                 override fun loadFromCache(): LiveData<AuthViewState> {
-                    return AbsentLiveData.create()
+                    return object : LiveData<AuthViewState>() {}
                 }
 
-                // Ignore
                 override suspend fun updateLocalDb(cacheObject: Any?) {
                     // no-op
                 }
@@ -292,14 +281,12 @@ constructor(
                     )
                 }
 
-                // not used in this case
                 override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<Void>) {
                     // no-op
                 }
 
-                // not used in this case
-                override fun createCall(): LiveData<GenericApiResponse<Void>> {
-                    return AbsentLiveData.create()
+                override suspend fun createCall(): GenericApiResponse<Void> {
+                    return ApiEmptyResponse()
                 }
 
                 override fun setJob(job: Job) {
