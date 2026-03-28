@@ -5,17 +5,20 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
-import androidx.lifecycle.Observer
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.ActivityAuthBinding
 import com.kanyandula.nyasa.ui.BaseActivity
-import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
+import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
+import com.kanyandula.nyasa.ui.handleStandardUiEvent
 import com.kanyandula.nyasa.ui.main.MainActivity
-import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AuthActivity :
@@ -25,11 +28,11 @@ class AuthActivity :
     private lateinit var binding: ActivityAuthBinding
 
     private val viewModel: AuthViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAuthBinding.inflate(layoutInflater)
         val view = binding.root
-
         setContentView(view)
 
         findNavController(R.id.auth_nav_host_fragment).addOnDestinationChangedListener(this)
@@ -40,57 +43,48 @@ class AuthActivity :
 
     override fun onResume() {
         super.onResume()
-        checkPreviousAuthUser()
+        // checkPreviousAuthUser already called in onCreate;
+        // ViewModel handles deduplication via hasCheckedPreviousUser flag
     }
 
     private fun subscribeObservers() {
-        viewModel.dataState.observe(
-            this,
-            Observer { dataState ->
-                onDataStateChange(dataState)
-                dataState.data?.let { data ->
-                    data.data?.let { event ->
-                        event.getContentIfNotHandled()?.let {
-                            it.authToken?.let {
-                                Log.d(TAG, "AuthActivity, DataState: $it")
-                                viewModel.setAuthToken(it)
-                            }
-                        }
-                    }
-                    data.response?.let { event ->
-                        event.peekContent().let { response ->
-                            response.message?.let { message ->
-                                if (message.equals(RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE)) {
-                                    onFinishCheckPreviousAuthUser()
-                                }
-                            }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.viewState.collect { viewState ->
+                        Log.d(TAG, "AuthActivity, subscribeObservers: AuthViewState: $viewState")
+                        viewState.authToken?.let {
+                            sessionManager.login(it)
                         }
                     }
                 }
-            }
-        )
 
-        viewModel.viewState.observe(
-            this,
-            Observer {
-                Log.d(TAG, "AuthActivity, subscribeObservers: AuthViewState: $it")
-                it.authToken?.let {
-                    sessionManager.login(it)
+                launch {
+                    sessionManager.cachedToken.collect { authToken ->
+                        Log.d(TAG, "AuthActivity, subscribeObservers: AuthDataState: $authToken")
+                        if (authToken != null && authToken.account_pk != -1 && authToken.token != null) {
+                            navMainActivity()
+                        }
+                    }
                 }
-            }
-        )
 
-        sessionManager.cachedToken.observe(
-            this,
-            Observer { dataState ->
-                Log.d(TAG, "AuthActivity, subscribeObservers: AuthDataState: $dataState")
-                dataState.let { authToken ->
-                    if (authToken != null && authToken.account_pk != -1 && authToken.token != null) {
-                        navMainActivity()
+                launch {
+                    viewModel.isLoading.collect { isLoading ->
+                        displayProgressBar(isLoading)
+                    }
+                }
+
+                launch {
+                    viewModel.events.collect { event ->
+                        if (event is AuthUiEvent.CheckPreviousAuthDone) {
+                            onFinishCheckPreviousAuthUser()
+                        } else {
+                            handleStandardUiEvent(event, this@AuthActivity)
+                        }
                     }
                 }
             }
-        )
+        }
     }
 
     private fun navMainActivity() {
@@ -101,15 +95,15 @@ class AuthActivity :
     }
 
     private fun checkPreviousAuthUser() {
-        viewModel.setStateEvent(AuthStateEvent.CheckPreviousAuthEvent())
+        viewModel.checkPreviousAuthUser()
     }
 
     private fun onFinishCheckPreviousAuthUser() {
         binding.fragmentContainer.visibility = View.VISIBLE
     }
 
-    override fun displayProgressBar(bool: Boolean) {
-        if (bool) {
+    override fun displayProgressBar(isLoading: Boolean) {
+        if (isLoading) {
             binding.progressBar.visibility = View.VISIBLE
         } else {
             binding.progressBar.visibility = View.GONE
@@ -125,6 +119,6 @@ class AuthActivity :
         destination: NavDestination,
         arguments: Bundle?
     ) {
-        viewModel.cancelActiveJobs()
+        // no-op: active jobs now cancelled by viewModelScope
     }
 }

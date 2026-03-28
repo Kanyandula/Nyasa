@@ -1,38 +1,60 @@
 package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.content.SharedPreferences
+import android.net.Uri
+import android.os.Parcelable
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.repository.main.BlogRepository
-import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.Loading
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.BlogSearchEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.CheckAuthorOfBlogPost
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.DeleteBlogPostEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.None
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.UpdateBlogPostEvent
-import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
+import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
+import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
+import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
+import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
+import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
+import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.util.toPlainTextBody
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
 import javax.inject.Inject
 
+@Suppress("TooManyFunctions")
 @HiltViewModel
 class BlogViewModel
 @Inject
 constructor(
-    @Suppress("UnusedPrivateMember") private val sessionManager: SessionManager,
     private val blogRepository: BlogRepository,
     private val sharedPreferences: SharedPreferences,
-    private val editor: SharedPreferences.Editor
+    private val editor: SharedPreferences.Editor,
+    private val savedStateHandle: SavedStateHandle
+) : BaseViewModel<BlogListUiState>(BlogListUiState()) {
 
-) : BaseViewModel<BlogStateEvent, BlogViewState>() {
+    private val _viewBlogState = MutableStateFlow(ViewBlogUiState())
+    val viewBlogState: StateFlow<ViewBlogUiState> = _viewBlogState.asStateFlow()
+
+    private val _updateBlogState = MutableStateFlow(UpdateBlogUiState())
+    val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
+
+    private var searchJob: Job? = null
+
+    private fun updateViewBlogState(reducer: ViewBlogUiState.() -> ViewBlogUiState) {
+        _viewBlogState.value = _viewBlogState.value.reducer()
+    }
+
+    private fun updateUpdateBlogState(reducer: UpdateBlogUiState.() -> UpdateBlogUiState) {
+        _updateBlogState.value = _updateBlogState.value.reducer()
+    }
 
     init {
         setBlogFilter(
@@ -45,78 +67,256 @@ constructor(
             BLOG_ORDER,
             BlogQueryUtils.BLOG_ORDER_ASC
         )?.let {
-            setBlogOrder(
-                it
+            setBlogOrder(it)
+        }
+        savedStateHandle.get<String>(SAVED_SEARCH_QUERY)?.let { setQuery(it) }
+    }
+
+    companion object {
+        private const val SAVED_SEARCH_QUERY = "blog_search_query"
+    }
+
+    // region Blog List (Getters)
+
+    fun getFilter(): String = viewState.value.filter
+
+    fun getOrder(): String = viewState.value.order
+
+    fun getSearchQuery(): String = viewState.value.searchQuery
+
+    fun getPage(): Int = viewState.value.page
+
+    fun getIsQueryExhausted(): Boolean = viewState.value.isQueryExhausted
+
+    fun getIsQueryInProgress(): Boolean = viewState.value.isQueryInProgress
+
+    // endregion
+
+    // region View Blog (Getters)
+
+    fun getSlug(): String = _viewBlogState.value.blogPost?.slug ?: ""
+
+    fun isAuthorOfBlogPost(): Boolean = _viewBlogState.value.isAuthorOfBlogPost
+
+    fun getBlogPost(): BlogPost {
+        return _viewBlogState.value.blogPost ?: getDummyBlogPost()
+    }
+
+    private fun getDummyBlogPost(): BlogPost {
+        return BlogPost(-1, "", "", "", "", 1, "")
+    }
+
+    fun getUpdatedBlogUri(): Uri? = _updateBlogState.value.updatedImageUri
+
+    // endregion
+
+    // region Blog List (Setters)
+
+    fun setLayoutManagerState(state: Parcelable) {
+        updateState { copy(layoutManagerState = state) }
+    }
+
+    fun setQuery(query: String) {
+        updateState { copy(searchQuery = query) }
+        savedStateHandle[SAVED_SEARCH_QUERY] = query
+    }
+
+    fun setBlogListData(blogList: List<BlogPost>) {
+        updateState { copy(blogList = blogList) }
+    }
+
+    fun setQueryExhausted(isExhausted: Boolean) {
+        updateState { copy(isQueryExhausted = isExhausted) }
+    }
+
+    fun setQueryInProgress(isInProgress: Boolean) {
+        updateState { copy(isQueryInProgress = isInProgress) }
+    }
+
+    fun setBlogFilter(filter: String?) {
+        filter?.let { updateState { copy(filter = it) } }
+    }
+
+    fun setBlogOrder(order: String) {
+        updateState { copy(order = order) }
+    }
+
+    // endregion
+
+    // region View Blog (Setters)
+
+    fun setBlogPost(blogPost: BlogPost) {
+        updateViewBlogState { copy(blogPost = blogPost) }
+    }
+
+    fun setIsAuthorOfBlogPost(isAuthor: Boolean) {
+        updateViewBlogState { copy(isAuthorOfBlogPost = isAuthor) }
+    }
+
+    fun removeDeletedBlogPost() {
+        val target = getBlogPost()
+        val list = viewState.value.blogList.toMutableList()
+        list.remove(target)
+        setBlogListData(list)
+    }
+
+    // endregion
+
+    // region Update Blog (Setters)
+
+    fun setUpdatedBlogFields(title: String?, body: String?, uri: Uri?) {
+        updateUpdateBlogState {
+            copy(
+                updatedBlogTitle = title ?: updatedBlogTitle,
+                updatedBlogBody = body ?: updatedBlogBody,
+                updatedImageUri = uri ?: updatedImageUri
             )
         }
     }
 
-    override fun handleStateEvent(stateEvent: BlogStateEvent): Flow<DataState<BlogViewState>> {
-        return when (stateEvent) {
-            is BlogSearchEvent -> {
-                blogRepository.searchBlogPosts(
-                    query = getSearchQuery(),
-                    filterAndOrder = getOrder() + getFilter(),
-                    page = getPage()
-                )
-            }
+    // endregion
 
-            is CheckAuthorOfBlogPost -> {
-                blogRepository.isAuthorOfBlogPost(
-                    slug = getSlug()
-                )
-            }
+    // region Pagination
 
-            is DeleteBlogPostEvent -> {
-                blogRepository.deleteBlogPost(
-                    blogPost = getBlogPost()
-                )
-            }
+    fun loadFirstPage() {
+        updateState { copy(isQueryInProgress = true, isQueryExhausted = false, page = 1) }
+        searchBlogPosts()
+        Log.d(TAG, "BlogViewModel: loadFirstPage: ${getSearchQuery()}")
+    }
 
-            is UpdateBlogPostEvent -> {
-                val title = RequestBody.create(
-                    "text/plain".toMediaTypeOrNull(),
-                    stateEvent.title
-                )
-                val body = RequestBody.create(
-                    "text/plain".toMediaTypeOrNull(),
-                    stateEvent.body
-                )
+    private fun incrementPageNumber() {
+        updateState { copy(page = page + 1) }
+    }
 
-                blogRepository.updateBlogPost(
-                    slug = getSlug(),
-                    title = title,
-                    body = body,
-                    image = stateEvent.image
-                )
-            }
+    fun nextPage() {
+        if (!getIsQueryInProgress() && !getIsQueryExhausted()) {
+            Log.d(TAG, "BlogViewModel: Attempting to load next page...")
+            incrementPageNumber()
+            setQueryInProgress(true)
+            searchBlogPosts()
+        }
+    }
 
-            is None -> {
-                flowOf(DataState(null, Loading(false), null))
+    // endregion
+
+    // region Network Operations
+
+    private fun searchBlogPosts() {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            blogRepository.searchBlogPosts(
+                query = getSearchQuery(),
+                filterAndOrder = getOrder() + getFilter(),
+                page = getPage()
+            ).collect { resource ->
+                handleResource(
+                    resource,
+                    onLoading = { data ->
+                        data?.let { handleIncomingBlogListData(it.blogList, it.isQueryExhausted) }
+                    },
+                    onSuccess = { data ->
+                        handleIncomingBlogListData(data.blogList, data.isQueryExhausted)
+                    },
+                    onError = { message ->
+                        setLoading(false)
+                        if (ErrorHandling.isPaginationDone(message)) {
+                            setQueryExhausted(true)
+                            setQueryInProgress(false)
+                        } else {
+                            handleError(message)
+                        }
+                    }
+                )
             }
         }
     }
 
-    override fun initNewViewState(): BlogViewState {
-        return BlogViewState()
+    fun checkIsAuthorOfBlogPost() {
+        viewModelScope.launch {
+            blogRepository.isAuthorOfBlogPost(slug = getSlug()).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { isAuthor -> setIsAuthorOfBlogPost(isAuthor) }
+                )
+            }
+        }
+    }
+
+    fun deleteBlogPost() {
+        viewModelScope.launch {
+            blogRepository.deleteBlogPost(blogPost = getBlogPost()).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { message ->
+                        if (message == SUCCESS_BLOG_DELETED) {
+                            sendEvent(UiEvent.ShowToast(message))
+                            removeDeletedBlogPost()
+                            sendEvent(BlogNavigationEvent.BlogDeleted)
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun updateBlogPost(title: String, body: String, image: MultipartBody.Part?) {
+        val titleBody = title.toPlainTextBody()
+        val bodyBody = body.toPlainTextBody()
+
+        viewModelScope.launch {
+            blogRepository.updateBlogPost(
+                slug = getSlug(),
+                title = titleBody,
+                body = bodyBody,
+                image = image
+            ).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { blogPost ->
+                        onBlogPostUpdateSuccess(blogPost)
+                        sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
+                    }
+                )
+            }
+        }
+    }
+
+    // endregion
+
+    private fun handleIncomingBlogListData(
+        blogList: List<BlogPost>,
+        isQueryExhausted: Boolean
+    ) {
+        Log.d(TAG, "BlogViewModel, handleIncomingBlogListData")
+        setQueryInProgress(false)
+        setQueryExhausted(isQueryExhausted)
+        setBlogListData(blogList)
+    }
+
+    private fun onBlogPostUpdateSuccess(blogPost: BlogPost) {
+        setUpdatedBlogFields(
+            uri = null,
+            title = blogPost.title,
+            body = blogPost.body
+        )
+        setBlogPost(blogPost)
+        updateListItem(blogPost)
+    }
+
+    private fun updateListItem(newBlogPost: BlogPost) {
+        val list = viewState.value.blogList.toMutableList()
+        for (i in list.indices) {
+            if (list[i].pk == newBlogPost.pk) {
+                list[i] = newBlogPost
+                break
+            }
+        }
+        setBlogListData(list)
     }
 
     fun saveFilterOptions(filter: String, order: String) {
         editor.putString(BLOG_FILTER, filter)
         editor.putString(BLOG_ORDER, order)
         editor.apply()
-    }
-
-    fun cancelActiveJobs() {
-        handlePendingData()
-    }
-
-    fun handlePendingData() {
-        setStateEvent(None())
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cancelActiveJobs()
     }
 }

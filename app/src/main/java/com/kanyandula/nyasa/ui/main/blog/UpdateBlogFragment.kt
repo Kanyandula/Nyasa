@@ -13,24 +13,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.github.drjacky.imagepicker.ImagePicker
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentUpdateBlogBinding
-import com.kanyandula.nyasa.ui.Data
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.Event
-import com.kanyandula.nyasa.ui.Loading
-import com.kanyandula.nyasa.ui.Response
-import com.kanyandula.nyasa.ui.ResponseType
-import com.kanyandula.nyasa.ui.StateError
-import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.getUpdatedBlogUri
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.onBlogPostUpdateSuccess
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
+import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.util.ErrorHandling
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -40,7 +33,6 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-
             if (it.resultCode == Activity.RESULT_OK) {
                 if (it.data?.hasExtra(ImagePicker.EXTRA_FILE_PATH)!!) {
                     val uri = it.data?.data!!
@@ -50,21 +42,10 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                         uri = uri
                     )
                 } else {
-
-                    showErrorDialog(ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE)
+                    stateChangeListener.displayErrorDialog(ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE)
                 }
             }
         }
-
-    fun showErrorDialog(errorMessage: String) {
-        stateChangeListener.onDataStateChange(
-            DataState(
-                Event(StateError(Response(errorMessage, ResponseType.Dialog()))),
-                Loading(isLoading = false),
-                Data(Event.dataEvent(null), null)
-            )
-        )
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,14 +56,22 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         }
     }
 
+    override fun handleUiEvent(event: UiEvent) {
+        when (event) {
+            is BlogNavigationEvent.BlogUpdateSuccess -> {
+                findNavController().popBackStack()
+            }
+            else -> super.handleUiEvent(event)
+        }
+    }
+
     private fun pickGalleryImage() {
         galleryLauncher.launch(
-
             ImagePicker.with(requireActivity())
                 .crop(1130F, 961F)
                 .galleryOnly()
                 .setOutputFormat(Bitmap.CompressFormat.JPEG)
-                .galleryMimeTypes( // no gif images at all
+                .galleryMimeTypes(
                     mimeTypes = arrayOf(
                         "image/png",
                         "image/jpg",
@@ -93,39 +82,18 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         )
     }
 
-    fun subscribeObservers() {
-        viewModel.dataState.observe(
-            viewLifecycleOwner,
-            Observer { dataState ->
-                if (dataState != null) {
-                    stateChangeListener.onDataStateChange(dataState)
-                    dataState.data?.let { data ->
-                        data.data?.getContentIfNotHandled()?.let { viewState ->
-
-                            // if this is not null, the blogpost was updated
-                            viewState.viewBlogFields.blogPost?.let { blogPost ->
-                                viewModel.onBlogPostUpdateSuccess(blogPost).let {
-                                    findNavController().popBackStack()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        )
-
-        viewModel.viewState.observe(
-            viewLifecycleOwner,
-            Observer { viewState ->
-                viewState.updatedBlogFields.let { updatedBlogFields ->
+    private fun subscribeObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.updateBlogState.collect { state ->
                     setBlogProperties(
-                        updatedBlogFields.updatedBlogTitle,
-                        updatedBlogFields.updatedBlogBody,
-                        updatedBlogFields.updatedImageUri
+                        state.updatedBlogTitle,
+                        state.updatedBlogBody,
+                        state.updatedImageUri
                     )
                 }
             }
-        )
+        }
     }
 
     fun setBlogProperties(title: String?, body: String?, image: Uri?) {
@@ -135,8 +103,7 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                 .into(it.blogImage)
         }
 
-        binding?.blogTitle
-            ?.setText(title)
+        binding?.blogTitle?.setText(title)
         binding?.blogBody?.setText(body)
     }
 
@@ -148,11 +115,7 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                 Log.d(TAG, "UpdateBlogFragment, imageFile: file: $imageFile")
                 if (imageFile.exists()) {
                     val requestBody =
-                        imageFile
-                            .asRequestBody("image/*".toMediaTypeOrNull())
-                    // name = field name in serializer
-                    // filename = name of the image file
-                    // requestBody = file with file type information
+                        imageFile.asRequestBody("image/*".toMediaTypeOrNull())
                     multipartBody = MultipartBody.Part.createFormData(
                         "image",
                         imageFile.name,
@@ -162,13 +125,10 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
             }
         }
 
-        viewModel.setStateEvent(
-            BlogStateEvent.UpdateBlogPostEvent(
-                binding?.blogTitle
-                    ?.text.toString(),
-                binding?.blogBody?.text.toString(),
-                multipartBody
-            )
+        viewModel.updateBlogPost(
+            binding?.blogTitle?.text.toString(),
+            binding?.blogBody?.text.toString(),
+            multipartBody
         )
         stateChangeListener.hideSoftKeyboard()
     }
@@ -176,17 +136,13 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(
             object : MenuProvider {
-                override fun onPrepareMenu(menu: Menu) {
-                    // Handle for example visibility of menu items
-                }
+                override fun onPrepareMenu(menu: Menu) { /* no-op */ }
 
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(R.menu.update_menu, menu)
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    // Validate and handle the selected menu item
-
                     when (menuItem.itemId) {
                         R.id.save -> {
                             saveChanges()
@@ -201,7 +157,6 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
         )
     }
 
-    // To retain the fields content when the user rotates the screen before saving the changes
     override fun onPause() {
         super.onPause()
         viewModel.setUpdatedBlogFields(

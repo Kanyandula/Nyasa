@@ -5,17 +5,14 @@ package com.kanyandula.nyasa.repository.main
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
-import com.kanyandula.nyasa.repository.emitApiError
+import com.kanyandula.nyasa.repository.apiErrorMessage
 import com.kanyandula.nyasa.session.SessionManager
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.Response
-import com.kanyandula.nyasa.ui.ResponseType
-import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
+import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -38,11 +35,11 @@ constructor(
         title: RequestBody,
         body: RequestBody,
         image: MultipartBody.Part?
-    ): Flow<DataState<CreateBlogViewState>> = flow {
-        emit(DataState.loading<CreateBlogViewState>(isLoading = true))
+    ): Flow<Resource<String>> = flow {
+        emit(Resource.Loading())
 
         if (!sessionManager.isConnectedToTheInternet()) {
-            emit(DataState.apiError<CreateBlogViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
 
@@ -64,14 +61,9 @@ constructor(
                     )
                     blogPostDao.insert(createdBlogPost)
                 }
-                emit(
-                    DataState.data<CreateBlogViewState>(
-                        null,
-                        Response(response.body.response, ResponseType.Dialog())
-                    )
-                )
+                emit(Resource.Success(response.body.response))
             }
-            else -> this.emitApiError<CreateBlogViewState>(response)
+            else -> emit(Resource.Error(apiErrorMessage(response)))
         }
     }.flowOn(Dispatchers.IO)
 }

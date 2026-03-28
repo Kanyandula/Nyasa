@@ -4,14 +4,15 @@ import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,10 +29,9 @@ constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _cachedToken = MutableLiveData<AuthToken>()
+    private val _cachedToken = MutableStateFlow<AuthToken?>(null)
 
-    val cachedToken: LiveData<AuthToken>
-        get() = _cachedToken
+    val cachedToken: StateFlow<AuthToken?> = _cachedToken.asStateFlow()
 
     fun login(newValue: AuthToken) {
         setValue(newValue)
@@ -44,7 +44,7 @@ constructor(
         scope.launch(Dispatchers.IO) {
             var errorMessage: String? = null
             try {
-                _cachedToken.value!!.account_pk?.let {
+                _cachedToken.value?.account_pk?.let {
                     authTokenDao.nullifyToken(it)
                 } ?: throw CancellationException("Token Error. Logging out user.")
             } catch (e: CancellationException) {
@@ -64,7 +64,7 @@ constructor(
     }
 
     private fun setValue(newValue: AuthToken?) {
-        _cachedToken.postValue(newValue)
+        _cachedToken.value = newValue
     }
 
     @Suppress("TooGenericExceptionCaught")

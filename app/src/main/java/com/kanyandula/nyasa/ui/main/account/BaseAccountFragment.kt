@@ -9,12 +9,14 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI
 import androidx.viewbinding.ViewBinding
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
+import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.collectLoadingState
+import com.kanyandula.nyasa.ui.collectUiEvents
+import com.kanyandula.nyasa.ui.handleStandardUiEvent
+import com.kanyandula.nyasa.ui.setupActionBarWithNavController
 
 abstract class BaseAccountFragment<T : ViewBinding>(
     private val bindingInflater: (layoutInflater: LayoutInflater) -> T
@@ -22,9 +24,7 @@ abstract class BaseAccountFragment<T : ViewBinding>(
 
     val TAG: String = "AppDebug"
 
-    // Bindings
     private var _binding: T? = null
-
     protected val binding get() = _binding
 
     val viewModel: AccountViewModel by activityViewModels()
@@ -44,27 +44,12 @@ abstract class BaseAccountFragment<T : ViewBinding>(
         super.onViewCreated(view, savedInstanceState)
         setupActionBarWithNavController(R.id.accountFragment, activity as AppCompatActivity)
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
-
-        cancelActiveJobs()
+        collectLoadingState(viewModel.isLoading, stateChangeListener)
+        collectUiEvents(viewModel.events) { handleUiEvent(it) }
     }
 
-    fun cancelActiveJobs() {
-        // When a fragment is destroyed make sure to cancel any on-going requests.
-        // Note: If you wanted a particular request to continue even if the fragment was destroyed, you could write a
-        //       special condition in the repository or something.
-        viewModel.cancelActiveJobs()
-    }
-
-    /*
-          @fragmentId is id of fragment from graph to be EXCLUDED from action back bar nav
-        */
-    private fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity) {
-        val appBarConfiguration = AppBarConfiguration(setOf(fragmentId))
-        NavigationUI.setupActionBarWithNavController(
-            activity,
-            findNavController(),
-            appBarConfiguration
-        )
+    protected open fun handleUiEvent(event: UiEvent) {
+        handleStandardUiEvent(event, stateChangeListener)
     }
 
     override fun onAttach(context: Context) {

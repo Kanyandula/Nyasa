@@ -14,9 +14,7 @@ abstract class BaseAuthFragment<T : ViewBinding>(
 
     val TAG: String = "AppDebug"
 
-    // Bindings
     private var _binding: T? = null
-
     protected val binding get() = _binding
 
     val viewModel: AuthViewModel by activityViewModels()
@@ -24,16 +22,6 @@ abstract class BaseAuthFragment<T : ViewBinding>(
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = bindingInflater.invoke(inflater)
         return binding?.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        cancelActiveJobs()
-    }
-
-    private fun cancelActiveJobs() {
-        viewModel.cancelActiveJobs()
     }
 
     override fun onDestroyView() {

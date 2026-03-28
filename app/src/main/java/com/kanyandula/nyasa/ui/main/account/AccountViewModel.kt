@@ -1,20 +1,16 @@
 package com.kanyandula.nyasa.ui.main.account
 
+import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.Loading
-import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
-import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.ChangePasswordEvent
-import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.GetAccountPropertiesEvent
-import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.None
-import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.UpdateAccountPropertiesEvent
+import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.main.account.state.AccountUiEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
+import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_PASSWORD_UPDATE_SUCCESS
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,72 +19,59 @@ class AccountViewModel
 constructor(
     private val sessionManager: SessionManager,
     private val accountRepository: AccountRepository
-) :
-    BaseViewModel<AccountStateEvent, AccountViewState>() {
-    override fun handleStateEvent(stateEvent: AccountStateEvent): Flow<DataState<AccountViewState>> {
-        return when (stateEvent) {
-            is GetAccountPropertiesEvent -> {
-                sessionManager.cachedToken.value?.let { authToken ->
-                    accountRepository.getAccountProperties(authToken)
-                } ?: flowOf(DataState(null, Loading(false), null))
-            }
+) : BaseViewModel<AccountViewState>(AccountViewState()) {
 
-            is UpdateAccountPropertiesEvent -> {
-                sessionManager.cachedToken.value?.let { authToken ->
-                    authToken.account_pk?.let { pk ->
-                        val newAccountProperties = AccountProperties(
-                            pk,
-                            stateEvent.email,
-                            stateEvent.username
-                        )
-                        accountRepository.saveAccountProperties(
-                            newAccountProperties
-                        )
-                    }
-                } ?: flowOf(DataState(null, Loading(false), null))
-            }
-
-            is ChangePasswordEvent -> {
-                accountRepository.updatePassword(
-                    stateEvent.currentPassword,
-                    stateEvent.newPassword,
-                    stateEvent.confirmNewPassword
+    fun getAccountProperties() {
+        val authToken = sessionManager.cachedToken.value ?: return
+        viewModelScope.launch {
+            accountRepository.getAccountProperties(authToken).collect { resource ->
+                handleResource(
+                    resource,
+                    onLoading = { data -> data?.let { setAccountPropertiesData(it) } },
+                    onSuccess = { data -> setAccountPropertiesData(data) }
                 )
             }
+        }
+    }
 
-            is None -> {
-                flowOf(DataState(null, Loading(false), null))
+    fun saveAccountProperties(email: String, username: String) {
+        val authToken = sessionManager.cachedToken.value ?: return
+        val pk = authToken.account_pk ?: return
+        val newAccountProperties = AccountProperties(pk, email, username)
+        viewModelScope.launch {
+            accountRepository.saveAccountProperties(newAccountProperties).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { message -> sendEvent(UiEvent.ShowToast(message)) }
+                )
             }
+        }
+    }
+
+    fun changePassword(currentPassword: String, newPassword: String, confirmNewPassword: String) {
+        viewModelScope.launch {
+            accountRepository.updatePassword(currentPassword, newPassword, confirmNewPassword)
+                .collect { resource ->
+                    handleResource(
+                        resource,
+                        onSuccess = { message ->
+                            if (message == RESPONSE_PASSWORD_UPDATE_SUCCESS) {
+                                sendEvent(AccountUiEvent.PasswordChanged)
+                            }
+                            sendEvent(UiEvent.ShowToast(message))
+                        }
+                    )
+                }
         }
     }
 
     fun setAccountPropertiesData(accountProperties: AccountProperties) {
-        val update = getCurrentViewStateOrNew()
-        if (update.accountProperties == accountProperties) {
-            return
-        }
-        update.accountProperties = accountProperties
-        setViewState(update)
-    }
-
-    override fun initNewViewState(): AccountViewState {
-        return AccountViewState()
+        val current = viewState.value
+        if (current.accountProperties == accountProperties) return
+        updateState { copy(accountProperties = accountProperties) }
     }
 
     fun logout() {
         sessionManager.logout()
-    }
-
-    fun cancelActiveJobs() {
-        handlePendingData()
-    }
-
-    fun handlePendingData() {
-        setStateEvent(None())
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cancelActiveJobs()
     }
 }

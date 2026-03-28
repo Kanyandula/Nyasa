@@ -7,12 +7,8 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
-import com.kanyandula.nyasa.repository.emitApiError
+import com.kanyandula.nyasa.repository.apiErrorMessage
 import com.kanyandula.nyasa.session.SessionManager
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.Response
-import com.kanyandula.nyasa.ui.ResponseType
-import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_ACCOUNT_PROPERTIES
@@ -21,7 +17,7 @@ import com.kanyandula.nyasa.util.ErrorHandling.GENERIC_AUTH_ERROR
 import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
 import com.kanyandula.nyasa.util.InputValidation
 import com.kanyandula.nyasa.util.PreferenceKeys
-import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
+import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,17 +37,17 @@ constructor(
     private val sharedPrefsEditor: SharedPreferences.Editor
 ) {
 
-    fun attemptLogin(email: String, password: String): Flow<DataState<AuthViewState>> = flow {
-        emit(DataState.loading<AuthViewState>(isLoading = true))
+    fun attemptLogin(email: String, password: String): Flow<Resource<AuthToken>> = flow {
+        emit(Resource.Loading())
 
         val loginFieldError = InputValidation.validateLoginFields(email, password)
         if (loginFieldError != null) {
-            emit(DataState.error<AuthViewState>(Response(loginFieldError, ResponseType.Dialog())))
+            emit(Resource.Error(loginFieldError))
             return@flow
         }
 
         if (!sessionManager.isConnectedToTheInternet()) {
-            emit(DataState.apiError<AuthViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
 
@@ -64,7 +60,7 @@ constructor(
                 Log.d(TAG, "handleApiSuccessResponse: $response")
 
                 if (response.body.response == GENERIC_AUTH_ERROR) {
-                    emit(DataState.apiError<AuthViewState>(response.body.errorMessage))
+                    emit(Resource.Error(response.body.errorMessage))
                     return@flow
                 }
 
@@ -76,20 +72,14 @@ constructor(
                     AuthToken(response.body.pk, response.body.token)
                 )
                 if (result < 0) {
-                    emit(DataState.error<AuthViewState>(Response(ERROR_SAVE_AUTH_TOKEN, ResponseType.Dialog())))
+                    emit(Resource.Error(ERROR_SAVE_AUTH_TOKEN))
                     return@flow
                 }
 
                 saveAuthenticatedUserToPrefs(email)
-                emit(
-                    DataState.data(
-                        data = AuthViewState(
-                            authToken = AuthToken(response.body.pk, response.body.token)
-                        )
-                    )
-                )
+                emit(Resource.Success(AuthToken(response.body.pk, response.body.token)))
             }
-            else -> this.emitApiError<AuthViewState>(response)
+            else -> emit(Resource.Error(apiErrorMessage(response)))
         }
     }.flowOn(Dispatchers.IO)
 
@@ -98,8 +88,8 @@ constructor(
         username: String,
         password: String,
         confirmPassword: String
-    ): Flow<DataState<AuthViewState>> = flow {
-        emit(DataState.loading<AuthViewState>(isLoading = true))
+    ): Flow<Resource<AuthToken>> = flow {
+        emit(Resource.Loading())
 
         val registrationFieldError = InputValidation.validateRegistrationFields(
             email,
@@ -108,12 +98,12 @@ constructor(
             confirmPassword
         )
         if (registrationFieldError != null) {
-            emit(DataState.error<AuthViewState>(Response(registrationFieldError, ResponseType.Dialog())))
+            emit(Resource.Error(registrationFieldError))
             return@flow
         }
 
         if (!sessionManager.isConnectedToTheInternet()) {
-            emit(DataState.apiError<AuthViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
 
@@ -126,7 +116,7 @@ constructor(
                 Log.d(TAG, "handleApiSuccessResponse: $response")
 
                 if (response.body.response == GENERIC_AUTH_ERROR) {
-                    emit(DataState.apiError<AuthViewState>(response.body.errorMessage))
+                    emit(Resource.Error(response.body.errorMessage))
                     return@flow
                 }
 
@@ -134,11 +124,7 @@ constructor(
                     AccountProperties(response.body.pk, response.body.email, response.body.username)
                 )
                 if (result1 < 0) {
-                    emit(
-                        DataState.error<AuthViewState>(
-                            Response(ERROR_SAVE_ACCOUNT_PROPERTIES, ResponseType.Dialog())
-                        )
-                    )
+                    emit(Resource.Error(ERROR_SAVE_ACCOUNT_PROPERTIES))
                     return@flow
                 }
 
@@ -146,37 +132,26 @@ constructor(
                     AuthToken(response.body.pk, response.body.token)
                 )
                 if (result2 < 0) {
-                    emit(DataState.error<AuthViewState>(Response(ERROR_SAVE_AUTH_TOKEN, ResponseType.Dialog())))
+                    emit(Resource.Error(ERROR_SAVE_AUTH_TOKEN))
                     return@flow
                 }
 
                 saveAuthenticatedUserToPrefs(email)
-                emit(
-                    DataState.data(
-                        data = AuthViewState(
-                            authToken = AuthToken(response.body.pk, response.body.token)
-                        )
-                    )
-                )
+                emit(Resource.Success(AuthToken(response.body.pk, response.body.token)))
             }
-            else -> this.emitApiError<AuthViewState>(response)
+            else -> emit(Resource.Error(apiErrorMessage(response)))
         }
     }.flowOn(Dispatchers.IO)
 
-    fun checkPreviousAuthUser(): Flow<DataState<AuthViewState>> = flow {
-        emit(DataState.loading<AuthViewState>(isLoading = true))
+    fun checkPreviousAuthUser(): Flow<Resource<AuthToken?>> = flow {
+        emit(Resource.Loading())
 
         val previousAuthUserEmail: String? =
             sharedPreferences.getString(PreferenceKeys.PREVIOUS_AUTH_USER, null)
 
         if (previousAuthUserEmail.isNullOrBlank()) {
             Log.d(TAG, "checkPreviousAuthUser: No previously authenticated user found.")
-            emit(
-                DataState.data<AuthViewState>(
-                    null,
-                    Response(RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE, ResponseType.None())
-                )
-            )
+            emit(Resource.Success(null))
             return@flow
         }
 
@@ -185,26 +160,16 @@ constructor(
 
         if (accountProperties == null || accountProperties.pk <= -1) {
             Log.d(TAG, "checkPreviousAuthUser: AuthToken not found...")
-            emit(
-                DataState.data<AuthViewState>(
-                    null,
-                    Response(RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE, ResponseType.None())
-                )
-            )
+            emit(Resource.Success(null))
             return@flow
         }
 
         val authToken = authTokenDao.searchByPk(accountProperties.pk)
         if (authToken?.token != null) {
-            emit(DataState.data(AuthViewState(authToken = authToken)))
+            emit(Resource.Success(authToken))
         } else {
             Log.d(TAG, "checkPreviousAuthUser: AuthToken not found...")
-            emit(
-                DataState.data<AuthViewState>(
-                    null,
-                    Response(RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE, ResponseType.None())
-                )
-            )
+            emit(Resource.Success(null))
         }
     }.flowOn(Dispatchers.IO)
 

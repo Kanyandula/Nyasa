@@ -15,26 +15,22 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
 import com.github.drjacky.imagepicker.ImagePicker
 import com.github.drjacky.imagepicker.ImagePicker.Companion.EXTRA_FILE_PATH
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentCreateBlogBinding
 import com.kanyandula.nyasa.ui.AreYouSureCallback
-import com.kanyandula.nyasa.ui.Data
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.Event
-import com.kanyandula.nyasa.ui.Loading
-import com.kanyandula.nyasa.ui.Response
-import com.kanyandula.nyasa.ui.ResponseType
-import com.kanyandula.nyasa.ui.StateError
 import com.kanyandula.nyasa.ui.UIMessage
 import com.kanyandula.nyasa.ui.UIMessageType
-import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_MUST_SELECT_IMAGE
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE
-import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -45,7 +41,6 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-
             if (it.resultCode == Activity.RESULT_OK) {
                 if (it.data?.hasExtra(EXTRA_FILE_PATH)!!) {
                     val uri = it.data?.data!!
@@ -55,8 +50,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                         uri = uri
                     )
                 } else {
-
-                    showErrorDialog(ERROR_SOMETHING_WRONG_WITH_IMAGE)
+                    stateChangeListener.displayErrorDialog(ERROR_SOMETHING_WRONG_WITH_IMAGE)
                 }
             }
         }
@@ -66,7 +60,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         setupMenu()
         binding?.apply {
             blogImage.setOnClickListener {
-                pickFromGallery()
+                pickGalleryImage()
             }
 
             publish.setOnClickListener {
@@ -77,31 +71,19 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         subscribeObservers()
     }
 
-    fun subscribeObservers() {
-        viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
-            if (dataState != null) {
-                stateChangeListener.onDataStateChange(dataState)
-                dataState.data?.let { data ->
-                    data.response?.let { event ->
-                        event.peekContent().let { response ->
-                            response.message?.let { message ->
-                                if (message == SUCCESS_BLOG_CREATED) {
-                                    viewModel.clearNewBlogFields()
-                                }
-                            }
-                        }
+    private fun subscribeObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.viewState
+                    .map { it.blogFields }
+                    .distinctUntilChanged()
+                    .collect { newBlogFields ->
+                        setBlogProperties(
+                            newBlogFields.newBlogTitle,
+                            newBlogFields.newBlogBody,
+                            newBlogFields.newImageUri
+                        )
                     }
-                }
-            }
-        }
-
-        viewModel.viewState.observe(viewLifecycleOwner) { viewState ->
-            viewState.blogFields.let { newBlogFields ->
-                setBlogProperties(
-                    newBlogFields.newBlogTitle,
-                    newBlogFields.newBlogBody,
-                    newBlogFields.newImageUri
-                )
             }
         }
     }
@@ -112,7 +94,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                 .crop(1130F, 961F)
                 .galleryOnly()
                 .setOutputFormat(Bitmap.CompressFormat.JPEG)
-                .galleryMimeTypes( // no gif images at all
+                .galleryMimeTypes(
                     mimeTypes = arrayOf(
                         "image/png",
                         "image/jpg",
@@ -123,17 +105,8 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         )
     }
 
-    private fun pickFromGallery() {
-        pickGalleryImage()
-    }
-
     private fun setBlogProperties(title: String?, body: String?, image: Uri?) {
         if (image != null) {
-            binding?.let {
-                Glide.with(this@CreateBlogFragment)
-                    .load(image)
-                    .into(it.blogImage)
-            }
             binding?.let {
                 Glide.with(this@CreateBlogFragment)
                     .load(image)
@@ -147,18 +120,13 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
 
     private fun publishNewBlog() {
         var multipartBody: MultipartBody.Part? = null
-        viewModel.viewState.value?.blogFields?.newImageUri?.let { imageUri ->
-
+        viewModel.viewState.value.blogFields.newImageUri?.let { imageUri ->
             imageUri.path?.let { filePath ->
                 val imageFile = File(filePath)
-                Log.d(TAG, "UpdateBlogFragment, imageFile: file: $imageFile")
+                Log.d(TAG, "CreateBlogFragment, imageFile: file: $imageFile")
                 if (imageFile.exists()) {
                     val requestBody =
-                        imageFile
-                            .asRequestBody("image/*".toMediaTypeOrNull())
-                    // name = field name in serializer
-                    // filename = name of the image file
-                    // requestBody = file with file type information
+                        imageFile.asRequestBody("image/*".toMediaTypeOrNull())
                     multipartBody = MultipartBody.Part.createFormData(
                         "image",
                         imageFile.name,
@@ -169,15 +137,12 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
         }
 
         multipartBody?.let {
-            viewModel.setStateEvent(
-                CreateBlogStateEvent.CreateNewBlogEvent(
-                    binding?.blogTitle
-                        ?.text.toString(),
-                    binding?.blogBody?.text.toString(),
-                    it
-                )
+            viewModel.createNewBlogPost(
+                binding?.blogTitle?.text.toString(),
+                binding?.blogBody?.text.toString(),
+                it
             )
-        } ?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
+        } ?: stateChangeListener.displayErrorDialog(ERROR_MUST_SELECT_IMAGE)
 
         stateChangeListener.hideSoftKeyboard()
     }
@@ -185,9 +150,7 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(
             object : MenuProvider {
-                override fun onPrepareMenu(menu: Menu) {
-                    // Handle for example visibility of menu items
-                }
+                override fun onPrepareMenu(menu: Menu) { /* no-op */ }
 
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(R.menu.publish_menu, menu)
@@ -197,7 +160,6 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                     when (menuItem.itemId) {
                         R.id.publish -> {
                             val callback: AreYouSureCallback = object : AreYouSureCallback {
-
                                 override fun proceed() {
                                     publishNewBlog()
                                 }
@@ -215,22 +177,11 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
                             return true
                         }
                     }
-                    // Validate and handle the selected menu item
                     return true
                 }
             },
             viewLifecycleOwner,
             Lifecycle.State.RESUMED
-        )
-    }
-
-    private fun showErrorDialog(errorMessage: String) {
-        stateChangeListener.onDataStateChange(
-            DataState(
-                Event(StateError(Response(errorMessage, ResponseType.Dialog()))),
-                Loading(isLoading = false),
-                Data(Event.dataEvent(null), null)
-            )
         )
     }
 

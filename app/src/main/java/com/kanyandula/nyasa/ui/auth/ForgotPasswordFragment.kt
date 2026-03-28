@@ -11,16 +11,13 @@ import android.view.animation.TranslateAnimation
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentForgotPasswordBinding
-import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.DataStateChangeListener
-import com.kanyandula.nyasa.ui.Response
-import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 
@@ -36,13 +33,7 @@ class ForgotPasswordFragment :
 
         override fun onError(errorMessage: String) {
             Log.e(TAG, "onError: $errorMessage")
-
-            val dataState = DataState.error<Any>(
-                response = Response(errorMessage, ResponseType.Dialog())
-            )
-            stateChangeListener.onDataStateChange(
-                dataState = dataState
-            )
+            stateChangeListener.displayErrorDialog(errorMessage)
         }
 
         override fun onSuccess(email: String) {
@@ -52,10 +43,8 @@ class ForgotPasswordFragment :
 
         override fun onLoading(isLoading: Boolean) {
             Log.d(TAG, "onLoading... ")
-            CoroutineScope(Main).launch {
-                stateChangeListener.onDataStateChange(
-                    DataState.loading(isLoading = isLoading, cachedData = null)
-                )
+            viewLifecycleOwner.lifecycleScope.launch(Main) {
+                stateChangeListener.displayProgressBar(isLoading)
             }
         }
     }
@@ -65,7 +54,6 @@ class ForgotPasswordFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_forgot_password, container, false)
     }
 
@@ -74,23 +62,18 @@ class ForgotPasswordFragment :
         webView = view.findViewById(R.id.webview)
 
         loadPasswordResetWebView()
-        binding?.returnToLauncherFragment
-            ?.setOnClickListener {
-                findNavController().popBackStack()
-            }
+        binding?.returnToLauncherFragment?.setOnClickListener {
+            findNavController().popBackStack()
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     fun loadPasswordResetWebView() {
-        stateChangeListener.onDataStateChange(
-            DataState.loading(isLoading = true, cachedData = null)
-        )
+        stateChangeListener.displayProgressBar(true)
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                stateChangeListener.onDataStateChange(
-                    DataState.loading(isLoading = false, cachedData = null)
-                )
+                stateChangeListener.displayProgressBar(false)
             }
         }
         webView.loadUrl(Constants.PASSWORD_RESET_URL)
@@ -131,7 +114,7 @@ class ForgotPasswordFragment :
     }
 
     fun onPasswordResetLinkSent() {
-        CoroutineScope(Main).launch {
+        viewLifecycleOwner.lifecycleScope.launch(Main) {
             binding?.parentView?.removeView(webView)
             webView.destroy()
 

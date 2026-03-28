@@ -10,7 +10,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
-import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +17,8 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,22 +32,11 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_DATE_UPDATED
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_USERNAME
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_ORDER_ASC
-import com.kanyandula.nyasa.ui.DataState
-import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.getFilter
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.getOrder
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.handleIncomingBlogListData
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.loadFirstPage
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.nextPage
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogFilter
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogOrder
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setBlogPost
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setLayoutManagerState
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setQuery
-import com.kanyandula.nyasa.ui.main.blog.viewmodel.setQueryExhausted
-import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.TopSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BlogFragment :
@@ -72,35 +61,25 @@ class BlogFragment :
     }
 
     private fun subscribeObservers() {
-        viewModel.dataState.observe(
-            viewLifecycleOwner,
-            Observer { dataState ->
-                if (dataState != null) {
-                    // call before onDataStateChange to consume error if there is one
-                    handlePagination(dataState)
-                    stateChangeListener.onDataStateChange(dataState)
-                }
-            }
-        )
-
-        viewModel.viewState.observe(
-            viewLifecycleOwner,
-            Observer { viewState ->
-                Log.d(TAG, "BlogFragment, ViewState: $viewState")
-                if (viewState != null) {
-                    recyclerAdapter.apply {
-                        preloadGlideImages(
-                            requestManager = requestManager,
-                            list = viewState.blogFields.blogList
-                        )
-                        submitList(
-                            blogList = viewState.blogFields.blogList,
-                            isQueryExhausted = viewState.blogFields.isQueryExhausted
-                        )
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.viewState
+                    .map { it.blogList to it.isQueryExhausted }
+                    .distinctUntilChanged()
+                    .collect { (blogList, isQueryExhausted) ->
+                        recyclerAdapter.apply {
+                            preloadGlideImages(
+                                requestManager = requestManager,
+                                list = blogList
+                            )
+                            submitList(
+                                blogList = blogList,
+                                isQueryExhausted = isQueryExhausted
+                            )
+                        }
                     }
-                }
             }
-        )
+        }
     }
 
     private fun initSearchView(menu: Menu) {
@@ -113,10 +92,8 @@ class BlogFragment :
             searchView.isSubmitButtonEnabled = true
         }
 
-        // ENTER ON COMPUTER KEYBOARD OR ARROW ON VIRTUAL KEYBOARD
         val searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_src_text) as EditText
         searchPlate.setOnEditorActionListener { v, actionId, event ->
-
             if (actionId == EditorInfo.IME_ACTION_UNSPECIFIED ||
                 actionId == EditorInfo.IME_ACTION_SEARCH
             ) {
@@ -129,7 +106,6 @@ class BlogFragment :
             true
         }
 
-        // SEARCH BUTTON CLICKED (in toolbar)
         val searchButton = searchView.findViewById(androidx.appcompat.R.id.search_go_btn) as View
         searchButton.setOnClickListener {
             val searchQuery = searchPlate.text.toString()
@@ -147,38 +123,9 @@ class BlogFragment :
     }
 
     private fun resetUI() {
-        binding?.blogPostRecyclerview
-            ?.smoothScrollToPosition(0)
+        binding?.blogPostRecyclerview?.smoothScrollToPosition(0)
         stateChangeListener.hideSoftKeyboard()
-        binding?.focusableView
-            ?.requestFocus()
-    }
-
-    private fun handlePagination(dataState: DataState<BlogViewState>) {
-        // Handle incoming data from DataState
-        dataState.data?.let {
-            it.data?.let {
-                it.getContentIfNotHandled()?.let {
-                    viewModel.handleIncomingBlogListData(it)
-                }
-            }
-        }
-
-        // Check for pagination end (no more results)
-        // must do this b/c server will return an ApiErrorResponse if page is not valid,
-        // -> meaning there is no more data.
-        dataState.error?.let { event ->
-            event.peekContent().response.message?.let {
-                if (ErrorHandling.isPaginationDone(it)) {
-                    // handle the error message event so it doesn't display in UI
-                    event.getContentIfNotHandled()
-
-                    // set query exhausted to update RecyclerView with
-                    // "No more results..." list item
-                    viewModel.setQueryExhausted(true)
-                }
-            }
-        }
+        binding?.focusableView?.requestFocus()
     }
 
     private fun initRecyclerView() {
@@ -209,9 +156,7 @@ class BlogFragment :
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(
             object : MenuProvider {
-                override fun onPrepareMenu(menu: Menu) {
-                    // Handle for example visibility of menu items
-                }
+                override fun onPrepareMenu(menu: Menu) { /* no-op */ }
 
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(R.menu.search_menu, menu)
@@ -225,7 +170,6 @@ class BlogFragment :
                             return true
                         }
                     }
-                    // Validate and handle the selected menu item
                     return true
                 }
             },
@@ -251,7 +195,7 @@ class BlogFragment :
     }
 
     private fun restoreLayoutManagerState() {
-        viewModel.viewState.value?.blogFields?.layoutManagerState?.let { lmState ->
+        viewModel.viewState.value.layoutManagerState?.let { lmState ->
             binding?.blogPostRecyclerview?.layoutManager?.onRestoreInstanceState(lmState)
         }
     }
@@ -262,7 +206,6 @@ class BlogFragment :
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // clear references (can leak memory)
         binding?.blogPostRecyclerview?.adapter = null
     }
 
@@ -297,22 +240,18 @@ class BlogFragment :
             view.findViewById<TextView>(R.id.positive_button).setOnClickListener {
                 Log.d(TAG, "FilterDialog: apply filter.")
 
-                val selectedFilter = dialog.getCustomView().findViewById<RadioButton>(
-                    dialog.getCustomView().findViewById<RadioGroup>(R.id.filter_group).checkedRadioButtonId
-                )
-                val selectedOrder = dialog.getCustomView().findViewById<RadioButton>(
-                    dialog.getCustomView().findViewById<RadioGroup>(R.id.order_group).checkedRadioButtonId
-                )
+                val selectedFilterId = dialog.getCustomView()
+                    .findViewById<RadioGroup>(R.id.filter_group).checkedRadioButtonId
+                val selectedOrderId = dialog.getCustomView()
+                    .findViewById<RadioGroup>(R.id.order_group).checkedRadioButtonId
 
-                var filter = BLOG_FILTER_DATE_UPDATED
-                if (selectedFilter.text.toString().equals(getString(R.string.filter_author))) {
-                    filter = BLOG_FILTER_USERNAME
+                val filter = if (selectedFilterId == R.id.filter_author) {
+                    BLOG_FILTER_USERNAME
+                } else {
+                    BLOG_FILTER_DATE_UPDATED
                 }
 
-                var order = ""
-                if (selectedOrder.text.toString().equals(getString(R.string.filter_desc))) {
-                    order = "-"
-                }
+                val order = if (selectedOrderId == R.id.filter_desc) "-" else ""
                 viewModel.saveFilterOptions(filter, order).let {
                     viewModel.setBlogFilter(filter)
                     viewModel.setBlogOrder(order)
