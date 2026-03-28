@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.domain.usecase.blog.DeleteBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
@@ -39,6 +40,7 @@ constructor(
     private val isAuthorOfBlogPostUseCase: IsAuthorOfBlogPostUseCase,
     private val deleteBlogPostUseCase: DeleteBlogPostUseCase,
     private val updateBlogPostUseCase: UpdateBlogPostUseCase,
+    private val getBlogPostBySlugUseCase: GetBlogPostBySlugUseCase,
     private val sharedPreferences: SharedPreferences,
     private val editor: SharedPreferences.Editor,
     private val savedStateHandle: SavedStateHandle
@@ -51,6 +53,7 @@ constructor(
     val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var loadBlogJob: Job? = null
     private var authorCheckJob: Job? = null
     private var deleteJob: Job? = null
     private var updateJob: Job? = null
@@ -101,17 +104,9 @@ constructor(
 
     // region View Blog (Getters)
 
-    fun getSlug(): String = _viewBlogState.value.blogPost?.slug ?: ""
-
     fun isAuthorOfBlogPost(): Boolean = _viewBlogState.value.isAuthorOfBlogPost
 
-    fun getBlogPost(): BlogPost {
-        return _viewBlogState.value.blogPost ?: getDummyBlogPost()
-    }
-
-    private fun getDummyBlogPost(): BlogPost {
-        return BlogPost(-1, "", "", "", "", 1, "")
-    }
+    fun getBlogPost(): BlogPost? = _viewBlogState.value.blogPost
 
     fun getUpdatedBlogUri(): Uri? = _updateBlogState.value.updatedImageUri
 
@@ -152,16 +147,16 @@ constructor(
 
     // region View Blog (Setters)
 
-    fun setBlogPost(blogPost: BlogPost) {
+    private fun setBlogPost(blogPost: BlogPost) {
         updateViewBlogState { copy(blogPost = blogPost) }
     }
 
-    fun setIsAuthorOfBlogPost(isAuthor: Boolean) {
+    private fun setIsAuthorOfBlogPost(isAuthor: Boolean) {
         updateViewBlogState { copy(isAuthorOfBlogPost = isAuthor) }
     }
 
     fun removeDeletedBlogPost() {
-        val target = getBlogPost()
+        val target = getBlogPost() ?: return
         val list = viewState.value.blogList.toMutableList()
         list.remove(target)
         setBlogListData(list)
@@ -238,10 +233,24 @@ constructor(
         }
     }
 
-    fun checkIsAuthorOfBlogPost() {
+    fun loadBlogBySlug(slug: String) {
+        if (_viewBlogState.value.blogPost?.slug == slug) return
+        loadBlogJob?.cancel()
+        loadBlogJob = viewModelScope.launch {
+            val blogPost = getBlogPostBySlugUseCase(slug)
+            if (blogPost != null) {
+                setBlogPost(blogPost)
+            } else {
+                sendEvent(UiEvent.ShowErrorDialog(ErrorHandling.ERROR_BLOG_POST_NOT_FOUND))
+            }
+        }
+    }
+
+    fun checkIsAuthorOfBlogPost(slug: String) {
+        setIsAuthorOfBlogPost(false)
         authorCheckJob?.cancel()
         authorCheckJob = viewModelScope.launch {
-            isAuthorOfBlogPostUseCase(slug = getSlug()).collect { resource ->
+            isAuthorOfBlogPostUseCase(slug = slug).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { isAuthor -> setIsAuthorOfBlogPost(isAuthor) }
@@ -251,9 +260,10 @@ constructor(
     }
 
     fun deleteBlogPost() {
+        val blogPost = getBlogPost() ?: return
         deleteJob?.cancel()
         deleteJob = viewModelScope.launch {
-            deleteBlogPostUseCase(blogPost = getBlogPost()).collect { resource ->
+            deleteBlogPostUseCase(blogPost = blogPost).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { message ->
@@ -268,11 +278,11 @@ constructor(
         }
     }
 
-    fun updateBlogPost(title: String, body: String, imageUri: Uri?) {
+    fun updateBlogPost(slug: String, title: String, body: String, imageUri: Uri?) {
         updateJob?.cancel()
         updateJob = viewModelScope.launch {
             updateBlogPostUseCase(
-                slug = getSlug(),
+                slug = slug,
                 title = title,
                 body = body,
                 image = imageUri

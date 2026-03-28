@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.models
 import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
@@ -10,7 +11,7 @@ import kotlinx.parcelize.Parcelize
  * Docs: https://nyasablog.com/api/
  */
 @Parcelize
-@Entity(tableName = "blog_post")
+@Entity(tableName = "blog_post", indices = [Index(value = ["slug"], unique = true)])
 data class BlogPost(
 
     @PrimaryKey(autoGenerate = false)

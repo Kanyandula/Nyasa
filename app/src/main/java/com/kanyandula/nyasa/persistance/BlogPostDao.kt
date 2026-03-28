@@ -100,4 +100,7 @@ interface BlogPostDao {
         page: Int,
         pageSize: Int = PAGINATION_PAGE_SIZE
     ): List<BlogPost>
+
+    @Query("SELECT * FROM blog_post WHERE slug = :slug LIMIT 1")
+    suspend fun getBlogPostBySlug(slug: String): BlogPost?
 }

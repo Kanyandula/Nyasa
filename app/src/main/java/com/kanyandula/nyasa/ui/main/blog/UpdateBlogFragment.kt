@@ -15,6 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.github.drjacky.imagepicker.ImagePicker
 import com.kanyandula.nyasa.R
@@ -25,6 +26,8 @@ import com.kanyandula.nyasa.util.ErrorHandling
 import kotlinx.coroutines.launch
 
 class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate) {
+
+    private val args: UpdateBlogFragmentArgs by navArgs()
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -104,9 +107,10 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
 
     private fun saveChanges() {
         viewModel.updateBlogPost(
-            binding?.blogTitle?.text.toString(),
-            binding?.blogBody?.text.toString(),
-            viewModel.getUpdatedBlogUri()
+            slug = args.blogSlug,
+            title = binding?.blogTitle?.text.toString(),
+            body = binding?.blogBody?.text.toString(),
+            imageUri = viewModel.getUpdatedBlogUri()
         )
         stateChangeListener.hideSoftKeyboard()
     }
