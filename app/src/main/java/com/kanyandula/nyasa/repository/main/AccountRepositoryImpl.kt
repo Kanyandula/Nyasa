@@ -5,6 +5,7 @@ import com.kanyandula.nyasa.domain.repository.AccountRepository
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.repository.apiErrorMessage
+import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
@@ -23,7 +24,8 @@ class AccountRepositoryImpl
 constructor(
     private val nyasaBlogApiMainService: NyasaBlogApiMainService,
     private val accountPropertiesDao: AccountPropertiesDao,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val connectivityObserver: ConnectivityObserver
 ) : AccountRepository {
 
     override fun getAccountProperties(): Flow<Resource<AccountProperties>> = flow {
@@ -40,7 +42,7 @@ constructor(
             emit(Resource.Loading(cachedAccount))
         }
 
-        if (sessionManager.isConnectedToTheInternet()) {
+        if (connectivityObserver.isConnected.value) {
             val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
                 safeApiCall { nyasaBlogApiMainService.getAccountProperties() }
             }
@@ -75,7 +77,7 @@ constructor(
     ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
@@ -109,7 +111,7 @@ constructor(
     ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }

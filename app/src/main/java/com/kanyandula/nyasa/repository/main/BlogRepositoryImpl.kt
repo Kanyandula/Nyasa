@@ -11,7 +11,7 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.persistance.returnOrderedBlogQuery
 import com.kanyandula.nyasa.repository.apiErrorMessage
-import com.kanyandula.nyasa.session.SessionManager
+import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
@@ -38,7 +38,7 @@ class BlogRepositoryImpl
 constructor(
     private val nyasaBlogApiMainService: NyasaBlogApiMainService,
     private val blogPostDao: BlogPostDao,
-    private val sessionManager: SessionManager
+    private val connectivityObserver: ConnectivityObserver
 ) : BlogRepository {
 
     override fun searchBlogPosts(
@@ -51,7 +51,7 @@ constructor(
         val cachedPosts = blogPostDao.returnOrderedBlogQuery(query, filterAndOrder, page)
         emit(Resource.Loading(BlogSearchResult(cachedPosts, false)))
 
-        if (sessionManager.isConnectedToTheInternet()) {
+        if (connectivityObserver.isConnected.value) {
             val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
                 safeApiCall {
                     nyasaBlogApiMainService.searchListBlogPosts(
@@ -91,7 +91,7 @@ constructor(
     ): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
@@ -122,7 +122,7 @@ constructor(
     ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
@@ -152,7 +152,7 @@ constructor(
     ): Flow<Resource<BlogPost>> = flow {
         emit(Resource.Loading())
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
