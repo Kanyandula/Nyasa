@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
-import androidx.lifecycle.Observer
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -21,6 +23,7 @@ import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.ui.BaseActivity
 import com.kanyandula.nyasa.ui.auth.AuthActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -32,8 +35,8 @@ class MainActivity : BaseActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
 
-    override fun displayProgressBar(bool: Boolean) {
-        if (bool) {
+    override fun displayProgressBar(isLoading: Boolean) {
+        if (isLoading) {
             binding.progressBar.visibility = View.VISIBLE
         } else {
             binding.progressBar.visibility = View.GONE
@@ -56,7 +59,6 @@ class MainActivity : BaseActivity() {
         bottomNavigationView = findViewById(R.id.bottom_navigation_view)
         bottomNavigationView.setupWithNavController(navController)
 
-        // Setup the ActionBar with navController and 3 top level destinations
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.blogFragment, R.id.createBlogFragment, R.id.accountFragment)
         )
@@ -71,10 +73,9 @@ class MainActivity : BaseActivity() {
             sessionManager.login(authToken as AuthToken)
         }
     }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
-        // save auth token
         outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
     }
 
@@ -98,17 +99,17 @@ class MainActivity : BaseActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun subscribeObservers() {
-        sessionManager.cachedToken.observe(
-            this,
-            Observer { authToken ->
-                Log.d(TAG, "MainActivity, subscribeObservers: ViewState: $authToken")
-                if (authToken == null || authToken.account_pk == -1 || authToken.token == null) {
-                    navAuthActivity()
-                    finish()
+    private fun subscribeObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sessionManager.cachedToken.collect { authToken ->
+                    Log.d(TAG, "MainActivity, subscribeObservers: ViewState: $authToken")
+                    if (authToken == null || authToken.account_pk == -1 || authToken.token == null) {
+                        navAuthActivity()
+                    }
                 }
             }
-        )
+        }
     }
 
     private fun navAuthActivity() {

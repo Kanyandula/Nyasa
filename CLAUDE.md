@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 NyasaBlog is a native Android app (Kotlin) that interacts with the REST API at `nyasablog.com`. It is a blogging platform for Malawian content creators. The app supports authentication, blog CRUD with image uploads, account management, and offline caching.
 
-The codebase is undergoing a 10-phase modernization (see `REFACTORING_PLAN.md`). Phases 1-2 are complete; the current branch is `Phase-2-Retrofit-Suspend-Migration`.
+The codebase is undergoing a 10-phase modernization (see `REFACTORING_PLAN.md`). Phases 1-4 are complete; the current branch is `Phase-4-Split-ViewState-&-Migrate-to-StateFlow`.
 
 ## Build & Quality Commands
 
@@ -29,30 +29,29 @@ Pre-commit hook runs detekt, spotlessCheck, and lintDebug. Fix spotless issues w
 
 ## Architecture
 
-**Pattern**: MVI (Model-View-Intent) with `NetworkBoundResource` and Repository pattern.
+**Pattern**: MVVM with StateFlow, Channel-based events, and Repository pattern.
 
 ```
-Fragments → ViewModel (StateEvent → DataState) → Repository (JobManager) → Room DAOs + Retrofit Services
+Fragments (collect StateFlow) → ViewModel (StateFlow + Channel) → Repository (Flow<Resource<T>>) → Room DAOs + Retrofit Services
 ```
 
 **Key abstractions**:
-- `BaseViewModel<StateEvent, ViewState>` — drives all ViewModels via `switchMap` on `stateEvent` LiveData
-- `NetworkBoundResource<ResponseObject, CacheObject, ViewState>` — abstract class for cache-first network ops, emits `DataState` via `MediatorLiveData`
-- `DataState<T>` — wraps loading/error/data with `Event<T>` for one-shot delivery
-- `JobManager` — tracks/cancels coroutine jobs per repository method
-- `SessionManager` — singleton holding cached `AuthToken`, manages login/logout state
+- `BaseViewModel<ViewState>` — provides `StateFlow<ViewState>`, `StateFlow<Boolean>` for loading, and `Channel<UiEvent>` for one-shot events
+- `Resource<T>` — sealed class (`Loading`, `Success`, `Error`) emitted by repositories
+- `UiEvent` — interface for one-shot UI events (`ShowToast`, `ShowErrorDialog`, `ShowSuccessDialog`); screen-specific events extend it (e.g. `BlogNavigationEvent`, `AuthUiEvent`, `AccountUiEvent`)
+- `SessionManager` — singleton holding cached `AuthToken` as `StateFlow`, manages login/logout state
 
 **Package layout** (`com.kanyandula.nyasa`):
 - `api/` — Retrofit services (`auth/`, `main/`), interceptors, response models
 - `di/` — Hilt modules (`AppModule`, `AuthModule`, `MainModule`)
 - `models/` — Room entities (`AuthToken`, `AccountProperties`, `BlogPost`)
 - `persistance/` — Room database, DAOs, query utils
-- `repository/` — `NetworkBoundResource`, `JobManager`, auth/main repositories
+- `repository/` — auth/main repositories returning `Flow<Resource<T>>`
 - `session/` — `SessionManager`
 - `ui/` — Activities, Fragments, ViewModels, state classes (`auth/`, `main/blog/`, `main/account/`, `main/create_blog/`)
-- `util/` — Constants, error handling, `safeApiCall`, `GenericApiResponse`
+- `util/` — Constants, error handling, `safeApiCall`, `GenericApiResponse`, `Resource`
 
-**Shared state quirk**: `BlogViewState` is a monolithic state class shared across `BlogFragment`, `ViewBlogFragment`, and `UpdateBlogFragment`. Its ViewModel logic is split across extension files: `Getters.kt`, `Setters.kt`, `Pagination.kt` in `ui/main/blog/viewmodel/`.
+**Blog state**: Split into per-screen state — `BlogListUiState`, `ViewBlogUiState`, `UpdateBlogUiState`. `BlogViewModel` is shared across blog fragments via `activityViewModels()`, exposing separate `StateFlow` for each screen.
 
 ## Key Technical Details
 
@@ -60,9 +59,10 @@ Fragments → ViewModel (StateEvent → DataState) → Repository (JobManager) �
 - **Auth**: Token-based via django-auth-token. Token stored in `EncryptedSharedPreferences` (AES256)
 - **Retrofit services** use `suspend fun` returning `Response<T>` (Phase 2 migration). Calls wrapped with `safeApiCall()` in `util/SafeApiCall.kt`
 - **`GenericApiResponse`**: Sealed class (`ApiSuccessResponse`, `ApiErrorResponse`, `ApiEmptyResponse`) used to normalize API responses
-- **Room DB**: 3 entities — `AuthToken` (FK to `AccountProperties`), `AccountProperties`, `BlogPost`. DAOs currently return `LiveData`
+- **Room DB**: 3 entities — `AuthToken` (FK to `AccountProperties`), `AccountProperties`, `BlogPost`. DAOs return `Flow`
 - **Navigation**: 4 separate nav graphs (`auth_nav_graph`, `nav_blog`, `nav_account`, `nav_create_blog`). Uses raw `R.id` actions, not SafeArgs
 - **Image uploads**: Multipart via `UploadStreamRequestBody`, with CanHub ImagePicker for selection/cropping and Compressor for size reduction
+- **State observation**: Fragments use `repeatOnLifecycle(Lifecycle.State.STARTED)` to collect `StateFlow` and events
 
 ## Build Configuration
 

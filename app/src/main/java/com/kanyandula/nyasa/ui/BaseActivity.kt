@@ -8,12 +8,9 @@ import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.util.Constants.PERMISSIONS_REQUEST_READ_STORAGE
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,10 +19,10 @@ abstract class BaseActivity :
     DataStateChangeListener,
     UICommunicationListener {
 
-    val TAG: String = "AppDebug"
-
     @Inject
     lateinit var sessionManager: SessionManager
+
+    private val activity: android.app.Activity get() = this
 
     override fun onUIMessageReceived(uiMessage: UIMessage) {
         when (uiMessage.uiMessageType) {
@@ -50,68 +47,28 @@ abstract class BaseActivity :
         }
     }
 
-    override fun onDataStateChange(dataState: DataState<*>?) {
-        dataState?.let {
-            lifecycleScope.launch(Dispatchers.Main) {
-                displayProgressBar(it.loading.isLoading)
-
-                it.error?.let { errorEvent ->
-                    handleStateError(errorEvent)
-                }
-
-                it.data?.let {
-                    it.response?.let { responseEvent ->
-                        handleStateResponse(responseEvent)
-                    }
-                }
-            }
-        }
+    override fun displayProgressBar(isLoading: Boolean) {
+        // Subclasses override to show/hide progress bar
     }
 
-    abstract fun displayProgressBar(bool: Boolean)
-
-    private fun handleStateResponse(event: Event<Response>) {
-        event.getContentIfNotHandled()?.let {
-            when (it.responseType) {
-                is ResponseType.Toast -> {
-                    it.message?.let { message ->
-                        displayToast(message)
-                    }
-                }
-
-                is ResponseType.Dialog -> {
-                    it.message?.let { message ->
-                        displaySuccessDialog(message)
-                    }
-                }
-
-                is ResponseType.None -> {
-                    Log.i(TAG, "handleStateResponse: ${it.message}")
-                }
-            }
-        }
+    override fun displayErrorDialog(message: String) {
+        activity.displayErrorDialog(message)
     }
 
-    private fun handleStateError(event: Event<StateError>) {
-        event.getContentIfNotHandled()?.let {
-            when (it.response.responseType) {
-                is ResponseType.Toast -> {
-                    it.response.message?.let { message ->
-                        displayToast(message)
-                    }
-                }
+    override fun displayErrorToast(message: String) {
+        displayToast(message)
+    }
 
-                is ResponseType.Dialog -> {
-                    it.response.message?.let { message ->
-                        displayErrorDialog(message)
-                    }
-                }
+    override fun displaySuccessDialog(message: String) {
+        activity.displaySuccessDialog(message)
+    }
 
-                is ResponseType.None -> {
-                    Log.i(TAG, "handleStateError: ${it.response.message}")
-                }
-            }
-        }
+    override fun displayToast(message: String) {
+        activity.displayToast(message)
+    }
+
+    companion object {
+        const val TAG: String = "AppDebug"
     }
 
     override fun hideSoftKeyboard() {
@@ -148,7 +105,6 @@ abstract class BaseActivity :
 
             return false
         } else {
-            // Permission has already been granted
             return true
         }
     }
