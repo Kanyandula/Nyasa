@@ -20,10 +20,8 @@ import com.kanyandula.nyasa.ui.UICommunicationListener
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.util.Constants.BLOG_VIEW_STATE_KEY
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 abstract class BaseBlogFragment<T : ViewBinding>(
     private val bindingInflater: (layoutInflater: LayoutInflater) -> T
 ) : Fragment() {

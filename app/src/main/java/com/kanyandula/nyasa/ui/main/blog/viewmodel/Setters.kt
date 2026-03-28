@@ -3,51 +3,42 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 import android.net.Uri
 import android.os.Parcelable
 import com.kanyandula.nyasa.models.BlogPost
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setLayoutManagerState(state: Parcelable) {
     val update = getCurrentViewStateOrNew()
     update.blogFields.layoutManagerState = state
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setQuery(query: String) {
     val update = getCurrentViewStateOrNew()
     update.blogFields.searchQuery = query
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setBlogListData(blogList: List<BlogPost>) {
     val update = getCurrentViewStateOrNew()
     update.blogFields.blogList = blogList
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setBlogPost(blogPost: BlogPost) {
     val update = getCurrentViewStateOrNew()
     update.viewBlogFields.blogPost = blogPost
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setIsAuthorOfBlogPost(isAuthorOfBlogPost: Boolean) {
     val update = getCurrentViewStateOrNew()
     update.viewBlogFields.isAuthorOfBlogPost = isAuthorOfBlogPost
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setQueryExhausted(isExhausted: Boolean) {
     val update = getCurrentViewStateOrNew()
     update.blogFields.isQueryExhausted = isExhausted
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setQueryInProgress(isInProgress: Boolean) {
     val update = getCurrentViewStateOrNew()
     update.blogFields.isQueryInProgress = isInProgress
@@ -55,7 +46,6 @@ fun BlogViewModel.setQueryInProgress(isInProgress: Boolean) {
 }
 
 // Filter can be "date_updated" or "username"
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setBlogFilter(filter: String?) {
     filter?.let {
         val update = getCurrentViewStateOrNew()
@@ -66,28 +56,19 @@ fun BlogViewModel.setBlogFilter(filter: String?) {
 
 // Order can be "-" or ""
 // Note: "-" = DESC, "" = ASC
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setBlogOrder(order: String) {
     val update = getCurrentViewStateOrNew()
     update.blogFields.order = order
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.removeDeletedBlogPost() {
-    val update = getCurrentViewStateOrNew()
-    val list = update.blogFields.blogList.toMutableList()
-    for (i in 0..(list.size - 1)) {
-        if (list[i] == getBlogPost()) {
-            list.remove(getBlogPost())
-            break
-        }
-    }
+    val target = getBlogPost()
+    val list = getCurrentViewStateOrNew().blogFields.blogList.toMutableList()
+    list.remove(target)
     setBlogListData(list)
-//    setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.setUpdatedBlogFields(title: String?, body: String?, uri: Uri?) {
     val update = getCurrentViewStateOrNew()
     val updatedBlogFields = update.updatedBlogFields
@@ -98,7 +79,6 @@ fun BlogViewModel.setUpdatedBlogFields(title: String?, body: String?, uri: Uri?)
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.updateListItem(newBlogPost: BlogPost) {
     val update = getCurrentViewStateOrNew()
     val list = update.blogFields.blogList.toMutableList()
@@ -112,7 +92,6 @@ fun BlogViewModel.updateListItem(newBlogPost: BlogPost) {
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.onBlogPostUpdateSuccess(blogPost: BlogPost) {
     setUpdatedBlogFields(
         uri = null,

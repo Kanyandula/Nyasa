@@ -7,9 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 abstract class BaseAuthFragment<T : ViewBinding>(
     private val bindingInflater: (layoutInflater: LayoutInflater) -> T
 ) : Fragment() {

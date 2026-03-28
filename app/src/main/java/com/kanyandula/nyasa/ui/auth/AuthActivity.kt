@@ -16,9 +16,7 @@ import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.main.MainActivity
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class AuthActivity :
     BaseActivity(),

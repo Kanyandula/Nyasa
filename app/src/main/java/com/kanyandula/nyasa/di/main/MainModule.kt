@@ -48,10 +48,9 @@ class MainModule {
     fun provideBlogRepository(
         nyasaBlogApiMainService: NyasaBlogApiMainService,
         blogPostDao: BlogPostDao,
-        accountPropertiesDao: AccountPropertiesDao,
         sessionManager: SessionManager
     ): BlogRepository {
-        return BlogRepository(nyasaBlogApiMainService, blogPostDao, accountPropertiesDao, sessionManager)
+        return BlogRepository(nyasaBlogApiMainService, blogPostDao, sessionManager)
     }
 
     @Singleton

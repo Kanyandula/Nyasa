@@ -31,13 +31,11 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.getUpdatedBlogUri
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.onBlogPostUpdateSuccess
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
 import com.kanyandula.nyasa.util.ErrorHandling
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate) {
 
     private val galleryLauncher =

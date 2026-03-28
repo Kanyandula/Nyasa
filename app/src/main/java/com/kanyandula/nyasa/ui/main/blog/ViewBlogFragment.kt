@@ -28,9 +28,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.setIsAuthorOfBlogPost
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.setUpdatedBlogFields
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

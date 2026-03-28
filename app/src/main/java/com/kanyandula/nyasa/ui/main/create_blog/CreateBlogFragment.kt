@@ -35,13 +35,11 @@ import com.kanyandula.nyasa.util.ErrorHandling.ERROR_MUST_SELECT_IMAGE
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(FragmentCreateBlogBinding::inflate) {
 

@@ -48,9 +48,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.setQueryExhausted
 import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.TopSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class BlogFragment :
     BaseBlogFragment<FragmentBlogBinding>(FragmentBlogBinding::inflate),

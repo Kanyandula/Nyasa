@@ -18,9 +18,7 @@ import androidx.viewbinding.ViewBinding
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.ui.DataStateChangeListener
 import com.kanyandula.nyasa.ui.UICommunicationListener
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 abstract class BaseCreateBlogFragment<T : ViewBinding>(
     private val bindingInflater: (layoutInflater: LayoutInflater) -> T
 ) : Fragment() {
