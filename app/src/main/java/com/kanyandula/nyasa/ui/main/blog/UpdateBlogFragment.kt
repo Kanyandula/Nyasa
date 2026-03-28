@@ -4,7 +4,6 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -24,10 +23,6 @@ import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.util.ErrorHandling
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
 
 class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate) {
 
@@ -103,32 +98,15 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                 .into(it.blogImage)
         }
 
-        binding?.blogTitle?.setText(title)
-        binding?.blogBody?.setText(body)
+        binding?.blogTitle?.let { if (it.text.toString() != title.orEmpty()) it.setText(title) }
+        binding?.blogBody?.let { if (it.text.toString() != body.orEmpty()) it.setText(body) }
     }
 
     private fun saveChanges() {
-        var multipartBody: MultipartBody.Part? = null
-        viewModel.getUpdatedBlogUri()?.let { imageUri ->
-            imageUri.path?.let { filePath ->
-                val imageFile = File(filePath)
-                Log.d(TAG, "UpdateBlogFragment, imageFile: file: $imageFile")
-                if (imageFile.exists()) {
-                    val requestBody =
-                        imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-                    multipartBody = MultipartBody.Part.createFormData(
-                        "image",
-                        imageFile.name,
-                        requestBody
-                    )
-                }
-            }
-        }
-
         viewModel.updateBlogPost(
             binding?.blogTitle?.text.toString(),
             binding?.blogBody?.text.toString(),
-            multipartBody
+            viewModel.getUpdatedBlogUri()
         )
         stateChangeListener.hideSoftKeyboard()
     }

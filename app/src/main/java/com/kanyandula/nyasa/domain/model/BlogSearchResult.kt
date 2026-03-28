@@ -1,4 +1,4 @@
-package com.kanyandula.nyasa.repository.main
+package com.kanyandula.nyasa.domain.model
 
 import com.kanyandula.nyasa.models.BlogPost
 

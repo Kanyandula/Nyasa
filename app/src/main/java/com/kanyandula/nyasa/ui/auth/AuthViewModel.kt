@@ -1,8 +1,10 @@
 package com.kanyandula.nyasa.ui.auth
 
 import androidx.lifecycle.viewModelScope
+import com.kanyandula.nyasa.domain.usecase.auth.CheckPreviousAuthUseCase
+import com.kanyandula.nyasa.domain.usecase.auth.LoginUseCase
+import com.kanyandula.nyasa.domain.usecase.auth.RegisterUseCase
 import com.kanyandula.nyasa.models.AuthToken
-import com.kanyandula.nyasa.repository.auth.AuthRepository
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
@@ -16,14 +18,16 @@ import javax.inject.Inject
 class AuthViewModel
 @Inject
 constructor(
-    private val authRepository: AuthRepository
+    private val loginUseCase: LoginUseCase,
+    private val registerUseCase: RegisterUseCase,
+    private val checkPreviousAuthUseCase: CheckPreviousAuthUseCase
 ) : BaseViewModel<AuthViewState>(AuthViewState()) {
 
     private var hasCheckedPreviousUser = false
 
     fun attemptLogin(email: String, password: String) {
         viewModelScope.launch {
-            authRepository.attemptLogin(email, password).collect { resource ->
+            loginUseCase(email, password).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { authToken -> setAuthToken(authToken) }
@@ -39,7 +43,7 @@ constructor(
         confirmPassword: String
     ) {
         viewModelScope.launch {
-            authRepository.attemptRegistration(email, username, password, confirmPassword)
+            registerUseCase(email, username, password, confirmPassword)
                 .collect { resource ->
                     handleResource(
                         resource,
@@ -53,7 +57,7 @@ constructor(
         if (hasCheckedPreviousUser) return
         hasCheckedPreviousUser = true
         viewModelScope.launch {
-            authRepository.checkPreviousAuthUser().collect { resource ->
+            checkPreviousAuthUseCase().collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { authToken ->

@@ -1,13 +1,15 @@
 package com.kanyandula.nyasa.di.main
 
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
-import com.kanyandula.nyasa.persistance.AccountPropertiesDao
+import com.kanyandula.nyasa.domain.repository.AccountRepository
+import com.kanyandula.nyasa.domain.repository.BlogRepository
+import com.kanyandula.nyasa.domain.repository.CreateBlogRepository
 import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.BlogPostDao
-import com.kanyandula.nyasa.repository.main.AccountRepository
-import com.kanyandula.nyasa.repository.main.BlogRepository
-import com.kanyandula.nyasa.repository.main.CreateBlogRepository
-import com.kanyandula.nyasa.session.SessionManager
+import com.kanyandula.nyasa.repository.main.AccountRepositoryImpl
+import com.kanyandula.nyasa.repository.main.BlogRepositoryImpl
+import com.kanyandula.nyasa.repository.main.CreateBlogRepositoryImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,49 +19,34 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class MainModule {
+abstract class MainModule {
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideOpenApiMainService(retrofitBuilder: Retrofit.Builder): NyasaBlogApiMainService {
-        return retrofitBuilder
-            .build()
-            .create(NyasaBlogApiMainService::class.java)
-    }
+    abstract fun bindAccountRepository(impl: AccountRepositoryImpl): AccountRepository
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideAccountMainRepository(
-        blogApiMainService: NyasaBlogApiMainService,
-        accountPropertiesDao: AccountPropertiesDao,
-        sessionManager: SessionManager
-    ): AccountRepository {
-        return AccountRepository(blogApiMainService, accountPropertiesDao, sessionManager)
-    }
+    abstract fun bindBlogRepository(impl: BlogRepositoryImpl): BlogRepository
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideBlogPostDao(db: AppDatabase): BlogPostDao {
-        return db.getBlogPostDao()
-    }
+    abstract fun bindCreateBlogRepository(impl: CreateBlogRepositoryImpl): CreateBlogRepository
 
-    @Singleton
-    @Provides
-    fun provideBlogRepository(
-        nyasaBlogApiMainService: NyasaBlogApiMainService,
-        blogPostDao: BlogPostDao,
-        sessionManager: SessionManager
-    ): BlogRepository {
-        return BlogRepository(nyasaBlogApiMainService, blogPostDao, sessionManager)
-    }
+    companion object {
 
-    @Singleton
-    @Provides
-    fun provideCreateBlogRepository(
-        nyasaBlogApiMainService: NyasaBlogApiMainService,
-        blogPostDao: BlogPostDao,
-        sessionManager: SessionManager
-    ): CreateBlogRepository {
-        return CreateBlogRepository(nyasaBlogApiMainService, blogPostDao, sessionManager)
+        @Singleton
+        @Provides
+        fun provideOpenApiMainService(retrofitBuilder: Retrofit.Builder): NyasaBlogApiMainService {
+            return retrofitBuilder
+                .build()
+                .create(NyasaBlogApiMainService::class.java)
+        }
+
+        @Singleton
+        @Provides
+        fun provideBlogPostDao(db: AppDatabase): BlogPostDao {
+            return db.getBlogPostDao()
+        }
     }
 }

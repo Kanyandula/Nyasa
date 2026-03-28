@@ -61,7 +61,7 @@ class AuthActivity :
 
                 launch {
                     sessionManager.cachedToken.collect { authToken ->
-                        Log.d(TAG, "AuthActivity, subscribeObservers: AuthDataState: $authToken")
+                        Log.d(TAG, "AuthActivity, subscribeObservers: AuthToken: $authToken")
                         if (authToken != null && authToken.account_pk != -1 && authToken.token != null) {
                             navMainActivity()
                         }

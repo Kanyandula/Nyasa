@@ -1,8 +1,10 @@
 package com.kanyandula.nyasa.ui.main.account
 
 import androidx.lifecycle.viewModelScope
+import com.kanyandula.nyasa.domain.usecase.account.ChangePasswordUseCase
+import com.kanyandula.nyasa.domain.usecase.account.GetAccountPropertiesUseCase
+import com.kanyandula.nyasa.domain.usecase.account.SaveAccountPropertiesUseCase
 import com.kanyandula.nyasa.models.AccountProperties
-import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
@@ -18,13 +20,14 @@ class AccountViewModel
 @Inject
 constructor(
     private val sessionManager: SessionManager,
-    private val accountRepository: AccountRepository
+    private val getAccountPropertiesUseCase: GetAccountPropertiesUseCase,
+    private val saveAccountPropertiesUseCase: SaveAccountPropertiesUseCase,
+    private val changePasswordUseCase: ChangePasswordUseCase
 ) : BaseViewModel<AccountViewState>(AccountViewState()) {
 
     fun getAccountProperties() {
-        val authToken = sessionManager.cachedToken.value ?: return
         viewModelScope.launch {
-            accountRepository.getAccountProperties(authToken).collect { resource ->
+            getAccountPropertiesUseCase().collect { resource ->
                 handleResource(
                     resource,
                     onLoading = { data -> data?.let { setAccountPropertiesData(it) } },
@@ -35,11 +38,10 @@ constructor(
     }
 
     fun saveAccountProperties(email: String, username: String) {
-        val authToken = sessionManager.cachedToken.value ?: return
-        val pk = authToken.account_pk ?: return
-        val newAccountProperties = AccountProperties(pk, email, username)
+        val accountProperties = viewState.value.accountProperties ?: return
+        val newAccountProperties = AccountProperties(accountProperties.pk, email, username)
         viewModelScope.launch {
-            accountRepository.saveAccountProperties(newAccountProperties).collect { resource ->
+            saveAccountPropertiesUseCase(newAccountProperties).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { message -> sendEvent(UiEvent.ShowToast(message)) }
@@ -50,7 +52,7 @@ constructor(
 
     fun changePassword(currentPassword: String, newPassword: String, confirmNewPassword: String) {
         viewModelScope.launch {
-            accountRepository.updatePassword(currentPassword, newPassword, confirmNewPassword)
+            changePasswordUseCase(currentPassword, newPassword, confirmNewPassword)
                 .collect { resource ->
                     handleResource(
                         resource,
