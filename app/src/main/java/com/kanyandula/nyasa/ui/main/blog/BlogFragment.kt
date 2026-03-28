@@ -179,8 +179,8 @@ class BlogFragment :
     }
 
     override fun onItemSelected(position: Int, item: BlogPost) {
-        viewModel.setBlogPost(item)
-        findNavController().navigate(R.id.action_blogFragment_to_viewBlogFragment)
+        val action = BlogFragmentDirections.actionBlogFragmentToViewBlogFragment(item.slug)
+        findNavController().navigate(action)
     }
 
     override fun onPause() {

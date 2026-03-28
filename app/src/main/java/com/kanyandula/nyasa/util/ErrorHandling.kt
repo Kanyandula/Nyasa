@@ -20,6 +20,7 @@ object ErrorHandling {
     const val PAGINATION_DONE_ERROR = "Invalid page."
     const val ERROR_CHECK_NETWORK_CONNECTION = "Check network connection."
     const val ERROR_UNKNOWN = "Unknown error"
+    const val ERROR_BLOG_POST_NOT_FOUND = "Blog post not found"
 
     fun isNetworkError(msg: String): Boolean {
         when {

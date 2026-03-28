@@ -6,7 +6,7 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
 
-@Database(entities = [AuthToken::class, AccountProperties::class, BlogPost::class], version = 1)
+@Database(entities = [AuthToken::class, AccountProperties::class, BlogPost::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun getAuthTokenDao(): AuthTokenDao

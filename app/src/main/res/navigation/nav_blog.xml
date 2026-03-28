@@ -28,6 +28,9 @@
         android:label="@string/fragment_view_blog"
         tools:layout="@layout/fragment_view_blog">
 
+        <argument
+            android:name="blogSlug"
+            app:argType="string" />
 
         <action android:id="@+id/action_viewBlogFragment_to_updateBlogFragment"
             app:destination="@id/updateBlogFragment"
@@ -53,6 +56,10 @@
         android:name="com.kanyandula.nyasa.ui.main.blog.UpdateBlogFragment"
         android:label="@string/fragment_update_blog"
         tools:layout="@layout/fragment_update_blog">
+
+        <argument
+            android:name="blogSlug"
+            app:argType="string" />
 
         <action
             android:id="@+id/action_updateBlogFragment_to_home"

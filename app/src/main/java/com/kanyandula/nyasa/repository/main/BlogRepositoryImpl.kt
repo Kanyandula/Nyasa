@@ -180,6 +180,9 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
+    override suspend fun getBlogPostBySlug(slug: String): BlogPost? =
+        blogPostDao.getBlogPostBySlug(slug)
+
     companion object {
         private const val TAG = "AppDebug"
     }

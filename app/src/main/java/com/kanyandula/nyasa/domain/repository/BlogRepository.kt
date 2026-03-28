@@ -20,4 +20,5 @@ interface BlogRepository {
         body: String,
         image: Uri?
     ): Flow<Resource<BlogPost>>
+    suspend fun getBlogPostBySlug(slug: String): BlogPost?
 }

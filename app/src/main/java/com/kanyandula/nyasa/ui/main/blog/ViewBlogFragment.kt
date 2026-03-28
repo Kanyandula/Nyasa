@@ -1,7 +1,6 @@
 package com.kanyandula.nyasa.ui.main.blog
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -13,6 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.FragmentViewBlogBinding
@@ -27,11 +27,16 @@ import kotlinx.coroutines.launch
 
 class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewBlogBinding::inflate) {
 
+    private val args: ViewBlogFragmentArgs by navArgs()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupMenu()
         subscribeObservers()
-        checkIsAuthorOfBlogPost()
+        if (savedInstanceState == null) {
+            viewModel.loadBlogBySlug(args.blogSlug)
+            viewModel.checkIsAuthorOfBlogPost(args.blogSlug)
+        }
         stateChangeListener.expandAppBar()
         binding?.deleteButton?.setOnClickListener {
             confirmDeleteRequest()
@@ -63,11 +68,6 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
                 UIMessageType.AreYouSureDialog(callback)
             )
         )
-    }
-
-    private fun checkIsAuthorOfBlogPost() {
-        viewModel.setIsAuthorOfBlogPost(false)
-        viewModel.checkIsAuthorOfBlogPost()
     }
 
     private fun subscribeObservers() {
@@ -134,17 +134,15 @@ class ViewBlogFragment : BaseBlogFragment<FragmentViewBlogBinding>(FragmentViewB
         )
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private fun navUpdateBlogFragment() {
-        try {
-            viewModel.setUpdatedBlogFields(
-                viewModel.getBlogPost().title,
-                viewModel.getBlogPost().body,
-                viewModel.getBlogPost().image.toUri()
-            )
-            findNavController().navigate(R.id.action_viewBlogFragment_to_updateBlogFragment)
-        } catch (e: Exception) {
-            Log.e(TAG, "Exception: ${e.message}")
-        }
+        val blogPost = viewModel.getBlogPost() ?: return
+        viewModel.setUpdatedBlogFields(
+            blogPost.title,
+            blogPost.body,
+            blogPost.image.toUri()
+        )
+        val action = ViewBlogFragmentDirections
+            .actionViewBlogFragmentToUpdateBlogFragment(args.blogSlug)
+        findNavController().navigate(action)
     }
 }
