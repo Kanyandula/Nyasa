@@ -1,188 +1,139 @@
 package com.kanyandula.nyasa.repository.main
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.switchMap
-import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
-import com.kanyandula.nyasa.repository.JobManager
-import com.kanyandula.nyasa.repository.NetworkBoundResource
+import com.kanyandula.nyasa.repository.emitApiError
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.GenericApiResponse
+import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
+import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
 import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 class AccountRepository
 @Inject
 constructor(
-    val openApiMainService: NyasaBlogApiMainService,
-    val accountPropertiesDao: AccountPropertiesDao,
-    val sessionManager: SessionManager
-) : JobManager("AccountRepository") {
+    private val openApiMainService: NyasaBlogApiMainService,
+    private val accountPropertiesDao: AccountPropertiesDao,
+    private val sessionManager: SessionManager
+) {
 
-    fun getAccountProperties(authToken: AuthToken): LiveData<DataState<AccountViewState>> {
-        return object : NetworkBoundResource<AccountProperties, AccountProperties, AccountViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            false,
-            true
-        ) {
+    fun getAccountProperties(authToken: AuthToken): Flow<DataState<AccountViewState>> = flow {
+        emit(DataState.loading<AccountViewState>(isLoading = true))
 
-            override suspend fun createCacheRequestAndReturn() {
-                withContext(Dispatchers.Main) {
-                    result.addSource(loadFromCache()) { viewState ->
-                        onCompleteJob(DataState.data(viewState, null))
-                    }
-                }
+        val cachedAccount = authToken.account_pk?.let { accountPropertiesDao.searchByPk(it) }
+        if (cachedAccount != null) {
+            emit(
+                DataState.loading<AccountViewState>(isLoading = true, cachedData = AccountViewState(cachedAccount))
+            )
+        }
+
+        if (sessionManager.isConnectedToTheInternet()) {
+            val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+                safeApiCall { openApiMainService.getAccountProperties() }
             }
 
-            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<AccountProperties>) {
-                updateLocalDb(response.body)
-                createCacheRequestAndReturn()
-            }
-
-            override fun loadFromCache(): LiveData<AccountViewState> {
-                return accountPropertiesDao.searchByPk(authToken.account_pk!!)
-                    .switchMap {
-                        object : LiveData<AccountViewState>() {
-                            override fun onActive() {
-                                super.onActive()
-                                value = AccountViewState(it)
-                            }
-                        }
-                    }
-            }
-
-            override suspend fun updateLocalDb(cacheObject: AccountProperties?) {
-                cacheObject?.let {
+            when (response) {
+                is ApiSuccessResponse -> {
                     accountPropertiesDao.updateAccountProperties(
-                        cacheObject.pk,
-                        cacheObject.email,
-                        cacheObject.username
+                        response.body.pk,
+                        response.body.email,
+                        response.body.username
                     )
-                }
-            }
-
-            override suspend fun createCall(): GenericApiResponse<AccountProperties> {
-                return safeApiCall { openApiMainService.getAccountProperties() }
-            }
-
-            override fun setJob(job: Job) {
-                addJob("getAccountProperties", job)
-            }
-        }.asLiveData()
-    }
-
-    fun saveAccountProperties(accountProperties: AccountProperties): LiveData<DataState<AccountViewState>> {
-        return object : NetworkBoundResource<GenericResponse, Any, AccountViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            true,
-            false
-        ) {
-
-            override suspend fun createCacheRequestAndReturn() {
-                // no-op
-            }
-
-            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-                updateLocalDb(null)
-
-                withContext(Dispatchers.Main) {
-                    onCompleteJob(
-                        DataState.data(
-                            data = null,
-                            response = Response(response.body.response, ResponseType.Toast())
-                        )
+                    val updatedAccount = AccountProperties(
+                        response.body.pk,
+                        response.body.email,
+                        response.body.username
                     )
+                    emit(DataState.data(data = AccountViewState(updatedAccount)))
                 }
+                else -> this.emitApiError<AccountViewState>(response)
             }
-
-            override fun loadFromCache(): LiveData<AccountViewState> {
-                return object : LiveData<AccountViewState>() {}
+        } else {
+            if (cachedAccount != null) {
+                emit(DataState.data(data = AccountViewState(cachedAccount)))
+            } else {
+                emit(DataState.apiError<AccountViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
             }
+        }
+    }.flowOn(Dispatchers.IO)
 
-            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
-                return safeApiCall {
-                    openApiMainService.saveAccountProperties(
-                        accountProperties.email,
-                        accountProperties.username
-                    )
-                }
-            }
+    fun saveAccountProperties(
+        accountProperties: AccountProperties
+    ): Flow<DataState<AccountViewState>> = flow {
+        emit(DataState.loading<AccountViewState>(isLoading = true))
 
-            override suspend fun updateLocalDb(cacheObject: Any?) {
-                return accountPropertiesDao.updateAccountProperties(
-                    accountProperties.pk,
+        if (!sessionManager.isConnectedToTheInternet()) {
+            emit(DataState.apiError<AccountViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            return@flow
+        }
+
+        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+            safeApiCall {
+                openApiMainService.saveAccountProperties(
                     accountProperties.email,
                     accountProperties.username
                 )
             }
+        }
 
-            override fun setJob(job: Job) {
-                addJob("saveAccountProperties", job)
+        when (response) {
+            is ApiSuccessResponse -> {
+                accountPropertiesDao.updateAccountProperties(
+                    accountProperties.pk,
+                    accountProperties.email,
+                    accountProperties.username
+                )
+                emit(
+                    DataState.data<AccountViewState>(
+                        data = null,
+                        response = Response(response.body.response, ResponseType.Toast())
+                    )
+                )
             }
-        }.asLiveData()
-    }
+            else -> this.emitApiError<AccountViewState>(response)
+        }
+    }.flowOn(Dispatchers.IO)
 
     fun updatePassword(
         currentPassword: String,
         newPassword: String,
         confirmNewPassword: String
-    ): LiveData<DataState<AccountViewState>> {
-        return object : NetworkBoundResource<GenericResponse, Any, AccountViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            true,
-            false
-        ) {
+    ): Flow<DataState<AccountViewState>> = flow {
+        emit(DataState.loading<AccountViewState>(isLoading = true))
 
-            override suspend fun createCacheRequestAndReturn() {
-                // no-op
+        if (!sessionManager.isConnectedToTheInternet()) {
+            emit(DataState.apiError<AccountViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            return@flow
+        }
+
+        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+            safeApiCall {
+                openApiMainService.updatePassword(currentPassword, newPassword, confirmNewPassword)
             }
+        }
 
-            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-                withContext(Dispatchers.Main) {
-                    onCompleteJob(
-                        DataState.data(
-                            null,
-                            Response(response.body.response, ResponseType.Toast())
-                        )
+        when (response) {
+            is ApiSuccessResponse -> {
+                emit(
+                    DataState.data<AccountViewState>(
+                        null,
+                        Response(response.body.response, ResponseType.Toast())
                     )
-                }
+                )
             }
-
-            override fun loadFromCache(): LiveData<AccountViewState> {
-                return object : LiveData<AccountViewState>() {}
-            }
-
-            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
-                return safeApiCall {
-                    openApiMainService.updatePassword(
-                        currentPassword,
-                        newPassword,
-                        confirmNewPassword
-                    )
-                }
-            }
-
-            override suspend fun updateLocalDb(cacheObject: Any?) {
-                // no-op
-            }
-
-            override fun setJob(job: Job) {
-                addJob("updatePassword", job)
-            }
-        }.asLiveData()
-    }
+            else -> this.emitApiError<AccountViewState>(response)
+        }
+    }.flowOn(Dispatchers.IO)
 }

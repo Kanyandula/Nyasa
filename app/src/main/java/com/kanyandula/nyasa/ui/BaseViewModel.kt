@@ -3,7 +3,9 @@ package com.kanyandula.nyasa.ui
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
+import kotlinx.coroutines.flow.Flow
 
 abstract class BaseViewModel<StateEvent, ViewState> : ViewModel() {
 
@@ -18,12 +20,12 @@ abstract class BaseViewModel<StateEvent, ViewState> : ViewModel() {
     val dataState: LiveData<DataState<ViewState>> = _stateEvent
         .switchMap { stateEvent ->
             stateEvent?.let {
-                handleStateEvent(stateEvent)
+                handleStateEvent(stateEvent).asLiveData()
             }
         }
 
     fun setStateEvent(event: StateEvent) {
-        _stateEvent.value = event!!
+        _stateEvent.value = event
     }
 
     fun getCurrentViewStateOrNew(): ViewState {
@@ -32,10 +34,10 @@ abstract class BaseViewModel<StateEvent, ViewState> : ViewModel() {
     }
 
     fun setViewState(viewState: ViewState) {
-        _viewState.value = viewState!!
+        _viewState.value = viewState
     }
 
-    abstract fun handleStateEvent(stateEvent: StateEvent): LiveData<DataState<ViewState>>
+    abstract fun handleStateEvent(stateEvent: StateEvent): Flow<DataState<ViewState>>
 
     abstract fun initNewViewState(): ViewState
 }

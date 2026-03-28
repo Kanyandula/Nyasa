@@ -1,18 +1,12 @@
 package com.kanyandula.nyasa.repository.main
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.switchMap
-import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
-import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
 import com.kanyandula.nyasa.models.BlogPost
-import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.persistance.returnOrderedBlogQuery
-import com.kanyandula.nyasa.repository.JobManager
-import com.kanyandula.nyasa.repository.NetworkBoundResource
+import com.kanyandula.nyasa.repository.emitApiError
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
@@ -21,18 +15,22 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.BlogFields
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState.ViewBlogFields
 import com.kanyandula.nyasa.util.ApiSuccessResponse
+import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_UNKNOWN
+import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
 import com.kanyandula.nyasa.util.GenericApiResponse
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_HAS_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_NO_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import javax.inject.Inject
@@ -40,62 +38,29 @@ import javax.inject.Inject
 class BlogRepository
 @Inject
 constructor(
-    val nyasaBlogApiMainService: NyasaBlogApiMainService,
-    val blogPostDao: BlogPostDao,
-    val accountPropertiesDao: AccountPropertiesDao,
-    val sessionManager: SessionManager
-) : JobManager("BlogRepository") {
-
-    private val TAG: String = "AppDebug"
+    private val nyasaBlogApiMainService: NyasaBlogApiMainService,
+    private val blogPostDao: BlogPostDao,
+    private val sessionManager: SessionManager
+) {
 
     fun searchBlogPosts(
         query: String,
         filterAndOrder: String,
         page: Int
-    ): LiveData<DataState<BlogViewState>> {
-        return object : NetworkBoundResource<BlogListSearchResponse, List<BlogPost>, BlogViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            false,
-            true
-        ) {
-            override suspend fun createCacheRequestAndReturn() {
-                withContext(Dispatchers.Main) {
-                    result.addSource(loadFromCache()) { viewState ->
-                        viewState.blogFields.isQueryInProgress = false
-                        if (page * PAGINATION_PAGE_SIZE > viewState.blogFields.blogList.size) {
-                            viewState.blogFields.isQueryExhausted = true
-                        }
-                        onCompleteJob(DataState.data(viewState, null))
-                    }
-                }
-            }
+    ): Flow<DataState<BlogViewState>> = flow {
+        emit(DataState.loading<BlogViewState>(isLoading = true))
 
-            override suspend fun handleApiSuccessResponse(
-                response: ApiSuccessResponse<BlogListSearchResponse>
-            ) {
-                val blogPostList: ArrayList<BlogPost> = ArrayList()
-                for (blogPostResponse in response.body.results) {
-                    blogPostList.add(
-                        BlogPost(
-                            pk = blogPostResponse.pk,
-                            title = blogPostResponse.title,
-                            slug = blogPostResponse.slug,
-                            body = blogPostResponse.body,
-                            image = blogPostResponse.image,
-                            date_updated = DateUtils.convertServerStringDateToLong(
-                                blogPostResponse.date_updated
-                            ),
-                            username = blogPostResponse.username
-                        )
-                    )
-                }
-                updateLocalDb(blogPostList)
-                createCacheRequestAndReturn()
-            }
+        val cachedPosts = blogPostDao.returnOrderedBlogQuery(query, filterAndOrder, page)
+        emit(
+            DataState.loading<BlogViewState>(
+                isLoading = true,
+                cachedData = BlogViewState(BlogFields(blogList = cachedPosts))
+            )
+        )
 
-            override suspend fun createCall(): GenericApiResponse<BlogListSearchResponse> {
-                return safeApiCall {
+        if (sessionManager.isConnectedToTheInternet()) {
+            val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+                safeApiCall {
                     nyasaBlogApiMainService.searchListBlogPosts(
                         query = query,
                         ordering = filterAndOrder,
@@ -103,194 +68,148 @@ constructor(
                     )
                 }
             }
+            emitSearchResponse(response, query, filterAndOrder, page)
+        } else {
+            emitBlogListResult(cachedPosts, page)
+        }
+    }.flowOn(Dispatchers.IO)
 
-            override fun loadFromCache(): LiveData<BlogViewState> {
-                Log.e(TAG, "BlogRepo: filter and order: $filterAndOrder")
-                return blogPostDao.returnOrderedBlogQuery(
-                    query = query,
-                    filterAndOrder = filterAndOrder,
-                    page = page
-                )
-                    .switchMap {
-                        object : LiveData<BlogViewState>() {
-                            override fun onActive() {
-                                super.onActive()
-                                value = BlogViewState(
-                                    BlogFields(
-                                        blogList = it,
-                                        isQueryInProgress = true
-                                    )
-                                )
-                            }
-                        }
-                    }
-            }
-
-            override suspend fun updateLocalDb(cacheObject: List<BlogPost>?) {
-                if (cacheObject != null) {
-                    withContext(Dispatchers.IO) {
-                        for (blogPost in cacheObject) {
-                            launch {
-                                @Suppress("TooGenericExceptionCaught")
-                                try {
-                                    blogPostDao.insert(blogPost)
-                                } catch (e: Exception) {
-                                    Log.e(
-                                        TAG,
-                                        "updateLocalDb: error updating cache " +
-                                            "on blog post with slug: ${blogPost.slug}. ${e.message}"
-                                    )
-                                }
-                            }
-                        }
-                    }
+    private suspend fun FlowCollector<DataState<BlogViewState>>.emitSearchResponse(
+        response: GenericApiResponse<BlogListSearchResponse>?,
+        query: String,
+        filterAndOrder: String,
+        page: Int
+    ) {
+        when (response) {
+            is ApiSuccessResponse -> {
+                val blogPostList = response.body.results.map { r ->
+                    BlogPost(
+                        pk = r.pk,
+                        title = r.title,
+                        slug = r.slug,
+                        body = r.body,
+                        image = r.image,
+                        date_updated = DateUtils.convertServerStringDateToLong(r.date_updated),
+                        username = r.username
+                    )
                 }
+                blogPostDao.insertAll(blogPostList)
+                val updatedPosts = blogPostDao.returnOrderedBlogQuery(query, filterAndOrder, page)
+                emitBlogListResult(updatedPosts, page)
             }
+            else -> this.emitApiError<BlogViewState>(response)
+        }
+    }
 
-            override fun setJob(job: Job) {
-                addJob("searchBlogPosts", job)
-            }
-        }.asLiveData()
+    private suspend fun FlowCollector<DataState<BlogViewState>>.emitBlogListResult(
+        posts: List<BlogPost>,
+        page: Int
+    ) {
+        val isExhausted = page * PAGINATION_PAGE_SIZE > posts.size
+        emit(
+            DataState.data(
+                data = BlogViewState(
+                    BlogFields(
+                        blogList = posts,
+                        isQueryInProgress = false,
+                        isQueryExhausted = isExhausted
+                    )
+                )
+            )
+        )
     }
 
     fun isAuthorOfBlogPost(
         slug: String
-    ): LiveData<DataState<BlogViewState>> {
-        return object : NetworkBoundResource<GenericResponse, Any, BlogViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            true,
-            false
-        ) {
+    ): Flow<DataState<BlogViewState>> = flow {
+        emit(DataState.loading<BlogViewState>(isLoading = true))
 
-            override suspend fun createCacheRequestAndReturn() {
-                // no-op
-            }
+        if (!sessionManager.isConnectedToTheInternet()) {
+            emit(DataState.apiError<BlogViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            return@flow
+        }
 
-            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
-                withContext(Dispatchers.Main) {
-                    Log.d(TAG, "handleApiSuccessResponse: ${response.body.response}")
-                    if (response.body.response.equals(RESPONSE_NO_PERMISSION_TO_EDIT)) {
-                        onCompleteJob(
+        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+            safeApiCall { nyasaBlogApiMainService.isAuthorOfBlogPost(slug) }
+        }
+
+        when (response) {
+            is ApiSuccessResponse -> {
+                Log.d(TAG, "handleApiSuccessResponse: ${response.body.response}")
+                when {
+                    response.body.response == RESPONSE_NO_PERMISSION_TO_EDIT -> {
+                        emit(
                             DataState.data(
                                 data = BlogViewState(
-                                    viewBlogFields = ViewBlogFields(
-                                        isAuthorOfBlogPost = false
-                                    )
-                                ),
-                                response = null
+                                    viewBlogFields = ViewBlogFields(isAuthorOfBlogPost = false)
+                                )
                             )
                         )
-                    } else if (response.body.response.equals(RESPONSE_HAS_PERMISSION_TO_EDIT)) {
-                        onCompleteJob(
-                            DataState.data(
-                                data = BlogViewState(
-                                    viewBlogFields = ViewBlogFields(
-                                        isAuthorOfBlogPost = true
-                                    )
-                                ),
-                                response = null
-                            )
-                        )
-                    } else {
-                        onErrorReturn(ERROR_UNKNOWN, shouldUseDialog = false, shouldUseToast = false)
                     }
+                    response.body.response == RESPONSE_HAS_PERMISSION_TO_EDIT -> {
+                        emit(
+                            DataState.data(
+                                data = BlogViewState(
+                                    viewBlogFields = ViewBlogFields(isAuthorOfBlogPost = true)
+                                )
+                            )
+                        )
+                    }
+                    else -> emit(DataState.apiError<BlogViewState>(ERROR_UNKNOWN, shouldUseDialog = true))
                 }
             }
-
-            override fun loadFromCache(): LiveData<BlogViewState> {
-                return object : LiveData<BlogViewState>() {}
-            }
-
-            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
-                return safeApiCall { nyasaBlogApiMainService.isAuthorOfBlogPost(slug) }
-            }
-
-            override suspend fun updateLocalDb(cacheObject: Any?) {
-                // no-op
-            }
-
-            override fun setJob(job: Job) {
-                addJob("isAuthorOfBlogPost", job)
-            }
-        }.asLiveData()
-    }
+            else -> this.emitApiError<BlogViewState>(response)
+        }
+    }.flowOn(Dispatchers.IO)
 
     fun deleteBlogPost(
         blogPost: BlogPost
-    ): LiveData<DataState<BlogViewState>> {
-        return object : NetworkBoundResource<GenericResponse, BlogPost, BlogViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            true,
-            false
-        ) {
+    ): Flow<DataState<BlogViewState>> = flow {
+        emit(DataState.loading<BlogViewState>(isLoading = true))
 
-            override suspend fun createCacheRequestAndReturn() {
-                // no-op
-            }
+        if (!sessionManager.isConnectedToTheInternet()) {
+            emit(DataState.apiError<BlogViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            return@flow
+        }
 
-            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<GenericResponse>) {
+        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+            safeApiCall { nyasaBlogApiMainService.deleteBlogPost(blogPost.slug) }
+        }
+
+        when (response) {
+            is ApiSuccessResponse -> {
                 if (response.body.response == SUCCESS_BLOG_DELETED) {
-                    updateLocalDb(blogPost)
-                } else {
-                    onCompleteJob(
-                        DataState.error(
-                            Response(
-                                ERROR_UNKNOWN,
-                                ResponseType.Dialog()
-                            )
-                        )
-                    )
-                }
-            }
-
-            override fun loadFromCache(): LiveData<BlogViewState> {
-                return object : LiveData<BlogViewState>() {}
-            }
-
-            override suspend fun createCall(): GenericApiResponse<GenericResponse> {
-                return safeApiCall { nyasaBlogApiMainService.deleteBlogPost(blogPost.slug) }
-            }
-
-            override suspend fun updateLocalDb(cacheObject: BlogPost?) {
-                cacheObject?.let { blogPost ->
                     blogPostDao.deleteBlogPost(blogPost)
-                    onCompleteJob(
-                        DataState.data(
-                            null,
-                            Response(SUCCESS_BLOG_DELETED, ResponseType.Toast())
-                        )
+                    emit(
+                        DataState.data<BlogViewState>(null, Response(SUCCESS_BLOG_DELETED, ResponseType.Toast()))
                     )
+                } else {
+                    emit(DataState.error<BlogViewState>(Response(ERROR_UNKNOWN, ResponseType.Dialog())))
                 }
             }
-
-            override fun setJob(job: Job) {
-                addJob("deleteBlogPost", job)
-            }
-        }.asLiveData()
-    }
+            else -> this.emitApiError<BlogViewState>(response)
+        }
+    }.flowOn(Dispatchers.IO)
 
     fun updateBlogPost(
         slug: String,
         title: RequestBody,
         body: RequestBody,
         image: MultipartBody.Part?
-    ): LiveData<DataState<BlogViewState>> {
-        return object : NetworkBoundResource<BlogCreateUpdateResponse, BlogPost, BlogViewState>(
-            sessionManager.isConnectedToTheInternet(),
-            true,
-            true,
-            false
-        ) {
+    ): Flow<DataState<BlogViewState>> = flow {
+        emit(DataState.loading<BlogViewState>(isLoading = true))
 
-            override suspend fun createCacheRequestAndReturn() {
-                // no-op
-            }
+        if (!sessionManager.isConnectedToTheInternet()) {
+            emit(DataState.apiError<BlogViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            return@flow
+        }
 
-            override suspend fun handleApiSuccessResponse(
-                response: ApiSuccessResponse<BlogCreateUpdateResponse>
-            ) {
+        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+            safeApiCall { nyasaBlogApiMainService.updateBlog(slug, title, body, image) }
+        }
+
+        when (response) {
+            is ApiSuccessResponse -> {
                 val updatedBlogPost = BlogPost(
                     response.body.pk,
                     response.body.title,
@@ -300,47 +219,24 @@ constructor(
                     DateUtils.convertServerStringDateToLong(response.body.date_updated),
                     response.body.username
                 )
-
-                updateLocalDb(updatedBlogPost)
-
-                withContext(Dispatchers.Main) {
-                    onCompleteJob(
-                        DataState.data(
-                            BlogViewState(
-                                viewBlogFields = ViewBlogFields(
-                                    blogPost = updatedBlogPost
-                                )
-                            ),
-                            Response(response.body.response, ResponseType.Toast())
-                        )
+                blogPostDao.updateBlogPost(
+                    updatedBlogPost.pk,
+                    updatedBlogPost.title,
+                    updatedBlogPost.body,
+                    updatedBlogPost.image
+                )
+                emit(
+                    DataState.data(
+                        BlogViewState(viewBlogFields = ViewBlogFields(blogPost = updatedBlogPost)),
+                        Response(response.body.response, ResponseType.Toast())
                     )
-                }
+                )
             }
+            else -> this.emitApiError<BlogViewState>(response)
+        }
+    }.flowOn(Dispatchers.IO)
 
-            override fun loadFromCache(): LiveData<BlogViewState> {
-                return object : LiveData<BlogViewState>() {}
-            }
-
-            override suspend fun createCall(): GenericApiResponse<BlogCreateUpdateResponse> {
-                return safeApiCall {
-                    nyasaBlogApiMainService.updateBlog(slug, title, body, image)
-                }
-            }
-
-            override suspend fun updateLocalDb(cacheObject: BlogPost?) {
-                cacheObject?.let { blogPost ->
-                    blogPostDao.updateBlogPost(
-                        blogPost.pk,
-                        blogPost.title,
-                        blogPost.body,
-                        blogPost.image
-                    )
-                }
-            }
-
-            override fun setJob(job: Job) {
-                addJob("updateBlogPost", job)
-            }
-        }.asLiveData()
+    companion object {
+        private const val TAG = "AppDebug"
     }
 }

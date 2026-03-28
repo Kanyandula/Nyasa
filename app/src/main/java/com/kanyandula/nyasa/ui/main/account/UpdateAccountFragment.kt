@@ -15,9 +15,7 @@ import com.kanyandula.nyasa.databinding.FragmentUpdateAccountBinding
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class UpdateAccountFragment : BaseAccountFragment<FragmentUpdateAccountBinding>(FragmentUpdateAccountBinding::inflate) {
 

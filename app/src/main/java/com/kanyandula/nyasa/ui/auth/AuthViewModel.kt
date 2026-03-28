@@ -1,10 +1,10 @@
 package com.kanyandula.nyasa.ui.auth
 
-import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.repository.auth.AuthRepository
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.DataState
+import com.kanyandula.nyasa.ui.Loading
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.CheckPreviousAuthEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.LoginAttemptEvent
@@ -14,27 +14,27 @@ import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-@ExperimentalCoroutinesApi
 @HiltViewModel
 class AuthViewModel
 @Inject
 constructor(
-    val authRepository: AuthRepository
+    private val authRepository: AuthRepository
 ) : BaseViewModel<AuthStateEvent, AuthViewState>() {
-    override fun handleStateEvent(stateEvent: AuthStateEvent): LiveData<DataState<AuthViewState>> {
-        when (stateEvent) {
+    override fun handleStateEvent(stateEvent: AuthStateEvent): Flow<DataState<AuthViewState>> {
+        return when (stateEvent) {
             is LoginAttemptEvent -> {
-                return authRepository.attemptLogin(
+                authRepository.attemptLogin(
                     stateEvent.email,
                     stateEvent.password
                 )
             }
 
             is RegisterAttemptEvent -> {
-                return authRepository.attemptRegistration(
+                authRepository.attemptRegistration(
                     stateEvent.email,
                     stateEvent.username,
                     stateEvent.password,
@@ -43,16 +43,11 @@ constructor(
             }
 
             is CheckPreviousAuthEvent -> {
-                return authRepository.checkPreviousAuthUser()
+                authRepository.checkPreviousAuthUser()
             }
 
             is None -> {
-                return object : LiveData<DataState<AuthViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState.data(null, null)
-                    }
-                }
+                flowOf(DataState(null, Loading(false), null))
             }
         }
     }
@@ -90,7 +85,6 @@ constructor(
 
     fun cancelActiveJobs() {
         handlePendingData()
-        authRepository.cancelActiveJobs()
     }
 
     fun handlePendingData() {

@@ -1,25 +1,27 @@
+@file:Suppress("PackageNaming")
+
 package com.kanyandula.nyasa.repository.main
 
-import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
-import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
-import com.kanyandula.nyasa.repository.JobManager
-import com.kanyandula.nyasa.repository.NetworkBoundResource
+import com.kanyandula.nyasa.repository.emitApiError
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.DataState
 import com.kanyandula.nyasa.ui.Response
 import com.kanyandula.nyasa.ui.ResponseType
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.util.ApiSuccessResponse
+import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
 import com.kanyandula.nyasa.util.DateUtils
-import com.kanyandula.nyasa.util.GenericApiResponse
+import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
 import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import javax.inject.Inject
@@ -27,31 +29,31 @@ import javax.inject.Inject
 class CreateBlogRepository
 @Inject
 constructor(
-    val blogApiMainService: NyasaBlogApiMainService,
-    val blogPostDao: BlogPostDao,
-    val sessionManager: SessionManager
-) : JobManager("CreateBlogRepository") {
+    private val blogApiMainService: NyasaBlogApiMainService,
+    private val blogPostDao: BlogPostDao,
+    private val sessionManager: SessionManager
+) {
 
     fun createNewBlogPost(
         title: RequestBody,
         body: RequestBody,
         image: MultipartBody.Part?
-    ): LiveData<DataState<CreateBlogViewState>> {
-        return object :
-            NetworkBoundResource<BlogCreateUpdateResponse, BlogPost, CreateBlogViewState>(
-                sessionManager.isConnectedToTheInternet(),
-                true,
-                true,
-                false
-            ) {
+    ): Flow<DataState<CreateBlogViewState>> = flow {
+        emit(DataState.loading<CreateBlogViewState>(isLoading = true))
 
-            override suspend fun createCacheRequestAndReturn() {
-                // no-op
-            }
+        if (!sessionManager.isConnectedToTheInternet()) {
+            emit(DataState.apiError<CreateBlogViewState>(UNABLE_TODO_OPERATION_WO_INTERNET))
+            return@flow
+        }
 
-            override suspend fun handleApiSuccessResponse(response: ApiSuccessResponse<BlogCreateUpdateResponse>) {
-                if (!response.body.response.equals(RESPONSE_MUST_HAVE_NYASABLOG_UER)) {
-                    val updatedBlogPost = BlogPost(
+        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
+            safeApiCall { blogApiMainService.createBlog(title, body, image) }
+        }
+
+        when (response) {
+            is ApiSuccessResponse -> {
+                if (response.body.response != RESPONSE_MUST_HAVE_NYASABLOG_UER) {
+                    val createdBlogPost = BlogPost(
                         response.body.pk,
                         response.body.title,
                         response.body.slug,
@@ -60,36 +62,16 @@ constructor(
                         DateUtils.convertServerStringDateToLong(response.body.date_updated),
                         response.body.username
                     )
-                    updateLocalDb(updatedBlogPost)
+                    blogPostDao.insert(createdBlogPost)
                 }
-
-                withContext(Dispatchers.Main) {
-                    onCompleteJob(
-                        DataState.data(
-                            null,
-                            Response(response.body.response, ResponseType.Dialog())
-                        )
+                emit(
+                    DataState.data<CreateBlogViewState>(
+                        null,
+                        Response(response.body.response, ResponseType.Dialog())
                     )
-                }
+                )
             }
-
-            override suspend fun createCall(): GenericApiResponse<BlogCreateUpdateResponse> {
-                return safeApiCall { blogApiMainService.createBlog(title, body, image) }
-            }
-
-            override fun loadFromCache(): LiveData<CreateBlogViewState> {
-                return object : LiveData<CreateBlogViewState>() {}
-            }
-
-            override suspend fun updateLocalDb(cacheObject: BlogPost?) {
-                cacheObject?.let {
-                    blogPostDao.insert(it)
-                }
-            }
-
-            override fun setJob(job: Job) {
-                addJob("createNewBlogPost", job)
-            }
-        }.asLiveData()
-    }
+            else -> this.emitApiError<CreateBlogViewState>(response)
+        }
+    }.flowOn(Dispatchers.IO)
 }

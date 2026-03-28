@@ -1,7 +1,5 @@
 package com.kanyandula.nyasa.ui.main.account
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.repository.main.AccountRepository
 import com.kanyandula.nyasa.session.SessionManager
@@ -15,28 +13,28 @@ import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.None
 import com.kanyandula.nyasa.ui.main.account.state.AccountStateEvent.UpdateAccountPropertiesEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-@ExperimentalCoroutinesApi
 @HiltViewModel
 class AccountViewModel
 @Inject
 constructor(
-    val sessionManager: SessionManager,
-    val accountRepository: AccountRepository
+    private val sessionManager: SessionManager,
+    private val accountRepository: AccountRepository
 ) :
     BaseViewModel<AccountStateEvent, AccountViewState>() {
-    override fun handleStateEvent(stateEvent: AccountStateEvent): LiveData<DataState<AccountViewState>> {
-        when (stateEvent) {
+    override fun handleStateEvent(stateEvent: AccountStateEvent): Flow<DataState<AccountViewState>> {
+        return when (stateEvent) {
             is GetAccountPropertiesEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
+                sessionManager.cachedToken.value?.let { authToken ->
                     accountRepository.getAccountProperties(authToken)
-                } ?: MutableLiveData()
+                } ?: flowOf(DataState(null, Loading(false), null))
             }
 
             is UpdateAccountPropertiesEvent -> {
-                return sessionManager.cachedToken.value?.let { authToken ->
+                sessionManager.cachedToken.value?.let { authToken ->
                     authToken.account_pk?.let { pk ->
                         val newAccountProperties = AccountProperties(
                             pk,
@@ -47,11 +45,11 @@ constructor(
                             newAccountProperties
                         )
                     }
-                } ?: MutableLiveData()
+                } ?: flowOf(DataState(null, Loading(false), null))
             }
 
             is ChangePasswordEvent -> {
-                return accountRepository.updatePassword(
+                accountRepository.updatePassword(
                     stateEvent.currentPassword,
                     stateEvent.newPassword,
                     stateEvent.confirmNewPassword
@@ -59,12 +57,7 @@ constructor(
             }
 
             is None -> {
-                return object : LiveData<DataState<AccountViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState(null, Loading(false), null)
-                    }
-                }
+                flowOf(DataState(null, Loading(false), null))
             }
         }
     }
@@ -87,7 +80,6 @@ constructor(
     }
 
     fun cancelActiveJobs() {
-        accountRepository.cancelActiveJobs()
         handlePendingData()
     }
 

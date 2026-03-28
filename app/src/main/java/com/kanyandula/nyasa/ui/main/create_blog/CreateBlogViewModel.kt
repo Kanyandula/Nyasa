@@ -3,7 +3,6 @@
 package com.kanyandula.nyasa.ui.main.create_blog
 
 import android.net.Uri
-import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.repository.main.CreateBlogRepository
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
@@ -15,29 +14,29 @@ import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogStateEvent.None
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
-@ExperimentalCoroutinesApi
 @HiltViewModel
 class CreateBlogViewModel
 @Inject
 constructor(
-    val createBlogRepository: CreateBlogRepository,
-    val sessionManager: SessionManager
+    private val createBlogRepository: CreateBlogRepository,
+    @Suppress("UnusedPrivateProperty") private val sessionManager: SessionManager
 ) : BaseViewModel<CreateBlogStateEvent, CreateBlogViewState>() {
 
     override fun handleStateEvent(
         stateEvent: CreateBlogStateEvent
-    ): LiveData<DataState<CreateBlogViewState>> {
-        when (stateEvent) {
+    ): Flow<DataState<CreateBlogViewState>> {
+        return when (stateEvent) {
             is CreateNewBlogEvent -> {
                 val title = stateEvent.title.toRequestBody("text/plain".toMediaTypeOrNull())
                 val body = stateEvent.body.toRequestBody("text/plain".toMediaTypeOrNull())
 
-                return createBlogRepository.createNewBlogPost(
+                createBlogRepository.createNewBlogPost(
                     title,
                     body,
                     stateEvent.image
@@ -45,16 +44,13 @@ constructor(
             }
 
             is None -> {
-                return object : LiveData<DataState<CreateBlogViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState(
-                            null,
-                            Loading(false),
-                            null
-                        )
-                    }
-                }
+                flowOf(
+                    DataState(
+                        null,
+                        Loading(false),
+                        null
+                    )
+                )
             }
         }
     }
@@ -70,7 +66,7 @@ constructor(
         body?.let { newBlogFields.newBlogBody = it }
         uri?.let { newBlogFields.newImageUri = it }
         update.blogFields = newBlogFields
-        _viewState.value = update
+        setViewState(update)
     }
 
     fun clearNewBlogFields() {
@@ -80,7 +76,6 @@ constructor(
     }
 
     fun cancelActiveJobs() {
-        createBlogRepository.cancelActiveJobs()
         handlePendingData()
     }
 

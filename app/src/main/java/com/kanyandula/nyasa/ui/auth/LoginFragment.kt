@@ -10,9 +10,7 @@ import com.kanyandula.nyasa.databinding.FragmentLoginBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.LoginAttemptEvent
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class LoginFragment : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBinding::inflate) {
 

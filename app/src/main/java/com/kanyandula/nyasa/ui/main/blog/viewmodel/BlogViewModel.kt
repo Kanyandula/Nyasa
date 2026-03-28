@@ -1,7 +1,6 @@
 package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.repository.main.BlogRepository
 import com.kanyandula.nyasa.session.SessionManager
@@ -18,12 +17,12 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import javax.inject.Inject
 
-@ExperimentalCoroutinesApi
 @HiltViewModel
 class BlogViewModel
 @Inject
@@ -52,10 +51,10 @@ constructor(
         }
     }
 
-    override fun handleStateEvent(stateEvent: BlogStateEvent): LiveData<DataState<BlogViewState>> {
+    override fun handleStateEvent(stateEvent: BlogStateEvent): Flow<DataState<BlogViewState>> {
         return when (stateEvent) {
             is BlogSearchEvent -> {
-                return blogRepository.searchBlogPosts(
+                blogRepository.searchBlogPosts(
                     query = getSearchQuery(),
                     filterAndOrder = getOrder() + getFilter(),
                     page = getPage()
@@ -63,13 +62,13 @@ constructor(
             }
 
             is CheckAuthorOfBlogPost -> {
-                return blogRepository.isAuthorOfBlogPost(
+                blogRepository.isAuthorOfBlogPost(
                     slug = getSlug()
                 )
             }
 
             is DeleteBlogPostEvent -> {
-                return blogRepository.deleteBlogPost(
+                blogRepository.deleteBlogPost(
                     blogPost = getBlogPost()
                 )
             }
@@ -84,7 +83,7 @@ constructor(
                     stateEvent.body
                 )
 
-                return blogRepository.updateBlogPost(
+                blogRepository.updateBlogPost(
                     slug = getSlug(),
                     title = title,
                     body = body,
@@ -93,12 +92,7 @@ constructor(
             }
 
             is None -> {
-                return object : LiveData<DataState<BlogViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState(null, Loading(false), null)
-                    }
-                }
+                flowOf(DataState(null, Loading(false), null))
             }
         }
     }
@@ -114,7 +108,6 @@ constructor(
     }
 
     fun cancelActiveJobs() {
-        blogRepository.cancelActiveJobs()
         handlePendingData()
     }
 

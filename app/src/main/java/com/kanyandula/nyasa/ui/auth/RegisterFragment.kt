@@ -8,9 +8,7 @@ import com.kanyandula.nyasa.databinding.FragmentRegisterBinding
 import com.kanyandula.nyasa.ui.auth.state.AuthStateEvent.RegisterAttemptEvent
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @AndroidEntryPoint
 class RegisterFragment : BaseAuthFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
 

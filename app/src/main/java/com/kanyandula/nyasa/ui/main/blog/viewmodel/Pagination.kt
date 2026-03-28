@@ -3,16 +3,12 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 import android.util.Log
 import com.kanyandula.nyasa.ui.main.blog.state.BlogStateEvent.BlogSearchEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogViewState
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.resetPage() {
     val update = getCurrentViewStateOrNew()
     update.blogFields.page = 1
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.loadFirstPage() {
     setQueryInProgress(true)
     setQueryExhausted(false)
@@ -21,7 +17,6 @@ fun BlogViewModel.loadFirstPage() {
     Log.e(TAG, "BlogViewModel: loadFirstPage: ${getSearchQuery()}")
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 private fun BlogViewModel.incrementPageNumber() {
     val update = getCurrentViewStateOrNew()
     val page = update.copy().blogFields.page // get current page
@@ -29,7 +24,6 @@ private fun BlogViewModel.incrementPageNumber() {
     setViewState(update)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.nextPage() {
     if (!getIsQueryInProgress() &&
         !getIsQueryExhausted()
@@ -41,7 +35,6 @@ fun BlogViewModel.nextPage() {
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun BlogViewModel.handleIncomingBlogListData(viewState: BlogViewState) {
     Log.d(TAG, "BlogViewModel, DataState: $viewState")
     Log.d(
