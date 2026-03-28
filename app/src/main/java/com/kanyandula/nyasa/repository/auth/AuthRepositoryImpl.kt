@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.repository.auth
 import android.content.SharedPreferences
 import android.util.Log
 import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
+import com.kanyandula.nyasa.domain.repository.AuthRepository
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
@@ -26,7 +27,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
-class AuthRepository
+class AuthRepositoryImpl
 @Inject
 constructor(
     private val authTokenDao: AuthTokenDao,
@@ -35,9 +36,9 @@ constructor(
     private val sessionManager: SessionManager,
     private val sharedPreferences: SharedPreferences,
     private val sharedPrefsEditor: SharedPreferences.Editor
-) {
+) : AuthRepository {
 
-    fun attemptLogin(email: String, password: String): Flow<Resource<AuthToken>> = flow {
+    override fun attemptLogin(email: String, password: String): Flow<Resource<AuthToken>> = flow {
         emit(Resource.Loading())
 
         val loginFieldError = InputValidation.validateLoginFields(email, password)
@@ -83,7 +84,7 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    fun attemptRegistration(
+    override fun attemptRegistration(
         email: String,
         username: String,
         password: String,
@@ -143,7 +144,7 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    fun checkPreviousAuthUser(): Flow<Resource<AuthToken?>> = flow {
+    override fun checkPreviousAuthUser(): Flow<Resource<AuthToken?>> = flow {
         emit(Resource.Loading())
 
         val previousAuthUserEmail: String? =

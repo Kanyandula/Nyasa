@@ -4,31 +4,26 @@ package com.kanyandula.nyasa.ui.main.create_blog
 
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
-import com.kanyandula.nyasa.repository.main.CreateBlogRepository
+import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
-import com.kanyandula.nyasa.util.toPlainTextBody
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import okhttp3.MultipartBody
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateBlogViewModel
 @Inject
 constructor(
-    private val createBlogRepository: CreateBlogRepository
+    private val createBlogPostUseCase: CreateBlogPostUseCase
 ) : BaseViewModel<CreateBlogViewState>(CreateBlogViewState()) {
 
-    fun createNewBlogPost(title: String, body: String, image: MultipartBody.Part) {
-        val titleBody = title.toPlainTextBody()
-        val bodyBody = body.toPlainTextBody()
-
+    fun createNewBlogPost(title: String, body: String, imageUri: Uri?) {
         viewModelScope.launch {
-            createBlogRepository.createNewBlogPost(titleBody, bodyBody, image)
+            createBlogPostUseCase(title, body, imageUri)
                 .collect { resource ->
                     handleResource(
                         resource,

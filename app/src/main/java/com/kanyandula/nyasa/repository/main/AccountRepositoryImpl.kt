@@ -1,8 +1,8 @@
 package com.kanyandula.nyasa.repository.main
 
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
+import com.kanyandula.nyasa.domain.repository.AccountRepository
 import com.kanyandula.nyasa.models.AccountProperties
-import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.repository.apiErrorMessage
 import com.kanyandula.nyasa.session.SessionManager
@@ -18,15 +18,21 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
-class AccountRepository
+class AccountRepositoryImpl
 @Inject
 constructor(
-    private val openApiMainService: NyasaBlogApiMainService,
+    private val nyasaBlogApiMainService: NyasaBlogApiMainService,
     private val accountPropertiesDao: AccountPropertiesDao,
     private val sessionManager: SessionManager
-) {
+) : AccountRepository {
 
-    fun getAccountProperties(authToken: AuthToken): Flow<Resource<AccountProperties>> = flow {
+    override fun getAccountProperties(): Flow<Resource<AccountProperties>> = flow {
+        val authToken = sessionManager.cachedToken.value
+        if (authToken == null) {
+            emit(Resource.Error("Not authenticated"))
+            return@flow
+        }
+
         emit(Resource.Loading())
 
         val cachedAccount = authToken.account_pk?.let { accountPropertiesDao.searchByPk(it) }
@@ -36,7 +42,7 @@ constructor(
 
         if (sessionManager.isConnectedToTheInternet()) {
             val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
-                safeApiCall { openApiMainService.getAccountProperties() }
+                safeApiCall { nyasaBlogApiMainService.getAccountProperties() }
             }
 
             when (response) {
@@ -64,7 +70,7 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    fun saveAccountProperties(
+    override fun saveAccountProperties(
         accountProperties: AccountProperties
     ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
@@ -76,7 +82,7 @@ constructor(
 
         val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
             safeApiCall {
-                openApiMainService.saveAccountProperties(
+                nyasaBlogApiMainService.saveAccountProperties(
                     accountProperties.email,
                     accountProperties.username
                 )
@@ -96,7 +102,7 @@ constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    fun updatePassword(
+    override fun updatePassword(
         currentPassword: String,
         newPassword: String,
         confirmNewPassword: String
@@ -110,7 +116,7 @@ constructor(
 
         val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
             safeApiCall {
-                openApiMainService.updatePassword(currentPassword, newPassword, confirmNewPassword)
+                nyasaBlogApiMainService.updatePassword(currentPassword, newPassword, confirmNewPassword)
             }
         }
 

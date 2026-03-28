@@ -6,9 +6,12 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.kanyandula.nyasa.domain.usecase.blog.DeleteBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
-import com.kanyandula.nyasa.repository.main.BlogRepository
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
@@ -19,14 +22,12 @@ import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
-import com.kanyandula.nyasa.util.toPlainTextBody
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MultipartBody
 import javax.inject.Inject
 
 @Suppress("TooManyFunctions")
@@ -34,7 +35,10 @@ import javax.inject.Inject
 class BlogViewModel
 @Inject
 constructor(
-    private val blogRepository: BlogRepository,
+    private val searchBlogPostsUseCase: SearchBlogPostsUseCase,
+    private val isAuthorOfBlogPostUseCase: IsAuthorOfBlogPostUseCase,
+    private val deleteBlogPostUseCase: DeleteBlogPostUseCase,
+    private val updateBlogPostUseCase: UpdateBlogPostUseCase,
     private val sharedPreferences: SharedPreferences,
     private val editor: SharedPreferences.Editor,
     private val savedStateHandle: SavedStateHandle
@@ -47,6 +51,9 @@ constructor(
     val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var authorCheckJob: Job? = null
+    private var deleteJob: Job? = null
+    private var updateJob: Job? = null
 
     private fun updateViewBlogState(reducer: ViewBlogUiState.() -> ViewBlogUiState) {
         _viewBlogState.value = _viewBlogState.value.reducer()
@@ -204,7 +211,7 @@ constructor(
     private fun searchBlogPosts() {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            blogRepository.searchBlogPosts(
+            searchBlogPostsUseCase(
                 query = getSearchQuery(),
                 filterAndOrder = getOrder() + getFilter(),
                 page = getPage()
@@ -232,8 +239,9 @@ constructor(
     }
 
     fun checkIsAuthorOfBlogPost() {
-        viewModelScope.launch {
-            blogRepository.isAuthorOfBlogPost(slug = getSlug()).collect { resource ->
+        authorCheckJob?.cancel()
+        authorCheckJob = viewModelScope.launch {
+            isAuthorOfBlogPostUseCase(slug = getSlug()).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { isAuthor -> setIsAuthorOfBlogPost(isAuthor) }
@@ -243,8 +251,9 @@ constructor(
     }
 
     fun deleteBlogPost() {
-        viewModelScope.launch {
-            blogRepository.deleteBlogPost(blogPost = getBlogPost()).collect { resource ->
+        deleteJob?.cancel()
+        deleteJob = viewModelScope.launch {
+            deleteBlogPostUseCase(blogPost = getBlogPost()).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { message ->
@@ -259,16 +268,14 @@ constructor(
         }
     }
 
-    fun updateBlogPost(title: String, body: String, image: MultipartBody.Part?) {
-        val titleBody = title.toPlainTextBody()
-        val bodyBody = body.toPlainTextBody()
-
-        viewModelScope.launch {
-            blogRepository.updateBlogPost(
+    fun updateBlogPost(title: String, body: String, imageUri: Uri?) {
+        updateJob?.cancel()
+        updateJob = viewModelScope.launch {
+            updateBlogPostUseCase(
                 slug = getSlug(),
-                title = titleBody,
-                body = bodyBody,
-                image = image
+                title = title,
+                body = body,
+                image = imageUri
             ).collect { resource ->
                 handleResource(
                     resource,
@@ -287,10 +294,13 @@ constructor(
         blogList: List<BlogPost>,
         isQueryExhausted: Boolean
     ) {
-        Log.d(TAG, "BlogViewModel, handleIncomingBlogListData")
-        setQueryInProgress(false)
-        setQueryExhausted(isQueryExhausted)
-        setBlogListData(blogList)
+        updateState {
+            copy(
+                isQueryInProgress = false,
+                isQueryExhausted = isQueryExhausted,
+                blogList = blogList
+            )
+        }
     }
 
     private fun onBlogPostUpdateSuccess(blogPost: BlogPost) {

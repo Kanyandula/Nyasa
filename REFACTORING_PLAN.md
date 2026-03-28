@@ -3,20 +3,20 @@
 > Modernize the codebase incrementally from 2018-era patterns to current Android best practices.
 > Each phase leaves the app in a working, shippable state.
 
-## Current State
+## Current State (after Phase 5)
 
-| Layer | Current | Target |
-|-------|---------|--------|
-| Build | compileSdk 33, KAPT, Groovy Gradle | compileSdk 35, KSP, R8 enabled |
-| Networking | Retrofit + custom `LiveDataCallAdapter` | Retrofit `suspend` functions |
-| Repository | `NetworkBoundResource` (abstract, 5 methods) + `JobManager` | Flow-based `networkBoundResource` inline function |
-| State | Monolithic `BlogViewState` shared across 3 fragments, LiveData | Per-screen `UiState` with `StateFlow` |
-| Architecture | ViewModel talks directly to Repository | ViewModel -> UseCase -> Repository (interface) |
-| Navigation | Raw `R.id` actions, state via shared ViewModel | SafeArgs, data via navigation arguments |
-| Session | Deprecated `ConnectivityManager.activeNetworkInfo`, LiveData | `NetworkCallback` + `StateFlow` |
-| Pagination | Manual page tracking, string-based error detection | Paging 3 with `RemoteMediator` |
-| UI | XML Views + ViewBinding | Jetpack Compose (incremental) |
-| Testing | Scaffold only | Unit tests, integration tests, UI tests |
+| Layer | Status | Current |
+|-------|--------|---------|
+| Build | Done (Phase 1) | compileSdk 35, KSP, R8 enabled |
+| Networking | Done (Phase 2) | Retrofit `suspend` functions, `safeApiCall` |
+| Repository | Done (Phase 3+5) | `Flow<Resource<T>>`, interfaces in `domain/repository/`, impls in `repository/` |
+| State | Done (Phase 4) | Per-screen `UiState` with `StateFlow`, `SharedFlow<UiEvent>` for one-shot events |
+| Architecture | Done (Phase 5) | ViewModel -> UseCase -> Repository (interface) |
+| Navigation | Pending (Phase 6) | Raw `R.id` actions, state via shared ViewModel |
+| Session | Pending (Phase 7) | Deprecated `ConnectivityManager.activeNetworkInfo`, `StateFlow` for token |
+| Pagination | Pending (Phase 8) | Manual page tracking, string-based error detection |
+| UI | Pending (Phase 9) | XML Views + ViewBinding |
+| Testing | Pending (Phase 10) | Scaffold only |
 
 ---
 

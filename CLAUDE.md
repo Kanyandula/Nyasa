@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 NyasaBlog is a native Android app (Kotlin) that interacts with the REST API at `nyasablog.com`. It is a blogging platform for Malawian content creators. The app supports authentication, blog CRUD with image uploads, account management, and offline caching.
 
-The codebase is undergoing a 10-phase modernization (see `REFACTORING_PLAN.md`). Phases 1-4 are complete; the current branch is `Phase-4-Split-ViewState-&-Migrate-to-StateFlow`.
+The codebase is undergoing a 10-phase modernization (see `REFACTORING_PLAN.md`). Phases 1-5 are complete.
 
 ## Build & Quality Commands
 
@@ -29,24 +29,28 @@ Pre-commit hook runs detekt, spotlessCheck, and lintDebug. Fix spotless issues w
 
 ## Architecture
 
-**Pattern**: MVVM with StateFlow, Channel-based events, and Repository pattern.
+**Pattern**: MVVM with StateFlow, Use Cases, and Repository pattern (Clean Architecture).
 
 ```
-Fragments (collect StateFlow) → ViewModel (StateFlow + Channel) → Repository (Flow<Resource<T>>) → Room DAOs + Retrofit Services
+Fragments (collect StateFlow) → ViewModel → UseCase → Repository Interface → RepositoryImpl → Room DAOs + Retrofit Services
 ```
 
 **Key abstractions**:
-- `BaseViewModel<ViewState>` — provides `StateFlow<ViewState>`, `StateFlow<Boolean>` for loading, and `Channel<UiEvent>` for one-shot events
+- `BaseViewModel<ViewState>` — provides `StateFlow<ViewState>`, `StateFlow<Boolean>` for loading, and `SharedFlow<UiEvent>` for one-shot events
 - `Resource<T>` — sealed class (`Loading`, `Success`, `Error`) emitted by repositories
 - `UiEvent` — interface for one-shot UI events (`ShowToast`, `ShowErrorDialog`, `ShowSuccessDialog`); screen-specific events extend it (e.g. `BlogNavigationEvent`, `AuthUiEvent`, `AccountUiEvent`)
+- Use cases — single-responsibility classes with `operator fun invoke()`, one per repository operation
+- Repository interfaces in `domain/repository/`, implementations in `repository/` as `*Impl`
 - `SessionManager` — singleton holding cached `AuthToken` as `StateFlow`, manages login/logout state
 
 **Package layout** (`com.kanyandula.nyasa`):
 - `api/` — Retrofit services (`auth/`, `main/`), interceptors, response models
-- `di/` — Hilt modules (`AppModule`, `AuthModule`, `MainModule`)
+- `di/` — Hilt modules (`AppModule`, `AuthModule`, `MainModule`); binds repository interfaces to implementations
+- `domain/repository/` — Repository interfaces (`AuthRepository`, `BlogRepository`, `AccountRepository`, `CreateBlogRepository`)
+- `domain/usecase/` — Use case classes organized by feature (`auth/`, `blog/`, `account/`, `create_blog/`)
 - `models/` — Room entities (`AuthToken`, `AccountProperties`, `BlogPost`)
 - `persistance/` — Room database, DAOs, query utils
-- `repository/` — auth/main repositories returning `Flow<Resource<T>>`
+- `repository/` — Repository implementations (`*Impl`) returning `Flow<Resource<T>>`
 - `session/` — `SessionManager`
 - `ui/` — Activities, Fragments, ViewModels, state classes (`auth/`, `main/blog/`, `main/account/`, `main/create_blog/`)
 - `util/` — Constants, error handling, `safeApiCall`, `GenericApiResponse`, `Resource`

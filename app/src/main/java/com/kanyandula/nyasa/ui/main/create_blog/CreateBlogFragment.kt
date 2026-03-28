@@ -6,7 +6,6 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -31,10 +30,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
 
 @AndroidEntryPoint
 class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(FragmentCreateBlogBinding::inflate) {
@@ -119,31 +114,17 @@ class CreateBlogFragment : BaseCreateBlogFragment<FragmentCreateBlogBinding>(Fra
     }
 
     private fun publishNewBlog() {
-        var multipartBody: MultipartBody.Part? = null
-        viewModel.viewState.value.blogFields.newImageUri?.let { imageUri ->
-            imageUri.path?.let { filePath ->
-                val imageFile = File(filePath)
-                Log.d(TAG, "CreateBlogFragment, imageFile: file: $imageFile")
-                if (imageFile.exists()) {
-                    val requestBody =
-                        imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-                    multipartBody = MultipartBody.Part.createFormData(
-                        "image",
-                        imageFile.name,
-                        requestBody
-                    )
-                }
-            }
+        val imageUri = viewModel.viewState.value.blogFields.newImageUri
+        if (imageUri == null) {
+            stateChangeListener.displayErrorDialog(ERROR_MUST_SELECT_IMAGE)
+            return
         }
 
-        multipartBody?.let {
-            viewModel.createNewBlogPost(
-                binding?.blogTitle?.text.toString(),
-                binding?.blogBody?.text.toString(),
-                it
-            )
-        } ?: stateChangeListener.displayErrorDialog(ERROR_MUST_SELECT_IMAGE)
-
+        viewModel.createNewBlogPost(
+            binding?.blogTitle?.text.toString(),
+            binding?.blogBody?.text.toString(),
+            imageUri
+        )
         stateChangeListener.hideSoftKeyboard()
     }
 
