@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
     id 'androidx.navigation.safeargs'
@@ -44,6 +45,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
     }
     lint {
         abortOnError false
@@ -118,6 +120,25 @@ dependencies {
     implementation 'androidx.activity:activity-ktx:1.9.3'
     implementation 'androidx.fragment:fragment-ktx:1.8.5'
 
+    // Compose
+    implementation platform('androidx.compose:compose-bom:2024.12.01')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.runtime:runtime'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.compose.ui:ui-text-google-fonts'
+    implementation 'androidx.activity:activity-compose:1.9.3'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.6'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
+    implementation 'androidx.paging:paging-compose:3.3.6'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    // Coil (Compose-native image loading)
+    implementation 'io.coil-kt.coil3:coil-compose:3.0.4'
+    implementation 'io.coil-kt.coil3:coil-network-okhttp:3.0.4'
+
     // Navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.7'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.7'
@@ -137,9 +158,9 @@ dependencies {
     implementation "androidx.paging:paging-runtime:3.3.6"
 
     // Hilt
-    implementation "com.google.dagger:hilt-android:2.51.1"
-    ksp "com.google.dagger:hilt-compiler:2.51.1"
-    kspAndroidTest "com.google.dagger:hilt-android-compiler:2.51.1"
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    ksp "com.google.dagger:hilt-compiler:$hilt_version"
+    kspAndroidTest "com.google.dagger:hilt-android-compiler:$hilt_version"
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
@@ -150,7 +171,7 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:2.11.0"
     implementation "com.squareup.okhttp3:logging-interceptor:4.12.0"
 
-    // Glide
+    // Glide (kept during transition, replaced by Coil in Phase E)
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     // Image Picker + Cropper

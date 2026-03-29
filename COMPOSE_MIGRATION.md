@@ -17,6 +17,8 @@
 ## 1. Stitch Design-to-Screen Mapping
 
 **Stitch Project:** `projects/7258074762929658095`
+**Design System:** "Organic Brutalism" / "The Digital Baobab"
+**Verified:** 2026-03-29 — All 13 screens confirmed present in Stitch project
 
 Fetch any screen's HTML/screenshot via Stitch MCP: `get_screen(projectId, screenId)`
 
@@ -29,6 +31,50 @@ Fetch any screen's HTML/screenshot via Stitch MCP: `get_screen(projectId, screen
 | Register | `0c6b56c895254ac2bcc1a240a829f2ff` | `fragment_register.xml` | `RegisterFragment` | `ui/auth/composables/RegisterScreen.kt` |
 | Forgot Password | `bb194b0093384d19b2265c791592c6d6` | `fragment_forgot_password.xml` | `ForgotPasswordFragment` | `ui/auth/composables/ForgotPasswordScreen.kt` |
 
+#### Welcome Screen Components
+- **Heading:** "Welcome to NyasaBlog" (Newsreader headline)
+- **Tagline:** "Discover the pulse of Malawian stories, where every voice finds its horizon." (Plus Jakarta Sans body, `on-surface-variant`)
+- **Buttons:** Login (primary gradient), Register (secondary ghost), Forgot Password (text link)
+- **Background:** `surface` (#fef8f3) with chitenje watermark pattern at 4% opacity
+- **Shared components:** `NyasaButton` (primary + secondary variants)
+
+#### Login Screen Components
+- **Top bar:** Back arrow + "NyasaBlog" title + "Digital Baobab" subtitle
+- **Hero image:** Decorative landscape banner (full-width)
+- **Heading:** "Welcome back" (Newsreader), "Please enter your details to sign in" (Plus Jakarta Sans)
+- **Form fields:**
+  - Email — `mail` icon, label "Email Address"
+  - Password — `lock` icon, label "Password", "Forgot password?" link
+- **CTA:** "Login" + `arrow_forward` icon (primary gradient button)
+- **Social auth:** "Or continue with" divider + Google/Apple icons
+- **Footer:** "Don't have an account? Sign up" link
+- **Shared components:** `NyasaTextField` (outlined + leading icon), `NyasaButton`, `SocialAuthRow`
+
+#### Register Screen Components
+- **Header:** "NyasaBlog" + "Join the Story" + "Create Account"
+- **Subtitle:** "Start your journey into the digital landscapes of Malawi."
+- **Form fields:**
+  - Email — `alternate_email` icon + `check_circle` validation indicator
+  - Username — `person` icon
+  - Password — `lock` icon + `visibility_off` toggle
+  - Confirm Password — `lock_reset` icon
+  - Error message — `error` icon + "Passwords do not match" (`error` color)
+- **Checkbox:** "I agree to the Terms of Service and Privacy Policy"
+- **CTA:** "Register" + `arrow_forward` (primary gradient)
+- **Social auth:** "or join with" + Google/Facebook icons
+- **Footer:** "Already have an account? Sign In"
+- **Shared components:** `NyasaTextField`, `NyasaButton`, `SocialAuthRow`, `PasswordStrengthIndicator`
+
+#### Forgot Password Screen Components
+- **Top bar:** `arrow_back` + `lock_reset` icons
+- **Heading:** "Forgot Password?" (Newsreader headline, `primary` color)
+- **Body:** "Enter your email to receive a reset link. We'll help you get back to your stories in no time."
+- **Form field:** Email — `mail` icon, label "Email Address"
+- **CTA:** "Send Reset Link" + `arrow_forward` (primary gradient)
+- **Footer:** "Remember your password? Login" link
+- **Background:** Chitenje pattern overlay at 4% opacity
+- **Shared components:** `NyasaTextField`, `NyasaButton`
+
 ### Account Flow (Phase B)
 
 | Screen | Stitch ID | Current XML | Current Fragment | Target Composable |
@@ -36,6 +82,42 @@ Fetch any screen's HTML/screenshot via Stitch MCP: `get_screen(projectId, screen
 | Account Profile | `793717eb35824505918bd9192416e1cd` | `fragment_account.xml` | `AccountFragment` | `ui/main/account/composables/AccountProfileScreen.kt` |
 | Edit Account | `36643e21bb574ad6b003620c824375e4` | `fragment_update_account.xml` | `UpdateAccountFragment` | `ui/main/account/composables/EditAccountScreen.kt` |
 | Change Password | `971a0529ef6441a5adb9e786cc49872e` | `fragment_change_password.xml` | `ChangePasswordFragment` | `ui/main/account/composables/ChangePasswordScreen.kt` |
+
+#### Account Profile Screen Components
+- **Top bar:** Hamburger menu + "NyasaBlog" + search icon
+- **Profile section:** Avatar image, "Creator Name", "@nyasa_creator" handle, email, `verified` badge, "Premium Storyteller" status
+- **Stats row:** "24 Published Stories" | "1.2k Total Reads"
+- **Menu items** (with chevron icons):
+  - `edit_note` "Edit Profile" → navigates to EditAccountScreen
+  - `lock_reset` "Change Password" → navigates to ChangePasswordScreen
+  - `logout` "Logout" + `exit_to_app` icon
+- **Bottom nav:** Home | Create (`add_circle`) | Account (active)
+- **Shared components:** `NyasaTopBar`, `NyasaBottomBar`, `ProfileHeader`
+
+#### Edit Account Screen Components
+- **Top bar:** `arrow_back` + "Edit Profile" title + "Save" action (`check` icon)
+- **Profile image:** Circular avatar + `photo_camera` overlay (image upload)
+- **Form fields:**
+  - Creator Name — displays "@nyasa_creator", label "USERNAME"
+  - Email — `alternate_email` icon, label "EMAIL ADDRESS", helper "Used for account security and updates"
+  - Bio — multiline text area with bio content
+- **Footer:** `delete_forever` "Delete Account" (destructive button)
+- **Shared components:** `NyasaTextField`, `NyasaButton` (destructive variant)
+
+#### Change Password Screen Components
+- **Top bar:** `arrow_back` icon
+- **Header:** "Change Password" heading + `lock_reset` icon + "Secure Your Account" subtitle
+- **Body:** "Ensure your new password is strong and contains at least 8 characters."
+- **Form fields:**
+  - Current Password — `password` icon
+  - New Password — `vpn_key` icon + visibility toggle
+  - Confirm New Password — `verified_user` icon
+- **Password requirements checklist:**
+  - `check_circle` "8+ Characters" (met)
+  - `radio_button_unchecked` "1 Number" (unmet)
+- **CTA:** "Update Password" (primary gradient)
+- **Helper text:** "You will be logged out of other devices."
+- **Shared components:** `NyasaTextField`, `NyasaButton`, `PasswordRequirementsList`
 
 ### Blog CRUD (Phase C)
 
@@ -45,6 +127,38 @@ Fetch any screen's HTML/screenshot via Stitch MCP: `get_screen(projectId, screen
 | Create Blog | `0ca45af5f9c941868ecd9bc6ec171e84` | `fragment_create_blog.xml` | `CreateBlogFragment` | `ui/main/create_blog/composables/CreateBlogScreen.kt` |
 | Edit Blog | `1f022f0564c049e0ab8712f7b04a556a` | `fragment_update_blog.xml` | `UpdateBlogFragment` | `ui/main/blog/composables/EditBlogScreen.kt` |
 
+#### Blog Detail Screen Components
+- **Top bar:** Back arrow + share/bookmark action icons
+- **Hero image:** Full-width article banner (16:9, `rounded-lg` 16.dp)
+- **Category tag:** "Travel & Culture" (`label-md`, Plus Jakarta Sans, all caps)
+- **Title:** "Whispers of the Lake: A Journey into the Heart of Mangochi" (Newsreader `headline-lg`)
+- **Author row:** Profile image + "Creator Name" + "May 24, 2024" + "8 min read" + Follow button
+- **Article body:** Rich text with paragraphs (Newsreader body), pull quotes (`primary` color, italic), embedded images
+- **Tags footer:** Hashtags (#Malawi, #TravelJournal, #Photography)
+- **Owner actions:** Edit (`edit_note`) + Delete (`delete`) buttons (visible only if author)
+- **Shared components:** `NyasaTopBar`, `NyasaBlogCard` (image component), `AuthorRow`
+
+#### Create Blog Screen Components
+- **Top bar:** "NyasaBlog - Create Story" + "Draft" status + Preview/Publish buttons
+- **Image upload:** `add_a_photo` icon + "Select Photo" + "High resolution (16:9) recommended" helper
+- **Form fields:**
+  - Title — "Story Title" + character counter "0 / 60"
+  - Content — "Your Story" multiline editor
+- **Formatting toolbar:** `format_bold`, `format_italic`, `link`, `format_list_bulleted`, `format_quote`, `image`
+- **Bottom nav:** Home | Create (active) | Profile
+- **Shared components:** `NyasaButton`, `NyasaBottomBar`, `ImagePickerBox`, `RichTextToolbar`
+
+#### Edit Blog Screen Components
+- **Top bar:** Close (X) + "Edit Story" + Save (`check` icon)
+- **Cover image:** Existing image preview + `add_a_photo` overlay + "Tap to change"
+- **Form fields:**
+  - Headline input — pre-filled article title
+  - Body editor — pre-filled article content with text
+- **Formatting toolbar:** `format_bold`, `format_italic`, `link`
+- **Metadata:** Category dropdown (`expand_more` icon) + Reading Time (`schedule` icon)
+- **Footer actions:** Image/Media | Tags | Preview | Delete/Discard
+- **Shared components:** `NyasaButton`, `ImagePickerBox`, `RichTextToolbar`, `CategoryDropdown`
+
 ### Blog Feed (Phase D)
 
 | Screen | Stitch ID | Current XML | Current Fragment | Target Composable |
@@ -52,6 +166,59 @@ Fetch any screen's HTML/screenshot via Stitch MCP: `get_screen(projectId, screen
 | Blog Feed Home | `35a8e64f78384be885d1461339b631cf` | `fragment_blog.xml` | `BlogFragment` | `ui/main/blog/composables/BlogFeedScreen.kt` |
 | Blog Feed Search | `64a6cd3b59204a39a313680de232f61d` | (same fragment, search state) | `BlogFragment` | `ui/main/blog/composables/BlogSearchBar.kt` |
 | Blog Feed Filter | `d09362fc43ce4f1fb4ea78327d33f5f7` | `layout_blog_filter.xml` | `BlogFragment` | `ui/main/blog/composables/BlogFilterSheet.kt` |
+
+#### Blog Feed Home Screen Components
+- **Top bar:** Hamburger + "NyasaBlog" + search + filter + refresh icons
+- **Editor's Pick card:** Large hero image + "Editor's Pick" label + title + author (initials avatar + name) + date + "Read More" CTA
+- **Blog card list:** Each card has:
+  - Thumbnail image (16:9, 16.dp rounded)
+  - Headline (Newsreader `headline-sm`)
+  - Author byline + read time
+  - Bookmark icon
+  - Cards separated by `spacing-6` (2rem / 32.dp), no divider lines
+  - Card bg: `surface-container-lowest` on `surface-container-low`
+- **End-of-feed:** Eco icon + "You've reached the roots" + "Refresh Feed" button
+- **Bottom nav:** Home (active, Sunset Orange dot) | Create | Account
+- **Shared components:** `NyasaTopBar`, `NyasaBottomBar`, `NyasaBlogCard`, `EditorPickCard`, `EndOfFeedMessage`
+
+#### Blog Feed Search Components
+- **Search bar:** Active search input with back/close controls
+- **Filter chips:** "All Results" | "Travel" | "Culture" | "Photography" (horizontal scroll)
+- **Results count:** "Found 24 Stories" + sort icon
+- **Result cards:** Same as blog cards but with category label + relative timestamps ("Yesterday", "3h ago")
+- **Shared components:** `BlogSearchBar`, `FilterChipRow`, `NyasaBlogCard`
+
+#### Blog Feed Filter Dialog Components
+- **Header:** "Filter stories" + "Customize your reading experience"
+- **Filter sections:**
+  - Filter by: Author, Date
+  - Ordering: Ascending (`trending_up`) / Descending (`trending_down`)
+- **Actions:** "Apply filters" (primary) + "Cancel" (secondary ghost)
+- **Presentation:** ModalBottomSheet
+- **Shared components:** `NyasaButton`, `FilterOptionRow`
+
+### Shared Component Registry
+
+Components used across 2+ screens, to be built in Phase 0:
+
+| Component | Used In | File |
+|-----------|---------|------|
+| `NyasaButton` | All screens | `ui/components/NyasaButton.kt` |
+| `NyasaTextField` | Auth, Account, Create/Edit Blog | `ui/components/NyasaTextField.kt` |
+| `NyasaTopBar` | Feed, Detail, Account | `ui/components/NyasaTopBar.kt` |
+| `NyasaBottomBar` | Feed, Create, Account | `ui/components/NyasaBottomBar.kt` |
+| `NyasaBlogCard` | Feed Home, Feed Search | `ui/components/NyasaBlogCard.kt` |
+| `SocialAuthRow` | Login, Register | `ui/auth/composables/SocialAuthRow.kt` |
+| `ImagePickerBox` | Create Blog, Edit Blog | `ui/components/ImagePickerBox.kt` |
+| `RichTextToolbar` | Create Blog, Edit Blog | `ui/components/RichTextToolbar.kt` |
+| `LoadingOverlay` | All screens (via Scaffold) | `ui/components/LoadingOverlay.kt` |
+| `ErrorDialog` | All screens (via UiEvent) | `ui/components/ErrorDialog.kt` |
+
+### Extra Screen (Not Mapped)
+
+| Screen | Stitch ID | Notes |
+|--------|-----------|-------|
+| Login (variant) | `45b09f45b99c4f99a0b7265696c64931` | Alternate Login layout (390x884). Use primary `d00112e49dcf4f0391edff29605083c2` for implementation. |
 
 ---
 

@@ -6,11 +6,12 @@ complexity:
   LongMethod:
     active: true
     threshold: 60
+    ignoreAnnotated: ['Composable']
   LongParameterList:
     active: true
     functionThreshold: 8
     constructorThreshold: 10
-    ignoreAnnotated: ['Inject']
+    ignoreAnnotated: ['Inject', 'Composable']
   CyclomaticComplexMethod:
     active: true
     threshold: 20
@@ -27,6 +28,7 @@ naming:
   FunctionNaming:
     active: true
     functionPattern: '[a-z][a-zA-Z0-9]*'
+    ignoreAnnotated: ['Composable']
   ClassNaming:
     active: true
     classPattern: '[A-Z][a-zA-Z0-9]*'
@@ -44,8 +46,7 @@ naming:
     active: true
     constantPattern: '[A-Z][_A-Z0-9]*'
   MatchingDeclarationName:
-    active: true
-    mustBeFirst: true
+    active: false
 
 style:
   MagicNumber:
@@ -64,6 +65,7 @@ style:
     active: true
   UnusedPrivateMember:
     active: true
+    ignoreAnnotated: ['Preview']
 
 potential-bugs:
   UnsafeCast:
