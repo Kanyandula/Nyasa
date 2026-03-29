@@ -20,8 +20,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -34,8 +34,7 @@ import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_USERNAME
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_ORDER_ASC
 import com.kanyandula.nyasa.util.TopSpacingItemDecoration
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -53,31 +52,24 @@ class BlogFragment :
         setupMenu()
         binding?.swipeRefresh?.setOnRefreshListener(this)
         initRecyclerView()
-        restoreLayoutManagerState()
         subscribeObservers()
-        if (savedInstanceState == null) {
-            viewModel.loadFirstPage()
-        }
     }
 
     private fun subscribeObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.viewState
-                    .map { it.blogList to it.isQueryExhausted }
-                    .distinctUntilChanged()
-                    .collect { (blogList, isQueryExhausted) ->
-                        recyclerAdapter.apply {
-                            preloadGlideImages(
-                                requestManager = requestManager,
-                                list = blogList
-                            )
-                            submitList(
-                                blogList = blogList,
-                                isQueryExhausted = isQueryExhausted
-                            )
-                        }
-                    }
+                viewModel.pagingDataFlow.collectLatest { pagingData ->
+                    recyclerAdapter.submitData(pagingData)
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                recyclerAdapter.loadStateFlow.collectLatest { loadStates ->
+                    binding?.swipeRefresh?.isRefreshing =
+                        loadStates.refresh is LoadState.Loading
+                }
             }
         }
     }
@@ -93,15 +85,14 @@ class BlogFragment :
         }
 
         val searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_src_text) as EditText
-        searchPlate.setOnEditorActionListener { v, actionId, event ->
+        searchPlate.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_UNSPECIFIED ||
                 actionId == EditorInfo.IME_ACTION_SEARCH
             ) {
                 val searchQuery = v.text.toString()
                 Log.e(TAG, "SearchView: (keyboard or arrow) executing search...: $searchQuery")
-                viewModel.setQuery(searchQuery).let {
-                    onBlogSearchOrFilter()
-                }
+                viewModel.setQuery(searchQuery)
+                onBlogSearchOrFilter()
             }
             true
         }
@@ -110,16 +101,14 @@ class BlogFragment :
         searchButton.setOnClickListener {
             val searchQuery = searchPlate.text.toString()
             Log.e(TAG, "SearchView: (button) executing search...: $searchQuery")
-            viewModel.setQuery(searchQuery).let {
-                onBlogSearchOrFilter()
-            }
+            viewModel.setQuery(searchQuery)
+            onBlogSearchOrFilter()
         }
     }
 
     private fun onBlogSearchOrFilter() {
-        viewModel.loadFirstPage().let {
-            resetUI()
-        }
+        viewModel.executeSearch()
+        resetUI()
     }
 
     private fun resetUI() {
@@ -134,22 +123,10 @@ class BlogFragment :
             if (itemDecorationCount == 0) {
                 addItemDecoration(TopSpacingItemDecoration(30))
             }
-
             recyclerAdapter = BlogListAdapter(requestManager, this@BlogFragment)
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                        val lastPosition = layoutManager.findLastVisibleItemPosition()
-                        if (lastPosition == recyclerAdapter.itemCount - 1 && recyclerAdapter.itemCount > 0) {
-                            Log.d(TAG, "BlogFragment: attempting to load next page...")
-                            viewModel.nextPage()
-                        }
-                    }
-                }
-            })
-            adapter = recyclerAdapter
+            adapter = recyclerAdapter.withLoadStateFooter(
+                footer = BlogLoadStateAdapter(retry = { recyclerAdapter.retry() })
+            )
         }
     }
 
@@ -183,37 +160,16 @@ class BlogFragment :
         findNavController().navigate(action)
     }
 
-    override fun onPause() {
-        super.onPause()
-        saveLayoutManagerState()
-    }
-
-    private fun saveLayoutManagerState() {
-        binding?.blogPostRecyclerview?.layoutManager?.onSaveInstanceState()?.let { state ->
-            viewModel.setLayoutManagerState(state)
-        }
-    }
-
-    private fun restoreLayoutManagerState() {
-        viewModel.viewState.value.layoutManagerState?.let { lmState ->
-            binding?.blogPostRecyclerview?.layoutManager?.onRestoreInstanceState(lmState)
-        }
-    }
-
-    override fun restoreListPosition() {
-        restoreLayoutManagerState()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         binding?.blogPostRecyclerview?.adapter = null
     }
 
     override fun onRefresh() {
-        onBlogSearchOrFilter()
-        binding?.swipeRefresh?.isRefreshing = false
+        recyclerAdapter.refresh()
     }
 
+    @Suppress("LongMethod")
     fun showFilterDialog() {
         activity?.let {
             val dialog = MaterialDialog(it)
@@ -245,18 +201,17 @@ class BlogFragment :
                 val selectedOrderId = dialog.getCustomView()
                     .findViewById<RadioGroup>(R.id.order_group).checkedRadioButtonId
 
-                val filter = if (selectedFilterId == R.id.filter_author) {
+                val newFilter = if (selectedFilterId == R.id.filter_author) {
                     BLOG_FILTER_USERNAME
                 } else {
                     BLOG_FILTER_DATE_UPDATED
                 }
 
-                val order = if (selectedOrderId == R.id.filter_desc) "-" else ""
-                viewModel.saveFilterOptions(filter, order).let {
-                    viewModel.setBlogFilter(filter)
-                    viewModel.setBlogOrder(order)
-                    onBlogSearchOrFilter()
-                }
+                val newOrder = if (selectedOrderId == R.id.filter_desc) "-" else ""
+                viewModel.saveFilterOptions(newFilter, newOrder)
+                viewModel.setBlogFilter(newFilter)
+                viewModel.setBlogOrder(newOrder)
+                onBlogSearchOrFilter()
                 dialog.dismiss()
             }
 

@@ -1,5 +1,7 @@
 package com.kanyandula.nyasa.persistance
 
+import androidx.paging.PagingSource
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.ORDER_BY_ASC_DATE_UPDATED
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.ORDER_BY_ASC_USERNAME
@@ -20,43 +22,25 @@ object BlogQueryUtils {
     const val ORDER_BY_DESC_USERNAME = BLOG_ORDER_DESC + BLOG_FILTER_USERNAME
 }
 
-suspend fun BlogPostDao.returnOrderedBlogQuery(
+fun BlogPostDao.getOrderedBlogPagingSource(
     query: String,
-    filterAndOrder: String,
-    page: Int
-): List<BlogPost> {
-    when {
-        filterAndOrder.contains(ORDER_BY_DESC_DATE_UPDATED) -> {
-            return searchBlogPostsOrderByDateDESC(
-                query = query,
-                page = page
-            )
-        }
-
-        filterAndOrder.contains(ORDER_BY_ASC_DATE_UPDATED) -> {
-            return searchBlogPostsOrderByDateASC(
-                query = query,
-                page = page
-            )
-        }
-
-        filterAndOrder.contains(ORDER_BY_DESC_USERNAME) -> {
-            return searchBlogPostsOrderByAuthorDESC(
-                query = query,
-                page = page
-            )
-        }
-
-        filterAndOrder.contains(ORDER_BY_ASC_USERNAME) -> {
-            return searchBlogPostsOrderByAuthorASC(
-                query = query,
-                page = page
-            )
-        }
-        else ->
-            return searchBlogPostsOrderByDateASC(
-                query = query,
-                page = page
-            )
+    filterAndOrder: String
+): PagingSource<Int, BlogPost> {
+    val orderByClause = when {
+        filterAndOrder.contains(ORDER_BY_DESC_DATE_UPDATED) -> "ORDER BY date_updated DESC"
+        filterAndOrder.contains(ORDER_BY_ASC_DATE_UPDATED) -> "ORDER BY date_updated ASC"
+        filterAndOrder.contains(ORDER_BY_DESC_USERNAME) -> "ORDER BY username DESC"
+        filterAndOrder.contains(ORDER_BY_ASC_USERNAME) -> "ORDER BY username ASC"
+        else -> "ORDER BY date_updated ASC"
     }
+
+    val sql = """
+        SELECT * FROM blog_post
+        WHERE title LIKE '%' || ? || '%'
+        OR body LIKE '%' || ? || '%'
+        OR username LIKE '%' || ? || '%'
+        $orderByClause
+    """.trimIndent()
+
+    return getBlogPostsPagingSource(SimpleSQLiteQuery(sql, arrayOf(query, query, query)))
 }

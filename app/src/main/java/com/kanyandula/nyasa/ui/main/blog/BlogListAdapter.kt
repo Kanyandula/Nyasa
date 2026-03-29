@@ -1,162 +1,41 @@
 package com.kanyandula.nyasa.ui.main.blog
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.AsyncDifferConfig
-import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.databinding.LayoutBlogListItemBinding
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.util.DateUtils
-import com.kanyandula.nyasa.util.GenericViewHolder
 
 class BlogListAdapter(
     private val requestManager: RequestManager,
     private val interaction: Interaction? = null
-) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+) : PagingDataAdapter<BlogPost, BlogListAdapter.BlogViewHolder>(DIFF_CALLBACK) {
 
-    private val TAG: String = "AppDebug"
-    private val NO_MORE_RESULTS = -1
-    private val BLOG_ITEM = 0
-    private val NO_MORE_RESULTS_BLOG_MARKER = BlogPost(
-        NO_MORE_RESULTS,
-        "",
-        "",
-        "",
-        "",
-        0,
-        ""
-    )
-
-    val DIFF_CALLBACK = object : DiffUtil.ItemCallback<BlogPost>() {
-
-        override fun areItemsTheSame(oldItem: BlogPost, newItem: BlogPost): Boolean {
-            return oldItem.pk == newItem.pk
-        }
-
-        override fun areContentsTheSame(oldItem: BlogPost, newItem: BlogPost): Boolean {
-            return oldItem == newItem
-        }
-    }
-    private val differ =
-        AsyncListDiffer(
-            BlogRecyclerChangeCallback(this),
-            AsyncDifferConfig.Builder(DIFF_CALLBACK).build()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BlogViewHolder {
+        val binding = LayoutBlogListItemBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val binding = LayoutBlogListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-
-        when (viewType) {
-            NO_MORE_RESULTS -> {
-                Log.e(TAG, "onCreateViewHolder: No more results...")
-                return GenericViewHolder(
-                    LayoutInflater.from(parent.context).inflate(
-                        R.layout.layout_no_more_results,
-                        parent,
-                        false
-                    )
-                )
-            }
-
-            BLOG_ITEM -> {
-                return BlogViewHolder(
-                    binding,
-                    interaction = interaction,
-                    requestManager = requestManager
-                )
-            }
-            else -> {
-                return BlogViewHolder(
-                    binding,
-                    interaction = interaction,
-                    requestManager = requestManager
-                )
-            }
-        }
+        return BlogViewHolder(binding, requestManager, interaction)
     }
 
-    internal inner class BlogRecyclerChangeCallback(
-        private val adapter: BlogListAdapter
-    ) : ListUpdateCallback {
-
-        override fun onChanged(position: Int, count: Int, payload: Any?) {
-            adapter.notifyItemRangeChanged(position, count, payload)
-        }
-
-        override fun onInserted(position: Int, count: Int) {
-            adapter.notifyItemRangeInserted(position, count)
-        }
-
-        override fun onMoved(fromPosition: Int, toPosition: Int) {
-            adapter.notifyItemMoved(fromPosition, toPosition)
-        }
-
-        override fun onRemoved(position: Int, count: Int) {
-            adapter.notifyItemRangeRemoved(position, count)
-        }
+    override fun onBindViewHolder(holder: BlogViewHolder, position: Int) {
+        getItem(position)?.let { holder.bind(it) }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder) {
-            is BlogViewHolder -> {
-                holder.bind(differ.currentList.get(position))
-            }
-        }
-    }
-
-    override fun getItemCount(): Int {
-        return differ.currentList.size
-    }
-
-    fun submitList(blogList: List<BlogPost>?, isQueryExhausted: Boolean) {
-        val newList = blogList?.toMutableList()
-        if (isQueryExhausted) {
-            newList?.add(NO_MORE_RESULTS_BLOG_MARKER)
-        }
-        val commitCallback = Runnable {
-            // if process died must restore list position
-            // very annoying
-            interaction?.restoreListPosition()
-        }
-        differ.submitList(newList, commitCallback)
-    }
-
-    // Prepare the images that will be displayed in the RecyclerView.
-    // This also ensures if the network connection is lost, they will be in the cache
-    fun preloadGlideImages(
-        requestManager: RequestManager,
-        list: List<BlogPost>
-    ) {
-        for (blogPost in list) {
-            requestManager
-                .load(blogPost.image)
-                .preload()
-        }
-    }
-
-    override fun getItemViewType(position: Int): Int {
-        if (differ.currentList.get(position).pk > -1) {
-            return BLOG_ITEM
-        }
-        return differ.currentList.get(position).pk
-    }
-
-    class BlogViewHolder
-    constructor(
-        val binding: LayoutBlogListItemBinding,
-        val requestManager: RequestManager,
+    class BlogViewHolder(
+        private val binding: LayoutBlogListItemBinding,
+        private val requestManager: RequestManager,
         private val interaction: Interaction?
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: BlogPost) = with(itemView) {
+        fun bind(item: BlogPost) {
             binding.root.setOnClickListener {
                 val position = this@BlogViewHolder.bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
@@ -178,7 +57,17 @@ class BlogListAdapter(
 
     interface Interaction {
         fun onItemSelected(position: Int, item: BlogPost)
+    }
 
-        fun restoreListPosition()
+    companion object {
+        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<BlogPost>() {
+            override fun areItemsTheSame(oldItem: BlogPost, newItem: BlogPost): Boolean {
+                return oldItem.pk == newItem.pk
+            }
+
+            override fun areContentsTheSame(oldItem: BlogPost, newItem: BlogPost): Boolean {
+                return oldItem == newItem
+            }
+        }
     }
 }
