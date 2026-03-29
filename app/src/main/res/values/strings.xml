@@ -30,11 +30,8 @@
     <string name="fragment_create_blog">Create</string>
     <string name="fragment_update_blog">Update</string>
     <string name="fragment_view_blog">View</string>
-    <string name="fragment_account">Account</string>
-    <string name="fragment_change_password">Change password</string>
     <string name="fragment_blog">Blog</string>
     <string name="save_changes">Save changes</string>
-    <string name="fragment_update_account">Update account</string>
     <string name="arg_email">arg_email</string>
     <string name="arg_username">arg_username</string>
     <string name="enter_a_username">Enter a username</string>
@@ -83,12 +80,6 @@
     <string name="upload_image">Upload Image</string>
     <string name="select_photo">SELECT PHOTO</string>
     <string name="write_some_content">Write some content...</string>
-    <string name="top_background">Top background</string>
-    <string name="white_line">white line</string>
-    <string name="woman_on_a_desk">woman on a desk</string>
-    <string name="welcome_to_nyasablog">Welcome to NyasaBlog</string>
-    <string name="login_woman">login woman</string>
-    <string name="writing_woman">writing woman</string>
     <string name="this_is_some_blog_content">This is some blog content</string>
     <string name="touch_to_change_image">Touch to change image</string>
     <string name="cancel">Cancel</string>

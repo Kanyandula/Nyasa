@@ -335,34 +335,34 @@ Outline:                #70787f      Outline Variant:         #c0c7cf
 
 ### Prerequisites
 
-- [ ] Upgrade Kotlin 1.9.24 -> 2.0.21
-- [ ] Upgrade AGP 8.5.2 -> 8.7.3
-- [ ] Upgrade KSP 1.9.24-1.0.20 -> 2.0.21-1.0.28
-- [ ] Upgrade Hilt 2.51.1 -> 2.53.1
-- [ ] Add Compose BOM 2024.12.01 + dependencies
-- [ ] Add Coil 3.0.4 (coil-compose + coil-network-okhttp)
-- [ ] Add hilt-navigation-compose 1.2.0
-- [ ] Add paging-compose 3.3.6
-- [ ] Add `compose = true` to `buildFeatures`
-- [ ] Apply `org.jetbrains.kotlin.plugin.compose` plugin
-- [ ] Download Newsreader font files to `res/font/`
-- [ ] Download Plus Jakarta Sans font files to `res/font/`
-- [ ] Verify: `./gradlew clean assembleDebug` passes
-- [ ] Verify: `./gradlew detekt && ./gradlew spotlessCheck` pass
+- [x] Upgrade Kotlin 1.9.24 -> 2.0.21
+- [x] Upgrade AGP 8.5.2 -> 8.7.3
+- [x] Upgrade KSP 1.9.24-1.0.20 -> 2.0.21-1.0.28
+- [x] Upgrade Hilt 2.51.1 -> 2.53.1
+- [x] Add Compose BOM 2024.12.01 + dependencies
+- [x] Add Coil 3.0.4 (coil-compose + coil-network-okhttp)
+- [x] Add hilt-navigation-compose 1.2.0
+- [x] Add paging-compose 3.3.6
+- [x] Add `compose = true` to `buildFeatures`
+- [x] Apply `org.jetbrains.kotlin.plugin.compose` plugin
+- [x] ~~Download Newsreader font files to `res/font/`~~ Using Google Fonts provider instead
+- [x] ~~Download Plus Jakarta Sans font files to `res/font/`~~ Using Google Fonts provider instead
+- [x] Verify: `./gradlew clean assembleDebug` passes
+- [x] Verify: `./gradlew detekt && ./gradlew spotlessCheck` pass
 
 ### Phase 0: Theme & Shared Components
 
-- [ ] `ui/theme/Color.kt` — All M3 color tokens from Section 2
-- [ ] `ui/theme/Type.kt` — Typography with Newsreader + Plus Jakarta Sans
-- [ ] `ui/theme/Shape.kt` — Shapes (8.dp default, pill buttons)
-- [ ] `ui/theme/Theme.kt` — `NyasaTheme` composable wrapping `MaterialTheme`
-- [ ] `ui/components/NyasaButton.kt` — Primary (gradient), Secondary (ghost), Destructive
-- [ ] `ui/components/NyasaTextField.kt` — Outlined with leading icon + focus glow
-- [ ] `ui/components/NyasaBlogCard.kt` — Card with 16:9 image, no borders, tonal layering
-- [ ] `ui/components/NyasaTopBar.kt` — Top bar with scroll-aware background
-- [ ] `ui/components/NyasaBottomBar.kt` — Bottom nav with Sunset Orange dot indicator
-- [ ] `ui/components/LoadingOverlay.kt` — Full-screen loading
-- [ ] `ui/components/ErrorDialog.kt` — Toast/Error/Success dialogs
+- [x] `ui/theme/Color.kt` — All M3 color tokens from Section 2
+- [x] `ui/theme/Type.kt` — Typography with Newsreader + Plus Jakarta Sans
+- [x] `ui/theme/Shape.kt` — Shapes (8.dp default, pill buttons)
+- [x] `ui/theme/Theme.kt` — `NyasaTheme` composable wrapping `MaterialTheme`
+- [x] `ui/components/NyasaButton.kt` — Primary (gradient), Secondary (ghost), Destructive
+- [x] `ui/components/NyasaTextField.kt` — Outlined with leading icon + focus glow
+- [x] `ui/components/NyasaBlogCard.kt` — Card with 16:9 image, no borders, tonal layering
+- [x] `ui/components/NyasaTopBar.kt` — Top bar with scroll-aware background
+- [x] `ui/components/NyasaBottomBar.kt` — Bottom nav with Sunset Orange dot indicator
+- [x] `ui/components/LoadingOverlay.kt` — Full-screen loading
+- [x] `ui/components/ErrorDialog.kt` — Toast/Error/Success dialogs
 
 ### Phase A: Auth Screens
 
@@ -382,16 +382,16 @@ Outline:                #70787f      Outline Variant:         #c0c7cf
 
 ### Phase B: Account Screens
 
-- [ ] `ui/main/account/composables/AccountProfileScreen.kt`
-- [ ] `ui/main/account/composables/EditAccountScreen.kt`
-- [ ] `ui/main/account/composables/ChangePasswordScreen.kt`
-- [ ] Refactor `AccountFragment.kt` -> ComposeView shell
-- [ ] Refactor `UpdateAccountFragment.kt` -> ComposeView shell
-- [ ] Refactor `ChangePasswordFragment.kt` -> ComposeView shell
-- [ ] Delete `fragment_account.xml`
-- [ ] Delete `fragment_update_account.xml`
-- [ ] Delete `fragment_change_password.xml`
-- [ ] Visual verification against Stitch designs
+- [x] `ui/main/account/composables/AccountProfileScreen.kt`
+- [x] `ui/main/account/composables/EditAccountScreen.kt`
+- [x] `ui/main/account/composables/ChangePasswordScreen.kt`
+- [x] Refactor `AccountFragment.kt` -> ComposeView shell
+- [x] Refactor `UpdateAccountFragment.kt` -> ComposeView shell
+- [x] Refactor `ChangePasswordFragment.kt` -> ComposeView shell
+- [x] Delete `fragment_account.xml`
+- [x] Delete `fragment_update_account.xml`
+- [x] Delete `fragment_change_password.xml`
+- [x] Visual verification against Stitch designs
 
 ### Phase C: Blog CRUD Screens
 
