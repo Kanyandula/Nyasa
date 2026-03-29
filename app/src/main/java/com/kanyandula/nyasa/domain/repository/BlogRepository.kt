@@ -1,17 +1,16 @@
 package com.kanyandula.nyasa.domain.repository
 
 import android.net.Uri
-import com.kanyandula.nyasa.domain.model.BlogSearchResult
+import androidx.paging.PagingData
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface BlogRepository {
-    fun searchBlogPosts(
+    fun getBlogPagingData(
         query: String,
-        filterAndOrder: String,
-        page: Int
-    ): Flow<Resource<BlogSearchResult>>
+        filterAndOrder: String
+    ): Flow<PagingData<BlogPost>>
     fun isAuthorOfBlogPost(slug: String): Flow<Resource<Boolean>>
     fun deleteBlogPost(blogPost: BlogPost): Flow<Resource<String>>
     fun updateBlogPost(
