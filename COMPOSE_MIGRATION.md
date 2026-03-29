@@ -1,0 +1,640 @@
+# Phase 9: Jetpack Compose Migration Guide
+
+> Migrate all XML Views to Jetpack Compose using Stitch UI designs as the visual source of truth.
+> Incremental approach: ComposeView in Fragments first, then full Compose Navigation cutover.
+
+## Table of Contents
+
+1. [Stitch Design-to-Screen Mapping](#1-stitch-design-to-screen-mapping)
+2. [Design System Token Reference](#2-design-system-token-reference)
+3. [Migration Checklist](#3-migration-checklist)
+4. [Code Patterns & Examples](#4-code-patterns--examples)
+5. [Dependency Upgrades](#5-dependency-upgrades)
+6. [Migration Phases](#6-migration-phases)
+
+---
+
+## 1. Stitch Design-to-Screen Mapping
+
+**Stitch Project:** `projects/7258074762929658095`
+
+Fetch any screen's HTML/screenshot via Stitch MCP: `get_screen(projectId, screenId)`
+
+### Auth Flow (Phase A)
+
+| Screen | Stitch ID | Current XML | Current Fragment | Target Composable |
+|--------|-----------|-------------|------------------|-------------------|
+| Welcome | `1bd28921b15d427ea89f5f93b5ccb9ba` | `fragment_launcher.xml` | `LauncherFragment` | `ui/auth/composables/WelcomeScreen.kt` |
+| Login | `d00112e49dcf4f0391edff29605083c2` | `fragment_login.xml` | `LoginFragment` | `ui/auth/composables/LoginScreen.kt` |
+| Register | `0c6b56c895254ac2bcc1a240a829f2ff` | `fragment_register.xml` | `RegisterFragment` | `ui/auth/composables/RegisterScreen.kt` |
+| Forgot Password | `bb194b0093384d19b2265c791592c6d6` | `fragment_forgot_password.xml` | `ForgotPasswordFragment` | `ui/auth/composables/ForgotPasswordScreen.kt` |
+
+### Account Flow (Phase B)
+
+| Screen | Stitch ID | Current XML | Current Fragment | Target Composable |
+|--------|-----------|-------------|------------------|-------------------|
+| Account Profile | `793717eb35824505918bd9192416e1cd` | `fragment_account.xml` | `AccountFragment` | `ui/main/account/composables/AccountProfileScreen.kt` |
+| Edit Account | `36643e21bb574ad6b003620c824375e4` | `fragment_update_account.xml` | `UpdateAccountFragment` | `ui/main/account/composables/EditAccountScreen.kt` |
+| Change Password | `971a0529ef6441a5adb9e786cc49872e` | `fragment_change_password.xml` | `ChangePasswordFragment` | `ui/main/account/composables/ChangePasswordScreen.kt` |
+
+### Blog CRUD (Phase C)
+
+| Screen | Stitch ID | Current XML | Current Fragment | Target Composable |
+|--------|-----------|-------------|------------------|-------------------|
+| Blog Detail | `ad234d2c39634fbf8c479aba83f9d027` | `fragment_view_blog.xml` | `ViewBlogFragment` | `ui/main/blog/composables/BlogDetailScreen.kt` |
+| Create Blog | `0ca45af5f9c941868ecd9bc6ec171e84` | `fragment_create_blog.xml` | `CreateBlogFragment` | `ui/main/create_blog/composables/CreateBlogScreen.kt` |
+| Edit Blog | `1f022f0564c049e0ab8712f7b04a556a` | `fragment_update_blog.xml` | `UpdateBlogFragment` | `ui/main/blog/composables/EditBlogScreen.kt` |
+
+### Blog Feed (Phase D)
+
+| Screen | Stitch ID | Current XML | Current Fragment | Target Composable |
+|--------|-----------|-------------|------------------|-------------------|
+| Blog Feed Home | `35a8e64f78384be885d1461339b631cf` | `fragment_blog.xml` | `BlogFragment` | `ui/main/blog/composables/BlogFeedScreen.kt` |
+| Blog Feed Search | `64a6cd3b59204a39a313680de232f61d` | (same fragment, search state) | `BlogFragment` | `ui/main/blog/composables/BlogSearchBar.kt` |
+| Blog Feed Filter | `d09362fc43ce4f1fb4ea78327d33f5f7` | `layout_blog_filter.xml` | `BlogFragment` | `ui/main/blog/composables/BlogFilterSheet.kt` |
+
+---
+
+## 2. Design System Token Reference
+
+Source: Stitch project design system — "Organic Brutalism" / "The Digital Baobab"
+
+### Color Palette (Material 3 Tokens)
+
+```
+Primary:                #005275      On Primary:              #ffffff
+Primary Container:      #1B6B93      On Primary Container:    #c7e7ff
+Primary Fixed:          #c7e7ff      Primary Fixed Dim:       #8bcefb
+On Primary Fixed:       #001e2e      On Primary Fixed Variant: #004c6c
+
+Secondary:              #954a00      On Secondary:            #ffffff
+Secondary Container:    #ff9b4e      On Secondary Container:  #6f3600
+Secondary Fixed:        #ffdcc6      Secondary Fixed Dim:     #ffb784
+On Secondary Fixed:     #301400      On Secondary Fixed Variant: #713700
+
+Tertiary:               #6d4400      On Tertiary:             #ffffff
+Tertiary Container:     #8b5a0d      On Tertiary Container:   #ffddb6
+Tertiary Fixed:         #ffddb7      Tertiary Fixed Dim:      #fbba68
+On Tertiary Fixed:      #2a1700      On Tertiary Fixed Variant: #653e00
+
+Error:                  #ba1a1a      On Error:                #ffffff
+Error Container:        #ffdad6      On Error Container:      #93000a
+
+Background:             #fef8f3      On Background:           #1d1b19
+Surface:                #fef8f3      On Surface:              #1d1b19
+Surface Bright:         #fef8f3      Surface Dim:             #ded9d4
+Surface Container Lowest: #ffffff    Surface Container Low:   #f8f3ee
+Surface Container:      #f2ede8      Surface Container High:  #ece7e2
+Surface Container Highest: #e6e2dd
+Surface Variant:        #e6e2dd      On Surface Variant:      #40484e
+Surface Tint:           #0e658c
+
+Inverse Surface:        #32302d      Inverse On Surface:      #f5f0eb
+Inverse Primary:        #8bcefb
+
+Outline:                #70787f      Outline Variant:         #c0c7cf
+```
+
+### Typography
+
+| Role | Font Family | Usage |
+|------|-------------|-------|
+| Display, Headline | **Newsreader** (serif) | Article titles, hero text, editorial content — anything "read" |
+| Body, Label, Title | **Plus Jakarta Sans** (sans-serif) | Buttons, labels, form fields, navigation — anything "acted upon" |
+
+**Font files needed:** Download from Google Fonts and place in `app/src/main/res/font/`:
+- `newsreader_regular.ttf`, `newsreader_bold.ttf`, `newsreader_italic.ttf`
+- `plus_jakarta_sans_regular.ttf`, `plus_jakarta_sans_medium.ttf`, `plus_jakarta_sans_semibold.ttf`, `plus_jakarta_sans_bold.ttf`
+
+**Hierarchy tip:** Pair `headline-sm` (Newsreader) with `label-md` (Plus Jakarta Sans, all caps, 0.05rem letter spacing) for category tags.
+
+### Shapes
+
+| Element | Corner Radius |
+|---------|---------------|
+| Default (Cards, Inputs, Dialogs) | 8.dp |
+| Buttons (Primary CTA) | Full (pill-shaped) |
+| Blog Images | 16.dp (1rem) |
+
+### Component Design Rules
+
+**The "No-Line" Rule:**
+> 1px solid borders for sectioning are **prohibited**. Boundaries must be defined solely through background color shifts. Example: transition from `surface` to `surface-container-low` to separate sections.
+
+**Surface Hierarchy (Nesting):**
+- **Base:** `surface` (#fef8f3) for main background
+- **Sectioning:** `surface-container-low` (#f8f3ee) for background blocks (e.g., "Trending" section)
+- **Elevation:** `surface-container-highest` (#e6e2dd) for most prominent cards
+
+**Signature Gradient (Primary CTAs):**
+- Linear gradient from `primary` (#005275) to `primary_container` (#1B6B93) at 135 degrees
+- Used on primary buttons, hero sections
+
+**Glassmorphism (Floating Overlays):**
+- `surface_container_lowest` at 80% opacity with 16px backdrop blur
+- Used on "Back to Top" buttons, floating overlays
+
+**Buttons:**
+- **Primary:** Filled with signature gradient, pill-shaped, `title-sm` (Plus Jakarta Sans)
+- **Secondary:** Ghost style — no background, `secondary` (#954a00) text, 1.5px stroke at 40% opacity
+- **Destructive:** Filled `error` (#ba1a1a), reserved for "Delete" / "Discard" only
+
+**Blog Cards:**
+- No divider lines — use `spacing-6` (2rem) vertical whitespace between cards
+- Images: 16:9 aspect ratio, `rounded-lg` (16.dp) corners
+- Card background: `surface-container-lowest` (#ffffff) on `surface-container-low` (#f8f3ee) for tonal lift
+
+**Input Fields:**
+- Outlined M3 style with `outline-variant` border
+- Focus: border transitions to `primary` (2px) with `primary-container` outer glow (4px blur)
+- Always use a leading icon
+
+**Navigation:**
+- **Top App Bar:** `surface_bright` background; on scroll transition to `surface_container_low` with backdrop blur
+- **Bottom Navigation:** `surface_container_lowest` background; active state uses Sunset Orange (#E8883C) dot indicator below icon (not a background pill)
+
+**Elevation:**
+- Prefer tonal layering over shadows
+- For floating elements (Bottom Nav, FAB): Y-offset 8dp, Blur 24dp, Spread -4dp, 10% `on_surface` tinted with `primary`
+- **Ghost Border fallback:** `outline-variant` at 15% opacity (accessibility only)
+
+**Typography Rules:**
+- Never use pure black (#000000) — use `on_surface` (#1d1b19)
+- Use asymmetrical margins for editorial tension (e.g., `spacing-8` left, `spacing-12` right on headlines)
+
+---
+
+## 3. Migration Checklist
+
+### Prerequisites
+
+- [ ] Upgrade Kotlin 1.9.24 -> 2.0.21
+- [ ] Upgrade AGP 8.5.2 -> 8.7.3
+- [ ] Upgrade KSP 1.9.24-1.0.20 -> 2.0.21-1.0.28
+- [ ] Upgrade Hilt 2.51.1 -> 2.53.1
+- [ ] Add Compose BOM 2024.12.01 + dependencies
+- [ ] Add Coil 3.0.4 (coil-compose + coil-network-okhttp)
+- [ ] Add hilt-navigation-compose 1.2.0
+- [ ] Add paging-compose 3.3.6
+- [ ] Add `compose = true` to `buildFeatures`
+- [ ] Apply `org.jetbrains.kotlin.plugin.compose` plugin
+- [ ] Download Newsreader font files to `res/font/`
+- [ ] Download Plus Jakarta Sans font files to `res/font/`
+- [ ] Verify: `./gradlew clean assembleDebug` passes
+- [ ] Verify: `./gradlew detekt && ./gradlew spotlessCheck` pass
+
+### Phase 0: Theme & Shared Components
+
+- [ ] `ui/theme/Color.kt` — All M3 color tokens from Section 2
+- [ ] `ui/theme/Type.kt` — Typography with Newsreader + Plus Jakarta Sans
+- [ ] `ui/theme/Shape.kt` — Shapes (8.dp default, pill buttons)
+- [ ] `ui/theme/Theme.kt` — `NyasaTheme` composable wrapping `MaterialTheme`
+- [ ] `ui/components/NyasaButton.kt` — Primary (gradient), Secondary (ghost), Destructive
+- [ ] `ui/components/NyasaTextField.kt` — Outlined with leading icon + focus glow
+- [ ] `ui/components/NyasaBlogCard.kt` — Card with 16:9 image, no borders, tonal layering
+- [ ] `ui/components/NyasaTopBar.kt` — Top bar with scroll-aware background
+- [ ] `ui/components/NyasaBottomBar.kt` — Bottom nav with Sunset Orange dot indicator
+- [ ] `ui/components/LoadingOverlay.kt` — Full-screen loading
+- [ ] `ui/components/ErrorDialog.kt` — Toast/Error/Success dialogs
+
+### Phase A: Auth Screens
+
+- [ ] `ui/auth/composables/WelcomeScreen.kt`
+- [ ] `ui/auth/composables/LoginScreen.kt`
+- [ ] `ui/auth/composables/RegisterScreen.kt`
+- [ ] `ui/auth/composables/ForgotPasswordScreen.kt`
+- [ ] Refactor `LauncherFragment.kt` -> ComposeView shell
+- [ ] Refactor `LoginFragment.kt` -> ComposeView shell
+- [ ] Refactor `RegisterFragment.kt` -> ComposeView shell
+- [ ] Refactor `ForgotPasswordFragment.kt` -> ComposeView shell
+- [ ] Delete `fragment_launcher.xml`
+- [ ] Delete `fragment_login.xml`
+- [ ] Delete `fragment_register.xml`
+- [ ] Delete `fragment_forgot_password.xml`
+- [ ] Visual verification against Stitch designs
+
+### Phase B: Account Screens
+
+- [ ] `ui/main/account/composables/AccountProfileScreen.kt`
+- [ ] `ui/main/account/composables/EditAccountScreen.kt`
+- [ ] `ui/main/account/composables/ChangePasswordScreen.kt`
+- [ ] Refactor `AccountFragment.kt` -> ComposeView shell
+- [ ] Refactor `UpdateAccountFragment.kt` -> ComposeView shell
+- [ ] Refactor `ChangePasswordFragment.kt` -> ComposeView shell
+- [ ] Delete `fragment_account.xml`
+- [ ] Delete `fragment_update_account.xml`
+- [ ] Delete `fragment_change_password.xml`
+- [ ] Visual verification against Stitch designs
+
+### Phase C: Blog CRUD Screens
+
+- [ ] `ui/main/blog/composables/BlogDetailScreen.kt`
+- [ ] `ui/main/blog/composables/EditBlogScreen.kt`
+- [ ] `ui/main/create_blog/composables/CreateBlogScreen.kt`
+- [ ] Refactor `ViewBlogFragment.kt` -> ComposeView shell
+- [ ] Refactor `UpdateBlogFragment.kt` -> ComposeView shell
+- [ ] Refactor `CreateBlogFragment.kt` -> ComposeView shell
+- [ ] Delete `fragment_view_blog.xml`
+- [ ] Delete `fragment_update_blog.xml`
+- [ ] Delete `fragment_create_blog.xml`
+- [ ] Image picker integration via Fragment ActivityResultLauncher
+- [ ] Visual verification against Stitch designs
+
+### Phase D: Blog Feed + Compose Navigation Cutover
+
+- [ ] `ui/main/blog/composables/BlogFeedScreen.kt` — LazyColumn + Paging 3
+- [ ] `ui/main/blog/composables/BlogSearchBar.kt`
+- [ ] `ui/main/blog/composables/BlogFilterSheet.kt` — ModalBottomSheet
+- [ ] Delete `fragment_blog.xml`, `layout_blog_filter.xml`, `layout_blog_list_item.xml`, `layout_blog_load_state.xml`
+- [ ] Add `navigation-compose` dependency
+- [ ] Replace Fragment NavHost with Compose `NavHost` in both Activities
+- [ ] Scope `BlogViewModel` to blog nav graph via `hiltViewModel(backStackEntry)`
+- [ ] Replace XML `BottomNavigationView` with Compose `NavigationBar`
+- [ ] Remove all Fragment classes
+- [ ] Remove all XML navigation graphs
+- [ ] Remove ViewBinding from `buildFeatures`
+
+### Phase E: Cleanup
+
+- [ ] Delete remaining XML layouts (`activity_auth.xml`, `activity_main.xml`)
+- [ ] Remove Glide dependency (fully replaced by Coil)
+- [ ] Remove unused View dependencies: `constraintlayout`, `cardview`, `recyclerview`, `swiperefreshlayout`, `circleimageview`, `material-dialogs`
+- [ ] Remove `fragment-ktx` dependency (no more Fragments)
+- [ ] Consider single-Activity consolidation
+- [ ] Final `./gradlew clean assembleDebug && ./gradlew detekt && ./gradlew spotlessCheck && ./gradlew lintDebug`
+- [ ] Full app walkthrough: auth -> blog feed -> detail -> create -> edit -> account -> password -> logout
+
+---
+
+## 4. Code Patterns & Examples
+
+### Pattern A: Fragment-to-ComposeView Shell
+
+Each Fragment's `onCreateView` is replaced with a `ComposeView`. The Fragment becomes a thin shell handling navigation callbacks and `ActivityResult` launchers.
+
+```kotlin
+class LoginFragment : BaseAuthFragment() {
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    val state by viewModel.viewState.collectAsStateWithLifecycle()
+                    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+                    LoginScreen(
+                        state = state,
+                        isLoading = isLoading,
+                        onLogin = { email, password ->
+                            viewModel.attemptLogin(email, password)
+                        },
+                        onForgotPassword = {
+                            findNavController().navigate(
+                                LoginFragmentDirections
+                                    .actionLoginFragmentToForgotPasswordFragment()
+                            )
+                        },
+                        onNavigateToRegister = {
+                            findNavController().navigate(
+                                LoginFragmentDirections
+                                    .actionLoginFragmentToRegisterFragment()
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // Remove: onDestroyView, binding, subscribeObservers — no longer needed
+}
+```
+
+### Pattern B: Collecting SharedFlow Events in Compose
+
+One-shot events (toasts, navigation, error dialogs) are collected via `LaunchedEffect`:
+
+```kotlin
+@Composable
+fun LoginScreen(
+    state: AuthViewState,
+    isLoading: Boolean,
+    onLogin: (String, String) -> Unit,
+    onForgotPassword: () -> Unit,
+    onNavigateToRegister: () -> Unit,
+    events: SharedFlow<UiEvent>? = null // passed from Fragment or ViewModel
+) {
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect one-shot events
+    if (events != null) {
+        LaunchedEffect(Unit) {
+            events.collect { event ->
+                when (event) {
+                    is UiEvent.ShowToast -> {
+                        Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    }
+                    is UiEvent.ShowErrorDialog -> {
+                        snackbarHostState.showSnackbar(
+                            message = event.message,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                    is UiEvent.ShowSuccessDialog -> {
+                        snackbarHostState.showSnackbar(
+                            message = event.message,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    // Screen content...
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        // ...
+    }
+}
+```
+
+### Pattern C: Paging 3 with LazyColumn (Blog Feed)
+
+The existing `BlogViewModel.pagingDataFlow: Flow<PagingData<BlogPost>>` is consumed directly:
+
+```kotlin
+@Composable
+fun BlogFeedScreen(
+    pagingDataFlow: Flow<PagingData<BlogPost>>,
+    onBlogClick: (String) -> Unit, // slug
+    onSearch: (String) -> Unit,
+    onFilterChange: (String, String) -> Unit
+) {
+    val pagingItems = pagingDataFlow.collectAsLazyPagingItems()
+
+    Scaffold(
+        topBar = {
+            BlogSearchBar(onSearch = onSearch)
+        }
+    ) { padding ->
+        LazyColumn(
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(32.dp) // spacing-6 = 2rem
+        ) {
+            items(
+                count = pagingItems.itemCount,
+                key = pagingItems.itemKey { it.pk }
+            ) { index ->
+                pagingItems[index]?.let { blogPost ->
+                    NyasaBlogCard(
+                        blogPost = blogPost,
+                        onClick = { onBlogClick(blogPost.slug) }
+                    )
+                }
+            }
+
+            // Load state footer
+            item {
+                when (val appendState = pagingItems.loadState.append) {
+                    is LoadState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    is LoadState.Error -> {
+                        NyasaButton(
+                            text = "Retry",
+                            onClick = { pagingItems.retry() },
+                            style = ButtonStyle.Secondary
+                        )
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        // Pull-to-refresh
+        PullToRefreshBox(
+            isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
+            onRefresh = { pagingItems.refresh() }
+        )
+    }
+}
+```
+
+### Pattern D: Image Picker (Fragment Shell + Compose)
+
+Image picking requires `ActivityResultLauncher`, which stays in the Fragment shell:
+
+```kotlin
+class CreateBlogFragment : BaseCreateBlogFragment() {
+
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                viewModel.setNewBlogFields(uri = uri)
+            }
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    val state by viewModel.viewState.collectAsStateWithLifecycle()
+                    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+                    CreateBlogScreen(
+                        state = state,
+                        isLoading = isLoading,
+                        onPickImage = {
+                            val intent = ImagePicker.with(requireActivity())
+                                .crop()
+                                .compress(1024)
+                                .createIntent()
+                            imagePickerLauncher.launch(intent)
+                        },
+                        onPublish = { title, body ->
+                            viewModel.createNewBlogPost(title, body, state.blogFields.newImageUri)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+### Pattern E: Compose Navigation (Phase D Cutover)
+
+After all screens are Compose, replace Fragment navigation with Compose NavHost:
+
+```kotlin
+// In MainActivity
+setContent {
+    NyasaTheme {
+        val navController = rememberNavController()
+
+        Scaffold(
+            bottomBar = {
+                NyasaBottomBar(navController = navController)
+            }
+        ) { padding ->
+            NavHost(
+                navController = navController,
+                startDestination = "blog",
+                modifier = Modifier.padding(padding)
+            ) {
+                // Blog graph — BlogViewModel scoped to this nested graph
+                navigation(startDestination = "blog/feed", route = "blog") {
+                    composable("blog/feed") { backStackEntry ->
+                        val blogGraphEntry = remember(backStackEntry) {
+                            navController.getBackStackEntry("blog")
+                        }
+                        val viewModel: BlogViewModel = hiltViewModel(blogGraphEntry)
+                        BlogFeedScreen(
+                            pagingDataFlow = viewModel.pagingDataFlow,
+                            onBlogClick = { slug ->
+                                navController.navigate("blog/detail/$slug")
+                            }
+                        )
+                    }
+                    composable("blog/detail/{slug}") { backStackEntry ->
+                        val blogGraphEntry = remember(backStackEntry) {
+                            navController.getBackStackEntry("blog")
+                        }
+                        val viewModel: BlogViewModel = hiltViewModel(blogGraphEntry)
+                        BlogDetailScreen(viewModel = viewModel)
+                    }
+                    composable("blog/edit/{slug}") { backStackEntry ->
+                        val blogGraphEntry = remember(backStackEntry) {
+                            navController.getBackStackEntry("blog")
+                        }
+                        val viewModel: BlogViewModel = hiltViewModel(blogGraphEntry)
+                        EditBlogScreen(viewModel = viewModel)
+                    }
+                }
+
+                composable("create") {
+                    CreateBlogScreen()
+                }
+
+                navigation(startDestination = "account/profile", route = "account") {
+                    composable("account/profile") {
+                        AccountProfileScreen()
+                    }
+                    composable("account/edit") {
+                        EditAccountScreen()
+                    }
+                    composable("account/change-password") {
+                        ChangePasswordScreen()
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+## 5. Dependency Upgrades
+
+### Version Changes (Prerequisites PR)
+
+| Dependency | Current | Target | Reason |
+|------------|---------|--------|--------|
+| Kotlin | 1.9.24 | 2.0.21 | Compose compiler plugin requires Kotlin 2.0+ |
+| AGP | 8.5.2 | 8.7.3 | Compose build support |
+| KSP | 1.9.24-1.0.20 | 2.0.21-1.0.28 | Must match Kotlin version |
+| Hilt | 2.51.1 | 2.53.1 | Kotlin 2.0 compatibility |
+
+### New Dependencies
+
+```groovy
+// build.gradle (root) — add plugin
+id 'org.jetbrains.kotlin.plugin.compose' version '2.0.21' apply false
+
+// app/build.gradle — apply plugin
+id 'org.jetbrains.kotlin.plugin.compose'
+
+// app/build.gradle — buildFeatures
+buildFeatures {
+    viewBinding = true   // keep during transition, remove in Phase E
+    buildConfig = true
+    compose = true
+}
+
+// app/build.gradle — dependencies
+// Compose
+implementation platform('androidx.compose:compose-bom:2024.12.01')
+implementation 'androidx.compose.ui:ui'
+implementation 'androidx.compose.ui:ui-tooling-preview'
+implementation 'androidx.compose.material3:material3'
+implementation 'androidx.compose.runtime:runtime'
+implementation 'androidx.activity:activity-compose:1.9.3'
+implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6'
+implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.6'
+implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
+implementation 'androidx.paging:paging-compose:3.3.6'
+debugImplementation 'androidx.compose.ui:ui-tooling'
+
+// Coil (Compose-native image loading)
+implementation 'io.coil-kt.coil3:coil-compose:3.0.4'
+implementation 'io.coil-kt.coil3:coil-network-okhttp:3.0.4'
+
+// Navigation Compose (add in Phase D)
+implementation 'androidx.navigation:navigation-compose:2.7.7'
+```
+
+---
+
+## 6. Migration Phases
+
+### Phase 0: Theme & Shared Components (2-3 days)
+Create `ui/theme/` and `ui/components/` packages with all design tokens and reusable composables.
+**PR:** Standalone, no existing code changes.
+
+### Phase A: Auth Flow (3-4 days)
+Migrate Welcome, Login, Register, Forgot Password screens.
+**PR:** Replaces 4 XML layouts with 4 Compose screens.
+
+### Phase B: Account Flow (2-3 days)
+Migrate Account Profile, Edit Account, Change Password screens.
+**PR:** Replaces 3 XML layouts with 3 Compose screens.
+
+### Phase C: Blog CRUD (3-4 days)
+Migrate Blog Detail, Edit Blog, Create Blog screens. Includes image picker integration.
+**PR:** Replaces 3 XML layouts with 3 Compose screens.
+
+### Phase D: Blog Feed + Navigation Cutover (6-8 days)
+Most complex phase. Migrate Blog Feed (LazyColumn + Paging 3 + search + filter).
+Then replace Fragment Navigation with Compose Navigation across the entire app.
+**PR:** Removes all Fragments and XML navigation graphs.
+
+### Phase E: Cleanup (2-3 days)
+Remove all dead XML layouts, unused dependencies, and consolidate to single Activity.
+**PR:** Final cleanup, dependency reduction.
+
+### Estimated Total: ~20-27 dev-days across 6 incremental PRs.
