@@ -366,19 +366,19 @@ Outline:                #70787f      Outline Variant:         #c0c7cf
 
 ### Phase A: Auth Screens
 
-- [ ] `ui/auth/composables/WelcomeScreen.kt`
-- [ ] `ui/auth/composables/LoginScreen.kt`
-- [ ] `ui/auth/composables/RegisterScreen.kt`
-- [ ] `ui/auth/composables/ForgotPasswordScreen.kt`
-- [ ] Refactor `LauncherFragment.kt` -> ComposeView shell
-- [ ] Refactor `LoginFragment.kt` -> ComposeView shell
-- [ ] Refactor `RegisterFragment.kt` -> ComposeView shell
-- [ ] Refactor `ForgotPasswordFragment.kt` -> ComposeView shell
-- [ ] Delete `fragment_launcher.xml`
-- [ ] Delete `fragment_login.xml`
-- [ ] Delete `fragment_register.xml`
-- [ ] Delete `fragment_forgot_password.xml`
-- [ ] Visual verification against Stitch designs
+- [x] `ui/auth/composables/WelcomeScreen.kt`
+- [x] `ui/auth/composables/LoginScreen.kt`
+- [x] `ui/auth/composables/RegisterScreen.kt`
+- [x] `ui/auth/composables/ForgotPasswordScreen.kt`
+- [x] Refactor `LauncherFragment.kt` -> ComposeView shell
+- [x] Refactor `LoginFragment.kt` -> ComposeView shell
+- [x] Refactor `RegisterFragment.kt` -> ComposeView shell
+- [x] Refactor `ForgotPasswordFragment.kt` -> ComposeView shell
+- [x] Delete `fragment_launcher.xml`
+- [x] Delete `fragment_login.xml`
+- [x] Delete `fragment_register.xml`
+- [x] Delete `fragment_forgot_password.xml`
+- [x] Visual verification against Stitch designs
 
 ### Phase B: Account Screens
 

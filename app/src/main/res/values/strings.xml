@@ -19,11 +19,7 @@
     <string name="text_ok">OK</string>
     <string name="text_cancel">Cancel</string>
     <string name="email_field">Email</string>
-    <string name="field_password">Password</string>
-    <string name="field_login">Login</string>
     <string name="field_username">Username</string>
-    <string name="field_confirm_password">Confirm password</string>
-    <string name="field_register">Register</string>
     <string name="network_error_response">Error</string>
     <string name="account">Account</string>
     <string name="logout">Logout</string>
@@ -79,7 +75,6 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="go_to_viewblogfragment">go to ViewBlogFragment</string>
     <string name="apply">Apply</string>
-    <string name="forgot_password">Forgot password</string>
     <string name="first_and_surname">First and Surname</string>
     <string name="updated_on_july_23_2022">Updated on July 23, 2022</string>
     <string name="the_title_of_a_blog">The Title of a Blog</string>
@@ -94,7 +89,6 @@
     <string name="welcome_to_nyasablog">Welcome to NyasaBlog</string>
     <string name="login_woman">login woman</string>
     <string name="writing_woman">writing woman</string>
-    <string name="create_account">Create Account</string>
     <string name="this_is_some_blog_content">This is some blog content</string>
     <string name="touch_to_change_image">Touch to change image</string>
     <string name="cancel">Cancel</string>
