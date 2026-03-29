@@ -395,17 +395,17 @@ Outline:                #70787f      Outline Variant:         #c0c7cf
 
 ### Phase C: Blog CRUD Screens
 
-- [ ] `ui/main/blog/composables/BlogDetailScreen.kt`
-- [ ] `ui/main/blog/composables/EditBlogScreen.kt`
-- [ ] `ui/main/create_blog/composables/CreateBlogScreen.kt`
-- [ ] Refactor `ViewBlogFragment.kt` -> ComposeView shell
-- [ ] Refactor `UpdateBlogFragment.kt` -> ComposeView shell
-- [ ] Refactor `CreateBlogFragment.kt` -> ComposeView shell
-- [ ] Delete `fragment_view_blog.xml`
-- [ ] Delete `fragment_update_blog.xml`
-- [ ] Delete `fragment_create_blog.xml`
-- [ ] Image picker integration via Fragment ActivityResultLauncher
-- [ ] Visual verification against Stitch designs
+- [x] `ui/main/blog/composables/BlogDetailScreen.kt`
+- [x] `ui/main/blog/composables/EditBlogScreen.kt`
+- [x] `ui/main/create_blog/composables/CreateBlogScreen.kt`
+- [x] Refactor `ViewBlogFragment.kt` -> ComposeView shell
+- [x] Refactor `UpdateBlogFragment.kt` -> ComposeView shell
+- [x] Refactor `CreateBlogFragment.kt` -> ComposeView shell
+- [x] Delete `fragment_view_blog.xml`
+- [x] Delete `fragment_update_blog.xml`
+- [x] Delete `fragment_create_blog.xml`
+- [x] Image picker integration via Fragment ActivityResultLauncher
+- [x] Visual verification against Stitch designs
 
 ### Phase D: Blog Feed + Compose Navigation Cutover
 
