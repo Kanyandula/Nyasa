@@ -1,138 +1,48 @@
 package com.kanyandula.nyasa.ui.auth
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.TranslateAnimation
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.kanyandula.nyasa.R
-import com.kanyandula.nyasa.databinding.FragmentForgotPasswordBinding
 import com.kanyandula.nyasa.ui.DataStateChangeListener
-import com.kanyandula.nyasa.util.Constants
+import com.kanyandula.nyasa.ui.auth.composables.ForgotPasswordScreen
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ForgotPasswordFragment :
-    BaseAuthFragment<FragmentForgotPasswordBinding>(FragmentForgotPasswordBinding::inflate) {
-
-    lateinit var webView: WebView
+class ForgotPasswordFragment : Fragment() {
 
     lateinit var stateChangeListener: DataStateChangeListener
-
-    private val webInteractionCallback = object : WebAppInterface.OnWebInteractionCallback {
-
-        override fun onError(errorMessage: String) {
-            Log.e(TAG, "onError: $errorMessage")
-            stateChangeListener.displayErrorDialog(errorMessage)
-        }
-
-        override fun onSuccess(email: String) {
-            Log.d(TAG, "onSuccess: a reset link will be sent to $email.")
-            onPasswordResetLinkSent()
-        }
-
-        override fun onLoading(isLoading: Boolean) {
-            Log.d(TAG, "onLoading... ")
-            viewLifecycleOwner.lifecycleScope.launch(Main) {
-                stateChangeListener.displayProgressBar(isLoading)
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_forgot_password, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        webView = view.findViewById(R.id.webview)
-
-        loadPasswordResetWebView()
-        binding?.returnToLauncherFragment?.setOnClickListener {
-            findNavController().popBackStack()
-        }
-    }
-
-    @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
-    fun loadPasswordResetWebView() {
-        stateChangeListener.displayProgressBar(true)
-        webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                stateChangeListener.displayProgressBar(false)
-            }
-        }
-        webView.loadUrl(Constants.PASSWORD_RESET_URL)
-        webView.settings.javaScriptEnabled = true
-        webView.addJavascriptInterface(WebAppInterface(webInteractionCallback), "AndroidTextListener")
-    }
-
-    class WebAppInterface
-    constructor(
-        private val callback: OnWebInteractionCallback
-    ) {
-
-        private val TAG: String = "AppDebug"
-
-        @JavascriptInterface
-        fun onSuccess(email: String) {
-            callback.onSuccess(email)
-        }
-
-        @JavascriptInterface
-        fun onError(errorMessage: String) {
-            callback.onError(errorMessage)
-        }
-
-        @JavascriptInterface
-        fun onLoading(isLoading: Boolean) {
-            callback.onLoading(isLoading)
-        }
-
-        interface OnWebInteractionCallback {
-
-            fun onSuccess(email: String)
-
-            fun onError(errorMessage: String)
-
-            fun onLoading(isLoading: Boolean)
-        }
-    }
-
-    fun onPasswordResetLinkSent() {
-        viewLifecycleOwner.lifecycleScope.launch(Main) {
-            binding?.parentView?.removeView(webView)
-            webView.destroy()
-
-            val animation = binding?.passwordResetDoneContainer
-                ?.width?.let {
-                    TranslateAnimation(
-                        it.toFloat(),
-                        0f,
-                        0f,
-                        0f
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    ForgotPasswordScreen(
+                        onNavigateBack = {
+                            findNavController().popBackStack()
+                        },
+                        onError = { message ->
+                            stateChangeListener.displayErrorDialog(message)
+                        },
+                        onLoadingChanged = { isLoading ->
+                            stateChangeListener.displayProgressBar(isLoading)
+                        }
                     )
                 }
-            if (animation != null) {
-                animation.duration = 500
-            }
-            binding?.apply {
-                passwordResetDoneContainer.startAnimation(animation)
-                passwordResetDoneContainer.visibility = View.VISIBLE
             }
         }
     }
@@ -142,7 +52,7 @@ class ForgotPasswordFragment :
         try {
             stateChangeListener = context as DataStateChangeListener
         } catch (e: ClassCastException) {
-            Log.e(TAG, "$context must implement DataStateChangeListener")
+            Log.e("AppDebug", "$context must implement DataStateChangeListener")
         }
     }
 }

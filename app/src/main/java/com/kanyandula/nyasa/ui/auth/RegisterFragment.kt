@@ -1,61 +1,62 @@
 package com.kanyandula.nyasa.ui.auth
 
 import android.os.Bundle
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.kanyandula.nyasa.databinding.FragmentRegisterBinding
+import android.view.ViewGroup
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kanyandula.nyasa.ui.auth.composables.RegisterScreen
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class RegisterFragment : BaseAuthFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
+class RegisterFragment : Fragment() {
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private val viewModel: AuthViewModel by activityViewModels()
 
-        Log.d(TAG, "RegisterFragment: $viewModel")
-        binding?.registerButton?.setOnClickListener {
-            register()
-        }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    val state by viewModel.viewState.collectAsStateWithLifecycle()
+                    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        subscribeObservers()
-    }
-
-    private fun subscribeObservers() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.viewState.collect { viewState ->
-                    viewState.registrationFields?.let {
-                        binding?.apply {
-                            it.registration_email?.let { inputEmail.setText(it) }
-                            it.registration_username?.let { inputUsername.setText(it) }
+                    RegisterScreen(
+                        initialEmail = state.registrationFields?.registration_email.orEmpty(),
+                        initialUsername = state.registrationFields?.registration_username.orEmpty(),
+                        isLoading = isLoading,
+                        onRegister = { email, username, password, confirmPassword ->
+                            viewModel.attemptRegistration(
+                                email,
+                                username,
+                                password,
+                                confirmPassword
+                            )
+                        },
+                        onNavigateToLogin = {
+                            activity?.onBackPressedDispatcher?.onBackPressed()
+                        },
+                        onFieldsChanged = { email, username ->
+                            viewModel.setRegistrationFields(
+                                RegistrationFields(email, username)
+                            )
                         }
-                    }
+                    )
                 }
             }
         }
-    }
-
-    private fun register() {
-        viewModel.attemptRegistration(
-            binding?.inputEmail?.text.toString(),
-            binding?.inputUsername?.text.toString(),
-            binding?.inputPassword?.text.toString(),
-            binding?.inputPasswordConfirm?.text.toString()
-        )
-    }
-
-    override fun onDestroyView() {
-        viewModel.setRegistrationFields(
-            RegistrationFields(
-                binding?.inputEmail?.text.toString(),
-                binding?.inputUsername?.text.toString()
-            )
-        )
-        super.onDestroyView()
     }
 }

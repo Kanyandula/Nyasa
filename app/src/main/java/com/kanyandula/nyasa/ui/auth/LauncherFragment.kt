@@ -1,52 +1,51 @@
 package com.kanyandula.nyasa.ui.auth
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
-import com.kanyandula.nyasa.databinding.FragmentLauncherBinding
+import com.kanyandula.nyasa.ui.auth.composables.WelcomeScreen
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class LauncherFragment : Fragment(R.layout.fragment_launcher) {
+class LauncherFragment : Fragment() {
 
-    private var _binding: FragmentLauncherBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentLauncherBinding.bind(view)
-
-        binding.register.setOnClickListener {
-            navRegistration()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    WelcomeScreen(
+                        onLoginClick = {
+                            findNavController().navigate(
+                                R.id.action_launcherFragment_to_loginFragment
+                            )
+                        },
+                        onRegisterClick = {
+                            findNavController().navigate(
+                                R.id.action_launcherFragment_to_registerFragment
+                            )
+                        },
+                        onForgotPasswordClick = {
+                            findNavController().navigate(
+                                R.id.action_launcherFragment_to_forgotPasswordFragment
+                            )
+                        }
+                    )
+                }
+            }
         }
-
-        binding.login.setOnClickListener {
-            navLogin()
-        }
-
-        binding.forgotPassword.setOnClickListener {
-            navForgotPassword()
-        }
-
-        binding.focusableView.requestFocus() // reset focus
-    }
-
-    fun navLogin() {
-        findNavController().navigate(R.id.action_launcherFragment_to_loginFragment)
-    }
-
-    fun navRegistration() {
-        findNavController().navigate(R.id.action_launcherFragment_to_registerFragment)
-    }
-
-    fun navForgotPassword() {
-        findNavController().navigate(R.id.action_launcherFragment_to_forgotPasswordFragment)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

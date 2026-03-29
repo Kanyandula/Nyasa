@@ -1,65 +1,61 @@
 package com.kanyandula.nyasa.ui.auth
 
 import android.os.Bundle
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import android.view.ViewGroup
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import com.kanyandula.nyasa.R
-import com.kanyandula.nyasa.databinding.FragmentLoginBinding
+import com.kanyandula.nyasa.ui.auth.composables.LoginScreen
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class LoginFragment : BaseAuthFragment<FragmentLoginBinding>(FragmentLoginBinding::inflate) {
+class LoginFragment : Fragment() {
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "LoginFragment: $viewModel")
-        subscribeObservers()
+    private val viewModel: AuthViewModel by activityViewModels()
 
-        binding?.loginButton?.setOnClickListener {
-            login()
-        }
-        binding?.forgotPassword?.setOnClickListener {
-            navForgotPassword()
-        }
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    val state by viewModel.viewState.collectAsStateWithLifecycle()
+                    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-    private fun navForgotPassword() {
-        findNavController().navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
-    }
-
-    private fun subscribeObservers() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.viewState.collect { state ->
-                    state.loginFields?.let {
-                        binding?.apply {
-                            it.login_email?.let { inputEmail.setText(it) }
+                    LoginScreen(
+                        initialEmail = state.loginFields?.login_email.orEmpty(),
+                        isLoading = isLoading,
+                        onLogin = { email, password ->
+                            viewModel.attemptLogin(email, password)
+                        },
+                        onForgotPassword = {
+                            findNavController().navigate(
+                                R.id.action_loginFragment_to_forgotPasswordFragment
+                            )
+                        },
+                        onNavigateToRegister = {
+                            findNavController().popBackStack()
+                        },
+                        onEmailChanged = { email ->
+                            viewModel.setLoginFields(LoginFields(email))
                         }
-                    }
+                    )
                 }
             }
         }
-    }
-
-    private fun login() {
-        viewModel.attemptLogin(
-            binding?.inputEmail?.text.toString(),
-            binding?.inputPassword?.text.toString()
-        )
-    }
-
-    override fun onDestroyView() {
-        viewModel.setLoginFields(
-            LoginFields(
-                binding?.inputEmail?.text.toString()
-            )
-        )
-        super.onDestroyView()
     }
 }
