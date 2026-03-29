@@ -1,65 +1,100 @@
 package com.kanyandula.nyasa.ui.main.blog
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
+import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.MenuHost
-import androidx.core.view.MenuProvider
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
 import com.github.drjacky.imagepicker.ImagePicker
-import com.kanyandula.nyasa.R
-import com.kanyandula.nyasa.databinding.FragmentUpdateBlogBinding
-import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.DataStateChangeListener
+import com.kanyandula.nyasa.ui.handleStandardUiEvent
+import com.kanyandula.nyasa.ui.main.blog.composables.EditBlogScreen
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.ErrorHandling
-import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
 
-class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentUpdateBlogBinding::inflate) {
+@AndroidEntryPoint
+class UpdateBlogFragment : Fragment() {
 
+    private val viewModel: BlogViewModel by activityViewModels()
     private val args: UpdateBlogFragmentArgs by navArgs()
+    lateinit var stateChangeListener: DataStateChangeListener
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                if (it.data?.hasExtra(ImagePicker.EXTRA_FILE_PATH)!!) {
-                    val uri = it.data?.data!!
-                    viewModel.setUpdatedBlogFields(
-                        title = null,
-                        body = null,
-                        uri = uri
-                    )
+                if (it.data?.hasExtra(ImagePicker.EXTRA_FILE_PATH) == true) {
+                    val uri = it.data?.data
+                    if (uri != null) {
+                        viewModel.setUpdatedBlogFields(title = null, body = null, uri = uri)
+                    }
                 } else {
-                    stateChangeListener.displayErrorDialog(ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE)
+                    stateChangeListener.displayErrorDialog(
+                        ErrorHandling.ERROR_SOMETHING_WRONG_WITH_IMAGE
+                    )
                 }
             }
         }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setupMenu()
-        subscribeObservers()
-        binding?.imageContainer?.setOnClickListener {
-            pickGalleryImage()
-        }
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                NyasaTheme {
+                    val state by viewModel.updateBlogState.collectAsStateWithLifecycle()
+                    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-    override fun handleUiEvent(event: UiEvent) {
-        when (event) {
-            is BlogNavigationEvent.BlogUpdateSuccess -> {
-                findNavController().popBackStack()
+                    LaunchedEffect(Unit) {
+                        viewModel.events.collect { event ->
+                            when (event) {
+                                is BlogNavigationEvent.BlogUpdateSuccess -> {
+                                    findNavController().popBackStack()
+                                }
+                                else -> handleStandardUiEvent(event, stateChangeListener)
+                            }
+                        }
+                    }
+
+                    EditBlogScreen(
+                        initialTitle = state.updatedBlogTitle.orEmpty(),
+                        initialBody = state.updatedBlogBody.orEmpty(),
+                        imageUri = state.updatedImageUri,
+                        isLoading = isLoading,
+                        onSave = { title, body ->
+                            viewModel.updateBlogPost(
+                                slug = args.blogSlug,
+                                title = title,
+                                body = body,
+                                imageUri = viewModel.getUpdatedBlogUri()
+                            )
+                            stateChangeListener.hideSoftKeyboard()
+                        },
+                        onPickImage = { pickGalleryImage() },
+                        onNavigateBack = { findNavController().popBackStack() }
+                    )
+                }
             }
-            else -> super.handleUiEvent(event)
         }
     }
 
@@ -70,81 +105,18 @@ class UpdateBlogFragment : BaseBlogFragment<FragmentUpdateBlogBinding>(FragmentU
                 .galleryOnly()
                 .setOutputFormat(Bitmap.CompressFormat.JPEG)
                 .galleryMimeTypes(
-                    mimeTypes = arrayOf(
-                        "image/png",
-                        "image/jpg",
-                        "image/jpeg"
-                    )
+                    mimeTypes = arrayOf("image/png", "image/jpg", "image/jpeg")
                 )
                 .createIntent()
         )
     }
 
-    private fun subscribeObservers() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.updateBlogState.collect { state ->
-                    setBlogProperties(
-                        state.updatedBlogTitle,
-                        state.updatedBlogBody,
-                        state.updatedImageUri
-                    )
-                }
-            }
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        try {
+            stateChangeListener = context as DataStateChangeListener
+        } catch (e: ClassCastException) {
+            Log.e("AppDebug", "$context must implement DataStateChangeListener")
         }
-    }
-
-    fun setBlogProperties(title: String?, body: String?, image: Uri?) {
-        binding?.let {
-            Glide.with(this@UpdateBlogFragment)
-                .load(image)
-                .into(it.blogImage)
-        }
-
-        binding?.blogTitle?.let { if (it.text.toString() != title.orEmpty()) it.setText(title) }
-        binding?.blogBody?.let { if (it.text.toString() != body.orEmpty()) it.setText(body) }
-    }
-
-    private fun saveChanges() {
-        viewModel.updateBlogPost(
-            slug = args.blogSlug,
-            title = binding?.blogTitle?.text.toString(),
-            body = binding?.blogBody?.text.toString(),
-            imageUri = viewModel.getUpdatedBlogUri()
-        )
-        stateChangeListener.hideSoftKeyboard()
-    }
-
-    private fun setupMenu() {
-        (requireActivity() as MenuHost).addMenuProvider(
-            object : MenuProvider {
-                override fun onPrepareMenu(menu: Menu) { /* no-op */ }
-
-                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                    menuInflater.inflate(R.menu.update_menu, menu)
-                }
-
-                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    when (menuItem.itemId) {
-                        R.id.save -> {
-                            saveChanges()
-                            return true
-                        }
-                    }
-                    return true
-                }
-            },
-            viewLifecycleOwner,
-            Lifecycle.State.RESUMED
-        )
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.setUpdatedBlogFields(
-            uri = null,
-            title = binding?.blogTitle?.text.toString(),
-            body = binding?.blogBody?.text.toString()
-        )
     }
 }

@@ -27,10 +27,6 @@
     <string name="home">Home</string>
     <string name="create">Create</string>
 
-    <string name="fragment_create_blog">Create</string>
-    <string name="fragment_update_blog">Update</string>
-    <string name="fragment_view_blog">View</string>
-    <string name="fragment_blog">Blog</string>
     <string name="save_changes">Save changes</string>
     <string name="arg_email">arg_email</string>
     <string name="arg_username">arg_username</string>
