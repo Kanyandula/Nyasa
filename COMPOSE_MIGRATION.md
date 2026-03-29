@@ -409,17 +409,17 @@ Outline:                #70787f      Outline Variant:         #c0c7cf
 
 ### Phase D: Blog Feed + Compose Navigation Cutover
 
-- [ ] `ui/main/blog/composables/BlogFeedScreen.kt` — LazyColumn + Paging 3
-- [ ] `ui/main/blog/composables/BlogSearchBar.kt`
-- [ ] `ui/main/blog/composables/BlogFilterSheet.kt` — ModalBottomSheet
-- [ ] Delete `fragment_blog.xml`, `layout_blog_filter.xml`, `layout_blog_list_item.xml`, `layout_blog_load_state.xml`
-- [ ] Add `navigation-compose` dependency
-- [ ] Replace Fragment NavHost with Compose `NavHost` in both Activities
-- [ ] Scope `BlogViewModel` to blog nav graph via `hiltViewModel(backStackEntry)`
-- [ ] Replace XML `BottomNavigationView` with Compose `NavigationBar`
-- [ ] Remove all Fragment classes
-- [ ] Remove all XML navigation graphs
-- [ ] Remove ViewBinding from `buildFeatures`
+- [x] `ui/main/blog/composables/BlogFeedScreen.kt` — LazyColumn + Paging 3
+- [x] `ui/main/blog/composables/BlogSearchBar.kt`
+- [x] `ui/main/blog/composables/BlogFilterSheet.kt` — ModalBottomSheet
+- [x] Delete `fragment_blog.xml`, `layout_blog_filter.xml`, `layout_blog_list_item.xml`, `layout_blog_load_state.xml`
+- [x] Add `navigation-compose` dependency
+- [x] Replace Fragment NavHost with Compose `NavHost` in both Activities
+- [x] Scope `BlogViewModel` to blog nav graph via `hiltViewModel(backStackEntry)`
+- [x] Replace XML `BottomNavigationView` with Compose `NavigationBar`
+- [x] Remove all Fragment classes
+- [x] Remove all XML navigation graphs
+- [x] Remove ViewBinding from `buildFeatures`
 
 ### Phase E: Cleanup
 

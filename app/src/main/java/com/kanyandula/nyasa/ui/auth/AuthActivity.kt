@@ -2,123 +2,153 @@ package com.kanyandula.nyasa.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.findNavController
-import com.kanyandula.nyasa.R
-import com.kanyandula.nyasa.databinding.ActivityAuthBinding
-import com.kanyandula.nyasa.ui.BaseActivity
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.kanyandula.nyasa.session.SessionManager
+import com.kanyandula.nyasa.ui.auth.composables.ForgotPasswordScreen
+import com.kanyandula.nyasa.ui.auth.composables.LoginScreen
+import com.kanyandula.nyasa.ui.auth.composables.RegisterScreen
+import com.kanyandula.nyasa.ui.auth.composables.WelcomeScreen
 import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
-import com.kanyandula.nyasa.ui.handleStandardUiEvent
+import com.kanyandula.nyasa.ui.auth.state.LoginFields
+import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
+import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.main.MainActivity
+import com.kanyandula.nyasa.ui.navigation.Routes
+import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class AuthActivity :
-    BaseActivity(),
-    NavController.OnDestinationChangedListener {
+class AuthActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityAuthBinding
+    @Inject
+    lateinit var sessionManager: SessionManager
 
-    private val viewModel: AuthViewModel by viewModels()
-
+    @Suppress("LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAuthBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        setContent {
+            NyasaTheme {
+                val navController = rememberNavController()
+                val viewModel: AuthViewModel = hiltViewModel()
+                val state by viewModel.viewState.collectAsStateWithLifecycle()
+                val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        findNavController(R.id.auth_nav_host_fragment).addOnDestinationChangedListener(this)
-
-        subscribeObservers()
-        checkPreviousAuthUser()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // checkPreviousAuthUser already called in onCreate;
-        // ViewModel handles deduplication via hasCheckedPreviousUser flag
-    }
-
-    private fun subscribeObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.viewState.collect { viewState ->
-                        Log.d(TAG, "AuthActivity, subscribeObservers: AuthViewState: $viewState")
-                        viewState.authToken?.let {
-                            sessionManager.login(it)
-                        }
-                    }
+                LaunchedEffect(Unit) {
+                    viewModel.checkPreviousAuthUser()
                 }
 
-                launch {
+                LaunchedEffect(state.authToken) {
+                    state.authToken?.let { sessionManager.login(it) }
+                }
+
+                LaunchedEffect(Unit) {
                     sessionManager.cachedToken.collect { authToken ->
-                        Log.d(TAG, "AuthActivity, subscribeObservers: AuthToken: $authToken")
                         if (authToken != null && authToken.account_pk != -1 && authToken.token != null) {
                             navMainActivity()
                         }
                     }
                 }
 
-                launch {
-                    viewModel.isLoading.collect { isLoading ->
-                        displayProgressBar(isLoading)
+                LaunchedEffect(Unit) {
+                    viewModel.events.collect { event ->
+                        when (event) {
+                            is AuthUiEvent.CheckPreviousAuthDone -> { /* UI now visible */ }
+                            else -> handleStandardEvent(this@AuthActivity, event)
+                        }
                     }
                 }
 
-                launch {
-                    viewModel.events.collect { event ->
-                        if (event is AuthUiEvent.CheckPreviousAuthDone) {
-                            onFinishCheckPreviousAuthUser()
-                        } else {
-                            handleStandardUiEvent(event, this@AuthActivity)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = Routes.WELCOME
+                    ) {
+                        composable(Routes.WELCOME) {
+                            WelcomeScreen(
+                                onLoginClick = { navController.navigate(Routes.LOGIN) },
+                                onRegisterClick = { navController.navigate(Routes.REGISTER) },
+                                onForgotPasswordClick = {
+                                    navController.navigate(Routes.FORGOT_PASSWORD)
+                                }
+                            )
+                        }
+                        composable(Routes.LOGIN) {
+                            LoginScreen(
+                                initialEmail = state.loginFields?.login_email.orEmpty(),
+                                isLoading = isLoading,
+                                onLogin = { email, password ->
+                                    viewModel.attemptLogin(email, password)
+                                },
+                                onForgotPassword = {
+                                    navController.navigate(Routes.FORGOT_PASSWORD)
+                                },
+                                onNavigateToRegister = {
+                                    navController.popBackStack()
+                                },
+                                onEmailChanged = { email ->
+                                    viewModel.setLoginFields(LoginFields(email))
+                                }
+                            )
+                        }
+                        composable(Routes.REGISTER) {
+                            RegisterScreen(
+                                initialEmail = state.registrationFields
+                                    ?.registration_email.orEmpty(),
+                                initialUsername = state.registrationFields
+                                    ?.registration_username.orEmpty(),
+                                isLoading = isLoading,
+                                onRegister = { email, username, password, confirmPassword ->
+                                    viewModel.attemptRegistration(
+                                        email,
+                                        username,
+                                        password,
+                                        confirmPassword
+                                    )
+                                },
+                                onNavigateToLogin = { navController.popBackStack() },
+                                onFieldsChanged = { email, username ->
+                                    viewModel.setRegistrationFields(
+                                        RegistrationFields(email, username)
+                                    )
+                                }
+                            )
+                        }
+                        composable(Routes.FORGOT_PASSWORD) {
+                            ForgotPasswordScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onError = { message ->
+                                    Toast.makeText(
+                                        this@AuthActivity,
+                                        message,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onLoadingChanged = { /* loading handled by overlay */ }
+                            )
                         }
                     }
+                    LoadingOverlay(isLoading = isLoading)
                 }
             }
         }
     }
 
     private fun navMainActivity() {
-        Log.d(TAG, "navMainActivity: called.")
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
+        startActivity(Intent(this, MainActivity::class.java))
         finish()
-    }
-
-    private fun checkPreviousAuthUser() {
-        viewModel.checkPreviousAuthUser()
-    }
-
-    private fun onFinishCheckPreviousAuthUser() {
-        binding.fragmentContainer.visibility = View.VISIBLE
-    }
-
-    override fun displayProgressBar(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.visibility = View.VISIBLE
-        } else {
-            binding.progressBar.visibility = View.GONE
-        }
-    }
-
-    override fun expandAppBar() {
-        // ignore
-    }
-
-    override fun onDestinationChanged(
-        controller: NavController,
-        destination: NavDestination,
-        arguments: Bundle?
-    ) {
-        // no-op: active jobs now cancelled by viewModelScope
     }
 }
