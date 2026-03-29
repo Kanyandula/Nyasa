@@ -423,13 +423,13 @@ Outline:                #70787f      Outline Variant:         #c0c7cf
 
 ### Phase E: Cleanup
 
-- [ ] Delete remaining XML layouts (`activity_auth.xml`, `activity_main.xml`)
-- [ ] Remove Glide dependency (fully replaced by Coil)
-- [ ] Remove unused View dependencies: `constraintlayout`, `cardview`, `recyclerview`, `swiperefreshlayout`, `circleimageview`, `material-dialogs`
-- [ ] Remove `fragment-ktx` dependency (no more Fragments)
-- [ ] Consider single-Activity consolidation
-- [ ] Final `./gradlew clean assembleDebug && ./gradlew detekt && ./gradlew spotlessCheck && ./gradlew lintDebug`
-- [ ] Full app walkthrough: auth -> blog feed -> detail -> create -> edit -> account -> password -> logout
+- [x] ~~Delete remaining XML layouts (`activity_auth.xml`, `activity_main.xml`)~~ Already deleted in Phase D
+- [x] Remove Glide dependency (fully replaced by Coil)
+- [x] Remove unused View dependencies: `constraintlayout`, `cardview`, `recyclerview`, `swiperefreshlayout`, `circleimageview`, `material-dialogs`
+- [x] Remove `fragment-ktx` dependency (no more Fragments)
+- [x] Consider single-Activity consolidation — deferred (two Activities work fine)
+- [x] Final `./gradlew clean assembleDebug && ./gradlew detekt && ./gradlew spotlessCheck && ./gradlew lintDebug`
+- [x] Full app walkthrough: auth -> blog feed -> detail -> create -> edit -> account -> password -> logout
 
 ---
 
