@@ -3,7 +3,7 @@
 > Modernize the codebase incrementally from 2018-era patterns to current Android best practices.
 > Each phase leaves the app in a working, shippable state.
 
-## Current State (after Phase 5)
+## Current State (after Phase 8)
 
 | Layer | Status | Current |
 |-------|--------|---------|
@@ -12,10 +12,10 @@
 | Repository | Done (Phase 3+5) | `Flow<Resource<T>>`, interfaces in `domain/repository/`, impls in `repository/` |
 | State | Done (Phase 4) | Per-screen `UiState` with `StateFlow`, `SharedFlow<UiEvent>` for one-shot events |
 | Architecture | Done (Phase 5) | ViewModel -> UseCase -> Repository (interface) |
-| Navigation | Pending (Phase 6) | Raw `R.id` actions, state via shared ViewModel |
-| Session | Pending (Phase 7) | Deprecated `ConnectivityManager.activeNetworkInfo`, `StateFlow` for token |
-| Pagination | Pending (Phase 8) | Manual page tracking, string-based error detection |
-| UI | Pending (Phase 9) | XML Views + ViewBinding |
+| Navigation | Done (Phase 6) | Type-safe SafeArgs with `navArgs()` and generated `Directions` classes |
+| Session | Done (Phase 7) | Reactive `ConnectivityObserver` with `NetworkCallback` + `StateFlow` token |
+| Pagination | Done (Phase 8) | Paging 3: `RemoteMediator` + `PagingDataAdapter` + `Flow<PagingData<BlogPost>>` |
+| UI | Pending (Phase 9) | XML Views + ViewBinding — see [COMPOSE_MIGRATION.md](COMPOSE_MIGRATION.md) |
 | Testing | Pending (Phase 10) | Scaffold only |
 
 ---
