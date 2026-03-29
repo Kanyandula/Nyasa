@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -89,10 +90,11 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(padding)
                     ) {
                         navigation(startDestination = Routes.BLOG_FEED, route = Routes.BLOG_GRAPH) {
-                            composable(Routes.BLOG_FEED) {
-                                val vm: BlogViewModel = hiltViewModel(
+                            composable(Routes.BLOG_FEED) { entry ->
+                                val parentEntry = remember(entry) {
                                     navController.getBackStackEntry(Routes.BLOG_GRAPH)
-                                )
+                                }
+                                val vm: BlogViewModel = hiltViewModel(parentEntry)
                                 val state by vm.viewState.collectAsStateWithLifecycle()
 
                                 BlogFeedScreen(
@@ -121,9 +123,10 @@ class MainActivity : ComponentActivity() {
                                 arguments = listOf(navArgument("slug") { type = NavType.StringType })
                             ) { backStackEntry ->
                                 val slug = backStackEntry.arguments?.getString("slug").orEmpty()
-                                val vm: BlogViewModel = hiltViewModel(
+                                val parentEntry = remember(backStackEntry) {
                                     navController.getBackStackEntry(Routes.BLOG_GRAPH)
-                                )
+                                }
+                                val vm: BlogViewModel = hiltViewModel(parentEntry)
                                 BlogDetailRoute(
                                     slug = slug,
                                     viewModel = vm,
@@ -139,9 +142,10 @@ class MainActivity : ComponentActivity() {
                                 arguments = listOf(navArgument("slug") { type = NavType.StringType })
                             ) { backStackEntry ->
                                 val slug = backStackEntry.arguments?.getString("slug").orEmpty()
-                                val vm: BlogViewModel = hiltViewModel(
+                                val parentEntry = remember(backStackEntry) {
                                     navController.getBackStackEntry(Routes.BLOG_GRAPH)
-                                )
+                                }
+                                val vm: BlogViewModel = hiltViewModel(parentEntry)
                                 EditBlogRoute(
                                     slug = slug,
                                     viewModel = vm,
@@ -161,10 +165,11 @@ class MainActivity : ComponentActivity() {
                         }
 
                         navigation(startDestination = Routes.ACCOUNT_PROFILE, route = Routes.ACCOUNT_GRAPH) {
-                            composable(Routes.ACCOUNT_PROFILE) {
-                                val vm: AccountViewModel = hiltViewModel(
+                            composable(Routes.ACCOUNT_PROFILE) { entry ->
+                                val parentEntry = remember(entry) {
                                     navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
-                                )
+                                }
+                                val vm: AccountViewModel = hiltViewModel(parentEntry)
                                 AccountProfileRoute(
                                     viewModel = vm,
                                     onEditProfile = { navController.navigate(Routes.ACCOUNT_EDIT) },
@@ -173,19 +178,21 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            composable(Routes.ACCOUNT_EDIT) {
-                                val vm: AccountViewModel = hiltViewModel(
+                            composable(Routes.ACCOUNT_EDIT) { entry ->
+                                val parentEntry = remember(entry) {
                                     navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
-                                )
+                                }
+                                val vm: AccountViewModel = hiltViewModel(parentEntry)
                                 EditAccountRoute(
                                     viewModel = vm,
                                     onNavigateBack = { navController.popBackStack() }
                                 )
                             }
-                            composable(Routes.ACCOUNT_CHANGE_PASSWORD) {
-                                val vm: AccountViewModel = hiltViewModel(
+                            composable(Routes.ACCOUNT_CHANGE_PASSWORD) { entry ->
+                                val parentEntry = remember(entry) {
                                     navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
-                                )
+                                }
+                                val vm: AccountViewModel = hiltViewModel(parentEntry)
                                 ChangePasswordRoute(
                                     viewModel = vm,
                                     onNavigateBack = { navController.popBackStack() }
