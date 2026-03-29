@@ -9,7 +9,7 @@ import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import com.kanyandula.nyasa.repository.apiErrorMessage
-import com.kanyandula.nyasa.session.SessionManager
+import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_ACCOUNT_PROPERTIES
@@ -33,7 +33,7 @@ constructor(
     private val authTokenDao: AuthTokenDao,
     private val accountPropertiesDao: AccountPropertiesDao,
     private val nyasaBlogApiAuthService: NyasaBlogApiAuthService,
-    private val sessionManager: SessionManager,
+    private val connectivityObserver: ConnectivityObserver,
     private val sharedPreferences: SharedPreferences,
     private val sharedPrefsEditor: SharedPreferences.Editor
 ) : AuthRepository {
@@ -47,7 +47,7 @@ constructor(
             return@flow
         }
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }
@@ -103,7 +103,7 @@ constructor(
             return@flow
         }
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }

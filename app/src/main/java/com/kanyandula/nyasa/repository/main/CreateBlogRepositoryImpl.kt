@@ -8,7 +8,7 @@ import com.kanyandula.nyasa.api.main.responses.toBlogPost
 import com.kanyandula.nyasa.domain.repository.CreateBlogRepository
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.repository.apiErrorMessage
-import com.kanyandula.nyasa.session.SessionManager
+import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.ApiSuccessResponse
 import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
 import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
@@ -29,7 +29,7 @@ class CreateBlogRepositoryImpl
 constructor(
     private val blogApiMainService: NyasaBlogApiMainService,
     private val blogPostDao: BlogPostDao,
-    private val sessionManager: SessionManager
+    private val connectivityObserver: ConnectivityObserver
 ) : CreateBlogRepository {
 
     override fun createNewBlogPost(
@@ -39,7 +39,7 @@ constructor(
     ): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
 
-        if (!sessionManager.isConnectedToTheInternet()) {
+        if (!connectivityObserver.isConnected.value) {
             emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
             return@flow
         }

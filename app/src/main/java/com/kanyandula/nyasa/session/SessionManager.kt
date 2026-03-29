@@ -1,8 +1,5 @@
 package com.kanyandula.nyasa.session
 
-import android.app.Application
-import android.content.Context
-import android.net.ConnectivityManager
 import android.util.Log
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AuthTokenDao
@@ -21,8 +18,7 @@ import javax.inject.Singleton
 class SessionManager
 @Inject
 constructor(
-    val authTokenDao: AuthTokenDao,
-    val application: Application
+    private val authTokenDao: AuthTokenDao
 ) {
 
     private val TAG: String = "AppDebug"
@@ -65,16 +61,5 @@ constructor(
 
     private fun setValue(newValue: AuthToken?) {
         _cachedToken.value = newValue
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    fun isConnectedToTheInternet(): Boolean {
-        val cm = application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        try {
-            return cm.activeNetworkInfo?.isConnected == true
-        } catch (e: Exception) {
-            Log.e(TAG, "isConnectedToTheInternet: ${e.message}")
-        }
-        return false
     }
 }
