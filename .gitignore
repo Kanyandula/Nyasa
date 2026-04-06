@@ -1,15 +1,23 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Plugin/tool caches
+.remember/
+
+# Log files
+*.log
+
+# IDE (keep gradle.xml and runConfigurations for team sharing)
+.idea/
+!.idea/gradle.xml
+!.idea/runConfigurations.xml
+
+# Kotlin compiler cache
+.kotlin/
