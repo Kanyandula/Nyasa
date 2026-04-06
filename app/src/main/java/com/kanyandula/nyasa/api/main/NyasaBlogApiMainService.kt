@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.api.main
 import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
+import com.kanyandula.nyasa.api.main.responses.BlogSearchResponse
 import com.kanyandula.nyasa.models.AccountProperties
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -42,8 +43,15 @@ interface NyasaBlogApiMainService {
     suspend fun searchListBlogPosts(
         @Query("search") query: String,
         @Query("ordering") ordering: String,
-        @Query("page") page: Int
+        @Query("page") page: Int,
+        @Query("category") category: String? = null,
+        @Query("status") status: String? = null
     ): Response<BlogListSearchResponse>
+
+    @GET("blog/{slug}/")
+    suspend fun getBlogPost(
+        @Path("slug") slug: String
+    ): Response<BlogSearchResponse>
 
     @GET("blog/{slug}/is_author")
     suspend fun isAuthorOfBlogPost(
