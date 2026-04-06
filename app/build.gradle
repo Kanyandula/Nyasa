@@ -56,6 +56,10 @@ android {
         checkDependencies false
     }
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
     namespace 'com.kanyandula.nyasa'
 }
 
@@ -171,6 +175,13 @@ dependencies {
     // Unit Tests
     testImplementation 'junit:junit:4.13.2'
     testImplementation "com.google.truth:truth:1.4.4"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1"
+    testImplementation "androidx.arch.core:core-testing:2.2.0"
+    testImplementation "app.cash.turbine:turbine:1.1.0"
+    testImplementation "io.mockk:mockk:1.13.12"
+    testImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
+    testImplementation "androidx.room:room-testing:2.6.1"
+    testImplementation "androidx.paging:paging-testing:3.3.6"
 
     // Instrumented Tests
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
@@ -178,4 +189,10 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1"
     androidTestImplementation "androidx.arch.core:core-testing:2.2.0"
     androidTestImplementation "com.google.truth:truth:1.4.4"
+    androidTestImplementation "app.cash.turbine:turbine:1.1.0"
+    androidTestImplementation "io.mockk:mockk-android:1.13.12"
+    androidTestImplementation "com.google.dagger:hilt-android-testing:$hilt_version"
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.12.01')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 }
