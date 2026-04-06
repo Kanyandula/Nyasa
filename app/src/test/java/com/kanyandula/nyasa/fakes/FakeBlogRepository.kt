@@ -42,7 +42,9 @@ class FakeBlogRepository : BlogRepository {
         slug: String,
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String?,
+        tags: List<String>?
     ): Flow<Resource<BlogPost>> = fakeResourceFlow { updateResult }
 
     override suspend fun getBlogPostBySlug(slug: String): BlogPost? = blogPostBySlug

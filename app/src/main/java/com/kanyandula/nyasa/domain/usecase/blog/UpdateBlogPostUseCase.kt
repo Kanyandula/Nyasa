@@ -14,7 +14,9 @@ constructor(private val blogRepository: BlogRepository) {
         slug: String,
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String? = null,
+        tags: List<String>? = null
     ): Flow<Resource<BlogPost>> =
-        blogRepository.updateBlogPost(slug, title, body, image)
+        blogRepository.updateBlogPost(slug, title, body, image, category, tags)
 }

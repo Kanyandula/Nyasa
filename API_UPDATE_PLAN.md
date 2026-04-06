@@ -115,19 +115,19 @@ di/main/MainModule.kt
 
 ### Tasks
 
-- [ ] Add endpoints to `NyasaBlogApiMainService`:
+- [x] Add endpoints to `NyasaBlogApiMainService`:
   - `GET blog/categories/`
   - `GET blog/tags/`
   - `GET account/profile/{username}/`
   - `PUT account/profile/update/` (with `bio`, `location`, `website`, social fields)
-- [ ] Create models: `Category`, `Tag`, `UserProfile`
-- [ ] Create response models: `CategoryResponse`, `TagResponse`, `UserProfileResponse`
-- [ ] Create `CategoryRepository` + `ProfileRepository` (interfaces + impls)
-- [ ] Create use cases: `GetCategoriesUseCase`, `GetTagsUseCase`, `GetProfileUseCase`, `UpdateProfileUseCase`
-- [ ] Update `createBlog()` and `updateBlog()` to send `category` and `tags`
-- [ ] Wire in DI modules
-- [ ] Write unit tests
-- [ ] Verify: fetch categories, view profile, update profile with bio
+- [x] Create models: `Category`, `Tag`, `UserProfile`
+- [x] Create response models: `CategoryResponse`, `TagResponse`, `UserProfileResponse`
+- [x] Create `CategoryRepository` + `ProfileRepository` (interfaces + impls)
+- [x] Create use cases: `GetCategoriesUseCase`, `GetTagsUseCase`, `GetProfileUseCase`, `UpdateProfileUseCase`
+- [x] Update `createBlog()` and `updateBlog()` to send `category` and `tags`
+- [x] Wire in DI modules
+- [x] Write unit tests
+- [x] Verify: fetch categories, view profile, update profile with bio
 
 ### Files
 

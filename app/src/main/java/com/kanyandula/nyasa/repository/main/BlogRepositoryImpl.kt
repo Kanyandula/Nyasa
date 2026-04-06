@@ -89,14 +89,25 @@ constructor(
         slug: String,
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String?,
+        tags: List<String>?
     ): Flow<Resource<BlogPost>> = networkApiFlow(
         connectivityObserver = connectivityObserver,
         apiCall = {
             val titleBody = title.toPlainTextBody()
             val bodyBody = body.toPlainTextBody()
             val imagePart = image?.toMultipartImage()
-            nyasaBlogApiMainService.updateBlog(slug, titleBody, bodyBody, imagePart)
+            val categoryBody = category?.toPlainTextBody()
+            val tagsBody = tags?.takeIf { it.isNotEmpty() }?.joinToString(",")?.toPlainTextBody()
+            nyasaBlogApiMainService.updateBlog(
+                slug,
+                titleBody,
+                bodyBody,
+                imagePart,
+                categoryBody,
+                tagsBody
+            )
         },
         onSuccess = { body ->
             val updatedBlogPost = body.toBlogPost()
