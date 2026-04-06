@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.api.main.responses
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
+@Suppress("LongParameterList")
 class BlogCreateUpdateResponse(
 
     @SerializedName("response")
@@ -11,30 +12,50 @@ class BlogCreateUpdateResponse(
 
     @SerializedName("pk")
     @Expose
-    var pk: Int,
+    override var pk: Int,
 
     @SerializedName("title")
     @Expose
-    var title: String,
+    override var title: String,
 
     @SerializedName("slug")
     @Expose
-    var slug: String,
+    override var slug: String,
 
     @SerializedName("body")
     @Expose
-    var body: String,
+    override var body: String,
 
     @SerializedName("image")
     @Expose
-    var image: String,
+    override var image: String,
 
     @SerializedName("date_updated")
     @Expose
-    var date_updated: String,
+    override var date_updated: String,
 
     @SerializedName("username")
     @Expose
-    var username: String
+    override var username: String,
 
-)
+    @SerializedName("category")
+    @Expose
+    override var category: String? = null,
+
+    @SerializedName("tags")
+    @Expose
+    override var tags: List<String>? = null,
+
+    @SerializedName("reading_time")
+    @Expose
+    override var reading_time: Int? = null,
+
+    @SerializedName("view_count")
+    @Expose
+    override var view_count: Int? = null,
+
+    @SerializedName("like_count")
+    @Expose
+    override var like_count: Int? = null
+
+) : BlogResponseFields

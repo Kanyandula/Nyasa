@@ -34,7 +34,22 @@ data class BlogPost(
     var date_updated: Long,
 
     @ColumnInfo(name = "username")
-    var username: String
+    var username: String,
+
+    @ColumnInfo(name = "category")
+    var category: String? = null,
+
+    @ColumnInfo(name = "tags")
+    var tags: String? = null,
+
+    @ColumnInfo(name = "reading_time")
+    var reading_time: Int? = null,
+
+    @ColumnInfo(name = "view_count")
+    var view_count: Int? = null,
+
+    @ColumnInfo(name = "like_count")
+    var like_count: Int? = null
 
 ) : Parcelable {
 
@@ -44,6 +59,10 @@ data class BlogPost(
             "slug='$slug', " +
             "image='$image', " +
             "date_updated=$date_updated, " +
-            "username='$username')"
+            "username='$username', " +
+            "category=$category, " +
+            "reading_time=$reading_time, " +
+            "view_count=$view_count, " +
+            "like_count=$like_count)"
     }
 }

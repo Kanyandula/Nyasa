@@ -146,12 +146,7 @@ constructor(
         when (response) {
             is ApiSuccessResponse -> {
                 val updatedBlogPost = response.body.toBlogPost()
-                blogPostDao.updateBlogPost(
-                    updatedBlogPost.pk,
-                    updatedBlogPost.title,
-                    updatedBlogPost.body,
-                    updatedBlogPost.image
-                )
+                blogPostDao.insert(updatedBlogPost)
                 emit(Resource.Success(updatedBlogPost))
             }
             else -> emit(Resource.Error(apiErrorMessage(response)))

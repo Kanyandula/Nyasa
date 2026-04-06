@@ -90,7 +90,8 @@ object AppModule {
     fun provideAppDb(app: Application): AppDatabase {
         return Room
             .databaseBuilder(app, AppDatabase::class.java, DATABASE_NAME)
-            .fallbackToDestructiveMigration() // get correct db version if schema changed
+            .addMigrations(AppDatabase.MIGRATION_3_4)
+            .fallbackToDestructiveMigration() // fallback if migration path not found
             .build()
     }
 
