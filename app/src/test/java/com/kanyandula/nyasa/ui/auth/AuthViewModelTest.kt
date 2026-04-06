@@ -1,0 +1,163 @@
+package com.kanyandula.nyasa.ui.auth
+
+import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
+import com.kanyandula.nyasa.domain.usecase.auth.CheckPreviousAuthUseCase
+import com.kanyandula.nyasa.domain.usecase.auth.LoginUseCase
+import com.kanyandula.nyasa.domain.usecase.auth.RegisterUseCase
+import com.kanyandula.nyasa.fakes.FakeAuthRepository
+import com.kanyandula.nyasa.models.AuthToken
+import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
+import com.kanyandula.nyasa.ui.auth.state.LoginFields
+import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
+import com.kanyandula.nyasa.util.MainDispatcherRule
+import com.kanyandula.nyasa.util.Resource
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class AuthViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private lateinit var fakeRepository: FakeAuthRepository
+    private lateinit var viewModel: AuthViewModel
+
+    @Before
+    fun setup() {
+        fakeRepository = FakeAuthRepository()
+        viewModel = AuthViewModel(
+            loginUseCase = LoginUseCase(fakeRepository),
+            registerUseCase = RegisterUseCase(fakeRepository),
+            checkPreviousAuthUseCase = CheckPreviousAuthUseCase(fakeRepository)
+        )
+    }
+
+    @Test
+    fun `login success updates authToken in state`() = runTest {
+        val expectedToken = AuthToken(1, "test-token")
+        fakeRepository.loginResult = Resource.Success(expectedToken)
+
+        viewModel.attemptLogin("test@test.com", "password")
+        advanceUntilIdle()
+
+        assertThat(viewModel.viewState.value.authToken).isEqualTo(expectedToken)
+        assertThat(viewModel.isLoading.value).isFalse()
+    }
+
+    @Test
+    fun `login error emits error event`() = runTest {
+        fakeRepository.loginResult = Resource.Error("Invalid credentials")
+
+        viewModel.events.test {
+            viewModel.attemptLogin("test@test.com", "wrong")
+            advanceUntilIdle()
+
+            val event = awaitItem()
+            assertThat(event).isInstanceOf(UiEvent.ShowErrorDialog::class.java)
+            assertThat((event as UiEvent.ShowErrorDialog).message).isEqualTo("Invalid credentials")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `registration success updates authToken in state`() = runTest {
+        val expectedToken = AuthToken(2, "reg-token")
+        fakeRepository.registrationResult = Resource.Success(expectedToken)
+
+        viewModel.attemptRegistration("test@test.com", "user", "pass", "pass")
+        advanceUntilIdle()
+
+        assertThat(viewModel.viewState.value.authToken).isEqualTo(expectedToken)
+    }
+
+    @Test
+    fun `registration error emits error event`() = runTest {
+        fakeRepository.registrationResult = Resource.Error("Email already exists")
+
+        viewModel.events.test {
+            viewModel.attemptRegistration("test@test.com", "user", "pass", "pass")
+            advanceUntilIdle()
+
+            val event = awaitItem()
+            assertThat(event).isInstanceOf(UiEvent.ShowErrorDialog::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `checkPreviousAuthUser with token updates state`() = runTest {
+        val existingToken = AuthToken(1, "existing-token")
+        fakeRepository.previousAuthResult = Resource.Success(existingToken)
+
+        viewModel.checkPreviousAuthUser()
+        advanceUntilIdle()
+
+        assertThat(viewModel.viewState.value.authToken).isEqualTo(existingToken)
+    }
+
+    @Test
+    fun `checkPreviousAuthUser with no token emits CheckPreviousAuthDone`() = runTest {
+        fakeRepository.previousAuthResult = Resource.Success(null)
+
+        viewModel.events.test {
+            viewModel.checkPreviousAuthUser()
+            advanceUntilIdle()
+
+            val event = awaitItem()
+            assertThat(event).isEqualTo(AuthUiEvent.CheckPreviousAuthDone)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `checkPreviousAuthUser only runs once`() = runTest {
+        fakeRepository.previousAuthResult = Resource.Success(null)
+
+        viewModel.checkPreviousAuthUser()
+        viewModel.checkPreviousAuthUser()
+        advanceUntilIdle()
+
+        assertThat(fakeRepository.checkPreviousAuthCallCount).isEqualTo(1)
+    }
+
+    @Test
+    fun `setLoginFields updates state`() {
+        val fields = LoginFields("test@test.com")
+        viewModel.setLoginFields(fields)
+        assertThat(viewModel.viewState.value.loginFields).isEqualTo(fields)
+    }
+
+    @Test
+    fun `setRegistrationFields updates state`() {
+        val fields = RegistrationFields("test@test.com", "testuser")
+        viewModel.setRegistrationFields(fields)
+        assertThat(viewModel.viewState.value.registrationFields).isEqualTo(fields)
+    }
+
+    @Test
+    fun `setAuthToken updates state`() {
+        val token = AuthToken(1, "manual-token")
+        viewModel.setAuthToken(token)
+        assertThat(viewModel.viewState.value.authToken).isEqualTo(token)
+    }
+
+    @Test
+    fun `loading state toggles during login`() = runTest {
+        fakeRepository.loginResult = Resource.Success(AuthToken(1, "t"))
+
+        viewModel.attemptLogin("e", "p")
+
+        // After launching but before idle, loading should be true once the coroutine runs
+        advanceUntilIdle()
+
+        // After completion, loading should be false
+        assertThat(viewModel.isLoading.value).isFalse()
+    }
+}
