@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.paging.PagingData
 import com.kanyandula.nyasa.domain.repository.BlogRepository
 import com.kanyandula.nyasa.models.BlogPost
+import com.kanyandula.nyasa.models.LikeResult
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -45,4 +46,19 @@ class FakeBlogRepository : BlogRepository {
     ): Flow<Resource<BlogPost>> = fakeResourceFlow { updateResult }
 
     override suspend fun getBlogPostBySlug(slug: String): BlogPost? = blogPostBySlug
+
+    var likeResult: Resource<LikeResult> = Resource.Success(LikeResult(liked = true, likeCount = 1))
+
+    override fun likeBlogPost(slug: String): Flow<Resource<LikeResult>> =
+        fakeResourceFlow { likeResult }
+
+    var bookmarkResult: Resource<Boolean> = Resource.Success(true)
+
+    override fun bookmarkBlogPost(slug: String): Flow<Resource<Boolean>> =
+        fakeResourceFlow { bookmarkResult }
+
+    var bookmarksResult: Resource<List<BlogPost>> = Resource.Success(emptyList())
+
+    override fun getBookmarks(): Flow<Resource<List<BlogPost>>> =
+        fakeResourceFlow { bookmarksResult }
 }

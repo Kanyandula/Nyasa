@@ -4,6 +4,10 @@ import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
 import com.kanyandula.nyasa.api.main.responses.BlogSearchResponse
+import com.kanyandula.nyasa.api.main.responses.BookmarkResponse
+import com.kanyandula.nyasa.api.main.responses.CommentResponse
+import com.kanyandula.nyasa.api.main.responses.CommentsListResponse
+import com.kanyandula.nyasa.api.main.responses.LikeResponse
 import com.kanyandula.nyasa.models.AccountProperties
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -19,6 +23,7 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+@Suppress("TooManyFunctions")
 interface NyasaBlogApiMainService {
 
     @GET("account/properties")
@@ -71,6 +76,36 @@ interface NyasaBlogApiMainService {
         @Part("body") body: RequestBody,
         @Part image: MultipartBody.Part?
     ): Response<BlogCreateUpdateResponse>
+
+    @POST("blog/{slug}/like/")
+    suspend fun likeBlogPost(
+        @Path("slug") slug: String
+    ): Response<LikeResponse>
+
+    @POST("blog/{slug}/bookmark/")
+    suspend fun bookmarkBlogPost(
+        @Path("slug") slug: String
+    ): Response<BookmarkResponse>
+
+    @GET("blog/bookmarks/")
+    suspend fun getBookmarks(): Response<BlogListSearchResponse>
+
+    @GET("blog/{slug}/comments/")
+    suspend fun getComments(
+        @Path("slug") slug: String
+    ): Response<CommentsListResponse>
+
+    @POST("blog/{slug}/comments/create/")
+    @FormUrlEncoded
+    suspend fun createComment(
+        @Path("slug") slug: String,
+        @Field("body") body: String
+    ): Response<CommentResponse>
+
+    @DELETE("blog/comments/{pk}/delete/")
+    suspend fun deleteComment(
+        @Path("pk") pk: Int
+    ): Response<GenericResponse>
 
     @Multipart
     @POST("blog/create")
