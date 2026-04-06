@@ -18,7 +18,9 @@ interface BlogRepository {
         slug: String,
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String? = null,
+        tags: List<String>? = null
     ): Flow<Resource<BlogPost>>
     suspend fun getBlogPostBySlug(slug: String): BlogPost?
     fun likeBlogPost(slug: String): Flow<Resource<LikeResult>>

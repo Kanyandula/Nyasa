@@ -12,6 +12,8 @@ class FakeCreateBlogRepository : CreateBlogRepository {
     override fun createNewBlogPost(
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String?,
+        tags: List<String>?
     ): Flow<Resource<String>> = fakeResourceFlow { createResult }
 }

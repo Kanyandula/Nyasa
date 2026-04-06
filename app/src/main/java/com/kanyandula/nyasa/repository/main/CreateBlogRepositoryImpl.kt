@@ -27,14 +27,18 @@ constructor(
     override fun createNewBlogPost(
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String?,
+        tags: List<String>?
     ): Flow<Resource<String>> = networkApiFlow(
         connectivityObserver = connectivityObserver,
         apiCall = {
             val titleBody = title.toPlainTextBody()
             val bodyBody = body.toPlainTextBody()
             val imagePart = image?.toMultipartImage()
-            blogApiMainService.createBlog(titleBody, bodyBody, imagePart)
+            val categoryBody = category?.toPlainTextBody()
+            val tagsBody = tags?.takeIf { it.isNotEmpty() }?.joinToString(",")?.toPlainTextBody()
+            blogApiMainService.createBlog(titleBody, bodyBody, imagePart, categoryBody, tagsBody)
         },
         onSuccess = { responseBody ->
             if (responseBody.response != RESPONSE_MUST_HAVE_NYASABLOG_UER) {

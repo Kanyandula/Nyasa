@@ -12,7 +12,9 @@ constructor(private val createBlogRepository: CreateBlogRepository) {
     operator fun invoke(
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String? = null,
+        tags: List<String>? = null
     ): Flow<Resource<String>> =
-        createBlogRepository.createNewBlogPost(title, body, image)
+        createBlogRepository.createNewBlogPost(title, body, image, category, tags)
 }

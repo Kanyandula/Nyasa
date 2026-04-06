@@ -5,9 +5,12 @@ import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogListSearchResponse
 import com.kanyandula.nyasa.api.main.responses.BlogSearchResponse
 import com.kanyandula.nyasa.api.main.responses.BookmarkResponse
+import com.kanyandula.nyasa.api.main.responses.CategoryResponse
 import com.kanyandula.nyasa.api.main.responses.CommentResponse
 import com.kanyandula.nyasa.api.main.responses.CommentsListResponse
 import com.kanyandula.nyasa.api.main.responses.LikeResponse
+import com.kanyandula.nyasa.api.main.responses.TagResponse
+import com.kanyandula.nyasa.api.main.responses.UserProfileResponse
 import com.kanyandula.nyasa.models.AccountProperties
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -44,6 +47,29 @@ interface NyasaBlogApiMainService {
         @Field("confirm_new_password") confirmNewPassword: String
     ): Response<GenericResponse>
 
+    @GET("account/profile/{username}/")
+    suspend fun getProfile(
+        @Path("username") username: String
+    ): Response<UserProfileResponse>
+
+    @PUT("account/profile/update/")
+    @FormUrlEncoded
+    suspend fun updateProfile(
+        @Field("bio") bio: String?,
+        @Field("location") location: String?,
+        @Field("website") website: String?,
+        @Field("twitter") twitter: String?,
+        @Field("facebook") facebook: String?,
+        @Field("instagram") instagram: String?,
+        @Field("linkedin") linkedin: String?
+    ): Response<UserProfileResponse>
+
+    @GET("blog/categories/")
+    suspend fun getCategories(): Response<List<CategoryResponse>>
+
+    @GET("blog/tags/")
+    suspend fun getTags(): Response<List<TagResponse>>
+
     @GET("blog/list")
     suspend fun searchListBlogPosts(
         @Query("search") query: String,
@@ -74,7 +100,9 @@ interface NyasaBlogApiMainService {
         @Path("slug") slug: String,
         @Part("title") title: RequestBody,
         @Part("body") body: RequestBody,
-        @Part image: MultipartBody.Part?
+        @Part image: MultipartBody.Part?,
+        @Part("category") category: RequestBody? = null,
+        @Part("tags") tags: RequestBody? = null
     ): Response<BlogCreateUpdateResponse>
 
     @POST("blog/{slug}/like/")
@@ -112,6 +140,8 @@ interface NyasaBlogApiMainService {
     suspend fun createBlog(
         @Part("title") title: RequestBody,
         @Part("body") body: RequestBody,
-        @Part image: MultipartBody.Part?
+        @Part image: MultipartBody.Part?,
+        @Part("category") category: RequestBody? = null,
+        @Part("tags") tags: RequestBody? = null
     ): Response<BlogCreateUpdateResponse>
 }

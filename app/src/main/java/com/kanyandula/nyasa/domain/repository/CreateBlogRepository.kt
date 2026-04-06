@@ -8,6 +8,8 @@ interface CreateBlogRepository {
     fun createNewBlogPost(
         title: String,
         body: String,
-        image: Uri?
+        image: Uri?,
+        category: String? = null,
+        tags: List<String>? = null
     ): Flow<Resource<String>>
 }
