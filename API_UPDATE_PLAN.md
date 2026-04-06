@@ -74,21 +74,21 @@ api/main/responses/BlogResponseMappers.kt
 
 ### Tasks
 
-- [ ] Add endpoints to `NyasaBlogApiMainService`:
+- [x] Add endpoints to `NyasaBlogApiMainService`:
   - `POST blog/{slug}/like/`
   - `POST blog/{slug}/bookmark/`
   - `GET blog/bookmarks/`
   - `GET blog/{slug}/comments/`
   - `POST blog/{slug}/comments/create/`
   - `DELETE blog/comments/{pk}/delete/`
-- [ ] Create response models: `LikeResponse`, `BookmarkResponse`, `CommentResponse`, `CommentsListResponse`
-- [ ] Create `Comment` model (and optional Room entity)
-- [ ] Add methods to `BlogRepository` interface: `likeBlogPost()`, `bookmarkBlogPost()`, `getBookmarks()`
-- [ ] Create `CommentRepository` interface + `CommentRepositoryImpl`
-- [ ] Create use cases: `LikeBlogPostUseCase`, `BookmarkBlogPostUseCase`, `GetBookmarksUseCase`, `GetCommentsUseCase`, `CreateCommentUseCase`, `DeleteCommentUseCase`
-- [ ] Wire in `MainModule.kt`
-- [ ] Write unit tests for new use cases
-- [ ] Verify: API calls work, tests pass
+- [x] Create response models: `LikeResponse`, `BookmarkResponse`, `CommentResponse`, `CommentsListResponse`
+- [x] Create `Comment` model (and optional Room entity)
+- [x] Add methods to `BlogRepository` interface: `likeBlogPost()`, `bookmarkBlogPost()`, `getBookmarks()`
+- [x] Create `CommentRepository` interface + `CommentRepositoryImpl`
+- [x] Create use cases: `LikeBlogPostUseCase`, `BookmarkBlogPostUseCase`, `GetBookmarksUseCase`, `GetCommentsUseCase`, `CreateCommentUseCase`, `DeleteCommentUseCase`
+- [x] Wire in `MainModule.kt`
+- [x] Write unit tests for new use cases
+- [x] Verify: API calls work, tests pass
 
 ### Files
 

@@ -3,11 +3,13 @@ package com.kanyandula.nyasa.di.main
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.domain.repository.AccountRepository
 import com.kanyandula.nyasa.domain.repository.BlogRepository
+import com.kanyandula.nyasa.domain.repository.CommentRepository
 import com.kanyandula.nyasa.domain.repository.CreateBlogRepository
 import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.repository.main.AccountRepositoryImpl
 import com.kanyandula.nyasa.repository.main.BlogRepositoryImpl
+import com.kanyandula.nyasa.repository.main.CommentRepositoryImpl
 import com.kanyandula.nyasa.repository.main.CreateBlogRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -32,6 +34,10 @@ abstract class MainModule {
     @Binds
     @Singleton
     abstract fun bindCreateBlogRepository(impl: CreateBlogRepositoryImpl): CreateBlogRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCommentRepository(impl: CommentRepositoryImpl): CommentRepository
 
     companion object {
 

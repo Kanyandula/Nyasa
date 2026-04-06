@@ -5,6 +5,7 @@ import com.kanyandula.nyasa.domain.repository.AccountRepository
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.repository.apiErrorMessage
+import com.kanyandula.nyasa.repository.networkApiFlow
 import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.util.ApiSuccessResponse
@@ -74,59 +75,33 @@ constructor(
 
     override fun saveAccountProperties(
         accountProperties: AccountProperties
-    ): Flow<Resource<String>> = flow {
-        emit(Resource.Loading())
-
-        if (!connectivityObserver.isConnected.value) {
-            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
-            return@flow
+    ): Flow<Resource<String>> = networkApiFlow(
+        connectivityObserver = connectivityObserver,
+        apiCall = {
+            nyasaBlogApiMainService.saveAccountProperties(
+                accountProperties.email,
+                accountProperties.username
+            )
+        },
+        onSuccess = { body ->
+            accountPropertiesDao.updateAccountProperties(
+                accountProperties.pk,
+                accountProperties.email,
+                accountProperties.username
+            )
+            Resource.Success(body.response)
         }
-
-        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
-            safeApiCall {
-                nyasaBlogApiMainService.saveAccountProperties(
-                    accountProperties.email,
-                    accountProperties.username
-                )
-            }
-        }
-
-        when (response) {
-            is ApiSuccessResponse -> {
-                accountPropertiesDao.updateAccountProperties(
-                    accountProperties.pk,
-                    accountProperties.email,
-                    accountProperties.username
-                )
-                emit(Resource.Success(response.body.response))
-            }
-            else -> emit(Resource.Error(apiErrorMessage(response)))
-        }
-    }.flowOn(Dispatchers.IO)
+    )
 
     override fun updatePassword(
         currentPassword: String,
         newPassword: String,
         confirmNewPassword: String
-    ): Flow<Resource<String>> = flow {
-        emit(Resource.Loading())
-
-        if (!connectivityObserver.isConnected.value) {
-            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
-            return@flow
-        }
-
-        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
-            safeApiCall {
-                nyasaBlogApiMainService.updatePassword(currentPassword, newPassword, confirmNewPassword)
-            }
-        }
-
-        when (response) {
-            is ApiSuccessResponse -> {
-                emit(Resource.Success(response.body.response))
-            }
-            else -> emit(Resource.Error(apiErrorMessage(response)))
-        }
-    }.flowOn(Dispatchers.IO)
+    ): Flow<Resource<String>> = networkApiFlow(
+        connectivityObserver = connectivityObserver,
+        apiCall = {
+            nyasaBlogApiMainService.updatePassword(currentPassword, newPassword, confirmNewPassword)
+        },
+        onSuccess = { body -> Resource.Success(body.response) }
+    )
 }
