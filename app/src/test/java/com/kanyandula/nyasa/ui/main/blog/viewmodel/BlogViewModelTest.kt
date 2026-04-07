@@ -3,12 +3,20 @@ package com.kanyandula.nyasa.ui.main.blog.viewmodel
 import android.content.SharedPreferences
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.kanyandula.nyasa.domain.usecase.blog.BookmarkBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.DeleteBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.LikeBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsUseCase
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
+import com.kanyandula.nyasa.fakes.FakeCategoryRepository
+import com.kanyandula.nyasa.fakes.FakeCommentRepository
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.UiEvent
@@ -33,6 +41,8 @@ class BlogViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var fakeRepository: FakeBlogRepository
+    private lateinit var fakeCommentRepository: FakeCommentRepository
+    private lateinit var fakeCategoryRepository: FakeCategoryRepository
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
     private lateinit var viewModel: BlogViewModel
@@ -50,6 +60,8 @@ class BlogViewModelTest {
     @Before
     fun setup() {
         fakeRepository = FakeBlogRepository()
+        fakeCommentRepository = FakeCommentRepository()
+        fakeCategoryRepository = FakeCategoryRepository()
         sharedPreferences = mockk(relaxed = true)
         editor = mockk(relaxed = true)
 
@@ -61,6 +73,12 @@ class BlogViewModelTest {
             deleteBlogPostUseCase = DeleteBlogPostUseCase(fakeRepository),
             updateBlogPostUseCase = UpdateBlogPostUseCase(fakeRepository),
             getBlogPostBySlugUseCase = GetBlogPostBySlugUseCase(fakeRepository),
+            likeBlogPostUseCase = LikeBlogPostUseCase(fakeRepository),
+            bookmarkBlogPostUseCase = BookmarkBlogPostUseCase(fakeRepository),
+            getCommentsUseCase = GetCommentsUseCase(fakeCommentRepository),
+            createCommentUseCase = CreateCommentUseCase(fakeCommentRepository),
+            deleteCommentUseCase = DeleteCommentUseCase(fakeCommentRepository),
+            getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),
             sharedPreferences = sharedPreferences,
             editor = editor,
             savedStateHandle = androidx.lifecycle.SavedStateHandle()

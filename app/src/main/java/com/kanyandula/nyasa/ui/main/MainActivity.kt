@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.AuthToken
+import com.kanyandula.nyasa.models.ProfileUpdateRequest
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.auth.AuthActivity
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
@@ -42,11 +43,15 @@ import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileScreen
 import com.kanyandula.nyasa.ui.main.account.composables.ChangePasswordScreen
 import com.kanyandula.nyasa.ui.main.account.composables.EditAccountScreen
 import com.kanyandula.nyasa.ui.main.account.state.AccountUiEvent
+import com.kanyandula.nyasa.ui.main.blog.composables.AuthorProfileScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogDetailScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedScreen
+import com.kanyandula.nyasa.ui.main.blog.composables.BookmarksScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.EditBlogScreen
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.AuthorProfileViewModel
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.BookmarksViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.composables.CreateBlogScreen
 import com.kanyandula.nyasa.ui.navigation.Routes
@@ -102,6 +107,8 @@ class MainActivity : ComponentActivity() {
                                     searchQuery = state.searchQuery,
                                     currentFilter = state.filter,
                                     currentOrder = state.order,
+                                    categories = state.categories,
+                                    selectedCategory = state.selectedCategory,
                                     onBlogClick = { slug ->
                                         navController.navigate(Routes.blogDetail(slug))
                                     },
@@ -115,6 +122,10 @@ class MainActivity : ComponentActivity() {
                                         vm.saveFilterOptions(filter, order)
                                         vm.executeSearch()
                                     },
+                                    onCategorySelected = { category ->
+                                        vm.setSelectedCategory(category)
+                                    },
+                                    onBookmarkClick = { slug -> vm.bookmarkBlog(slug) },
                                     onRefresh = { vm.executeSearch() }
                                 )
                             }
@@ -127,6 +138,14 @@ class MainActivity : ComponentActivity() {
                                     navController.getBackStackEntry(Routes.BLOG_GRAPH)
                                 }
                                 val vm: BlogViewModel = hiltViewModel(parentEntry)
+                                val accountVm: AccountViewModel = hiltViewModel()
+                                val accountState by accountVm.viewState
+                                    .collectAsStateWithLifecycle()
+                                LaunchedEffect(accountState.accountProperties?.username) {
+                                    accountState.accountProperties?.username?.let {
+                                        vm.setCurrentUsername(it)
+                                    }
+                                }
                                 BlogDetailRoute(
                                     slug = slug,
                                     viewModel = vm,
@@ -134,7 +153,10 @@ class MainActivity : ComponentActivity() {
                                     onEdit = { blogSlug ->
                                         navController.navigate(Routes.blogEdit(blogSlug))
                                     },
-                                    onDeleted = { navController.popBackStack() }
+                                    onDeleted = { navController.popBackStack() },
+                                    onAuthorClick = { username ->
+                                        navController.navigate(Routes.authorProfile(username))
+                                    }
                                 )
                             }
                             composable(
@@ -156,6 +178,29 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        composable(
+                            route = Routes.AUTHOR_PROFILE,
+                            arguments = listOf(
+                                navArgument("username") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments
+                                ?.getString("username").orEmpty()
+                            AuthorProfileRoute(
+                                username = username,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(Routes.BOOKMARKS) {
+                            BookmarksRoute(
+                                onBlogClick = { slug ->
+                                    navController.navigate(Routes.blogDetail(slug))
+                                },
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
                         composable(Routes.CREATE) {
                             val vm: CreateBlogViewModel = hiltViewModel()
                             CreateBlogRoute(
@@ -175,6 +220,9 @@ class MainActivity : ComponentActivity() {
                                     onEditProfile = { navController.navigate(Routes.ACCOUNT_EDIT) },
                                     onChangePassword = {
                                         navController.navigate(Routes.ACCOUNT_CHANGE_PASSWORD)
+                                    },
+                                    onBookmarks = {
+                                        navController.navigate(Routes.BOOKMARKS)
                                     }
                                 )
                             }
@@ -231,7 +279,8 @@ private fun BlogDetailRoute(
     viewModel: BlogViewModel,
     onNavigateBack: () -> Unit,
     onEdit: (String) -> Unit,
-    onDeleted: () -> Unit
+    onDeleted: () -> Unit,
+    onAuthorClick: (String) -> Unit
 ) {
     val state by viewModel.viewBlogState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -253,16 +302,26 @@ private fun BlogDetailRoute(
     }
 
     BlogDetailScreen(
-        blogPost = state.blogPost,
-        isAuthor = state.isAuthorOfBlogPost,
+        state = state,
         isLoading = isLoading,
         onEditClick = {
             val blogPost = viewModel.getBlogPost() ?: return@BlogDetailScreen
-            viewModel.setUpdatedBlogFields(blogPost.title, blogPost.body, blogPost.image.toUri())
+            viewModel.setUpdatedBlogFields(
+                title = blogPost.title,
+                body = blogPost.body,
+                uri = blogPost.image.toUri(),
+                category = blogPost.category,
+                tags = blogPost.tags
+            )
             onEdit(slug)
         },
         onDeleteClick = { showDeleteDialog = true },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        onLikeClick = { viewModel.likeBlog(slug) },
+        onBookmarkClick = { viewModel.bookmarkBlog(slug) },
+        onAuthorClick = onAuthorClick,
+        onAddComment = { body -> viewModel.addComment(slug, body) },
+        onDeleteComment = { pk -> viewModel.deleteComment(pk) }
     )
 
     if (showDeleteDialog) {
@@ -313,14 +372,19 @@ private fun EditBlogRoute(
         initialTitle = state.updatedBlogTitle.orEmpty(),
         initialBody = state.updatedBlogBody.orEmpty(),
         imageUri = state.updatedImageUri,
+        selectedCategory = state.updatedCategory,
+        initialTags = state.updatedTags.orEmpty(),
+        categories = state.categories,
         isLoading = isLoading,
-        onSave = { title, body ->
+        onSave = { title, body, tags ->
+            viewModel.setUpdatedTags(tags)
             viewModel.updateBlogPost(slug, title, body, viewModel.getUpdatedBlogUri())
         },
         onPickImage = {
             imagePickerLauncher.launch(createImagePickerIntent(activity))
         },
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        onCategorySelected = { viewModel.setUpdatedCategory(it) }
     )
 }
 
@@ -354,8 +418,12 @@ private fun CreateBlogRoute(
         initialTitle = blogFields.blogFields.newBlogTitle.orEmpty(),
         initialBody = blogFields.blogFields.newBlogBody.orEmpty(),
         imageUri = blogFields.blogFields.newImageUri,
+        selectedCategory = blogFields.blogFields.category,
+        initialTags = blogFields.blogFields.tags.orEmpty(),
+        categories = blogFields.categories,
         isLoading = isLoading,
-        onPublish = { title, body ->
+        onPublish = { title, body, tags ->
+            viewModel.setTags(tags)
             val imageUri = viewModel.viewState.value.blogFields.newImageUri
             if (imageUri == null) {
                 Toast.makeText(context, ERROR_MUST_SELECT_IMAGE, Toast.LENGTH_SHORT).show()
@@ -365,7 +433,8 @@ private fun CreateBlogRoute(
         },
         onPickImage = {
             imagePickerLauncher.launch(createImagePickerIntent(activity))
-        }
+        },
+        onCategorySelected = { viewModel.setCategory(it) }
     )
 }
 
@@ -373,7 +442,8 @@ private fun CreateBlogRoute(
 private fun AccountProfileRoute(
     viewModel: AccountViewModel,
     onEditProfile: () -> Unit,
-    onChangePassword: () -> Unit
+    onChangePassword: () -> Unit,
+    onBookmarks: () -> Unit
 ) {
     val state by viewModel.viewState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -392,9 +462,13 @@ private fun AccountProfileRoute(
     AccountProfileScreen(
         email = state.accountProperties?.email.orEmpty(),
         username = state.accountProperties?.username.orEmpty(),
+        bio = state.accountProperties?.bio,
+        location = state.accountProperties?.location,
+        profileImage = state.accountProperties?.profile_image,
         isLoading = isLoading,
         onEditProfile = onEditProfile,
         onChangePassword = onChangePassword,
+        onBookmarks = onBookmarks,
         onLogout = { viewModel.logout() }
     )
 }
@@ -414,12 +488,31 @@ private fun EditAccountRoute(
         }
     }
 
+    val account = state.accountProperties
     EditAccountScreen(
-        initialEmail = state.accountProperties?.email.orEmpty(),
-        initialUsername = state.accountProperties?.username.orEmpty(),
+        initialEmail = account?.email.orEmpty(),
+        initialUsername = account?.username.orEmpty(),
+        initialBio = account?.bio.orEmpty(),
+        initialLocation = account?.location.orEmpty(),
+        initialWebsite = account?.website.orEmpty(),
+        initialTwitter = account?.twitter.orEmpty(),
+        initialFacebook = account?.facebook.orEmpty(),
+        initialInstagram = account?.instagram.orEmpty(),
+        initialLinkedin = account?.linkedin.orEmpty(),
         isLoading = isLoading,
-        onSave = { email, username ->
-            viewModel.saveAccountProperties(email, username)
+        onSave = { formData ->
+            viewModel.saveAccountProperties(formData.email, formData.username)
+            viewModel.updateProfile(
+                ProfileUpdateRequest(
+                    bio = formData.bio.ifBlank { null },
+                    location = formData.location.ifBlank { null },
+                    website = formData.website.ifBlank { null },
+                    twitter = formData.twitter.ifBlank { null },
+                    facebook = formData.facebook.ifBlank { null },
+                    instagram = formData.instagram.ifBlank { null },
+                    linkedin = formData.linkedin.ifBlank { null }
+                )
+            )
         },
         onNavigateBack = onNavigateBack
     )
@@ -447,6 +540,44 @@ private fun ChangePasswordRoute(
         onUpdatePassword = { current, new, confirmNew ->
             viewModel.changePassword(current, new, confirmNew)
         },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@Composable
+private fun AuthorProfileRoute(
+    username: String,
+    onNavigateBack: () -> Unit
+) {
+    val vm: AuthorProfileViewModel = hiltViewModel()
+    val state by vm.viewState.collectAsStateWithLifecycle()
+    val isLoading by vm.isLoading.collectAsStateWithLifecycle()
+
+    LaunchedEffect(username) {
+        vm.loadProfile(username)
+    }
+
+    AuthorProfileScreen(
+        profile = state.profile,
+        isLoading = isLoading,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@Composable
+private fun BookmarksRoute(
+    onBlogClick: (String) -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    val vm: BookmarksViewModel = hiltViewModel()
+    val state by vm.viewState.collectAsStateWithLifecycle()
+    val isLoading by vm.isLoading.collectAsStateWithLifecycle()
+
+    BookmarksScreen(
+        bookmarks = state.bookmarks,
+        isLoading = isLoading,
+        onBlogClick = onBlogClick,
+        onRemoveBookmark = { slug -> vm.removeBookmark(slug) },
         onNavigateBack = onNavigateBack
     )
 }

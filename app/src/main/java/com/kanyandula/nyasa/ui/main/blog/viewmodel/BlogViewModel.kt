@@ -6,11 +6,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.kanyandula.nyasa.domain.usecase.blog.BookmarkBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.DeleteBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.LikeBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
+import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsUseCase
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.BaseViewModel
@@ -19,6 +25,7 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
 import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
+import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
@@ -45,6 +52,12 @@ constructor(
     private val deleteBlogPostUseCase: DeleteBlogPostUseCase,
     private val updateBlogPostUseCase: UpdateBlogPostUseCase,
     private val getBlogPostBySlugUseCase: GetBlogPostBySlugUseCase,
+    private val likeBlogPostUseCase: LikeBlogPostUseCase,
+    private val bookmarkBlogPostUseCase: BookmarkBlogPostUseCase,
+    private val getCommentsUseCase: GetCommentsUseCase,
+    private val createCommentUseCase: CreateCommentUseCase,
+    private val deleteCommentUseCase: DeleteCommentUseCase,
+    private val getCategoriesUseCase: GetCategoriesUseCase,
     private val sharedPreferences: SharedPreferences,
     private val editor: SharedPreferences.Editor,
     private val savedStateHandle: SavedStateHandle
@@ -60,6 +73,11 @@ constructor(
     private var authorCheckJob: Job? = null
     private var deleteJob: Job? = null
     private var updateJob: Job? = null
+    private var likeJob: Job? = null
+    private var bookmarkJob: Job? = null
+    private var commentsJob: Job? = null
+    private var addCommentJob: Job? = null
+    private var deleteCommentJob: Job? = null
 
     private data class SearchParams(val query: String, val filterAndOrder: String)
 
@@ -96,6 +114,11 @@ constructor(
         }
         savedStateHandle.get<String>(SAVED_SEARCH_QUERY)?.let { setQuery(it) }
         executeSearch()
+        loadCategories()
+    }
+
+    fun setCurrentUsername(username: String) {
+        updateViewBlogState { copy(currentUsername = username) }
     }
 
     companion object {
@@ -134,6 +157,24 @@ constructor(
         editor.apply()
     }
 
+    fun setSelectedCategory(category: String?) {
+        updateState { copy(selectedCategory = category) }
+    }
+
+    fun loadCategories() {
+        viewModelScope.launch {
+            getCategoriesUseCase().collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { categories ->
+                        updateState { copy(categories = categories) }
+                        updateUpdateBlogState { copy(categories = categories) }
+                    }
+                )
+            }
+        }
+    }
+
     // endregion
 
     // region View Blog
@@ -152,14 +193,30 @@ constructor(
         updateViewBlogState { copy(isAuthorOfBlogPost = isAuthor) }
     }
 
-    fun setUpdatedBlogFields(title: String?, body: String?, uri: Uri?) {
+    fun setUpdatedBlogFields(
+        title: String? = null,
+        body: String? = null,
+        uri: Uri? = null,
+        category: String? = null,
+        tags: String? = null
+    ) {
         updateUpdateBlogState {
             copy(
                 updatedBlogTitle = title ?: updatedBlogTitle,
                 updatedBlogBody = body ?: updatedBlogBody,
-                updatedImageUri = uri ?: updatedImageUri
+                updatedImageUri = uri ?: updatedImageUri,
+                updatedCategory = category ?: updatedCategory,
+                updatedTags = tags ?: updatedTags
             )
         }
+    }
+
+    fun setUpdatedCategory(category: String?) {
+        updateUpdateBlogState { copy(updatedCategory = category) }
+    }
+
+    fun setUpdatedTags(tags: String) {
+        updateUpdateBlogState { copy(updatedTags = tags) }
     }
 
     // endregion
@@ -173,6 +230,10 @@ constructor(
             val blogPost = getBlogPostBySlugUseCase(slug)
             if (blogPost != null) {
                 setBlogPost(blogPost)
+                updateViewBlogState {
+                    copy(likeCount = blogPost.like_count ?: 0)
+                }
+                loadComments(slug)
             } else {
                 sendEvent(UiEvent.ShowErrorDialog(ErrorHandling.ERROR_BLOG_POST_NOT_FOUND))
             }
@@ -211,19 +272,104 @@ constructor(
     }
 
     fun updateBlogPost(slug: String, title: String, body: String, imageUri: Uri?) {
+        val state = _updateBlogState.value
+        val tagsList = BlogUtils.parseTags(state.updatedTags).takeIf { it.isNotEmpty() }
+
         updateJob?.cancel()
         updateJob = viewModelScope.launch {
             updateBlogPostUseCase(
                 slug = slug,
                 title = title,
                 body = body,
-                image = imageUri
+                image = imageUri,
+                category = state.updatedCategory,
+                tags = tagsList
             ).collect { resource ->
                 handleResource(
                     resource,
                     onSuccess = { blogPost ->
                         onBlogPostUpdateSuccess(blogPost)
                         sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
+                    }
+                )
+            }
+        }
+    }
+
+    // endregion
+
+    // region Like, Bookmark, Comments
+
+    fun likeBlog(slug: String) {
+        likeJob?.cancel()
+        likeJob = viewModelScope.launch {
+            likeBlogPostUseCase(slug).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { result ->
+                        updateViewBlogState {
+                            copy(isLiked = result.liked, likeCount = result.likeCount)
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun bookmarkBlog(slug: String) {
+        bookmarkJob?.cancel()
+        bookmarkJob = viewModelScope.launch {
+            bookmarkBlogPostUseCase(slug).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { bookmarked ->
+                        updateViewBlogState { copy(isBookmarked = bookmarked) }
+                    }
+                )
+            }
+        }
+    }
+
+    fun loadComments(slug: String) {
+        commentsJob?.cancel()
+        commentsJob = viewModelScope.launch {
+            getCommentsUseCase(slug).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { comments ->
+                        updateViewBlogState { copy(comments = comments) }
+                    }
+                )
+            }
+        }
+    }
+
+    fun addComment(slug: String, body: String) {
+        addCommentJob?.cancel()
+        addCommentJob = viewModelScope.launch {
+            createCommentUseCase(slug, body).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = { comment ->
+                        updateViewBlogState {
+                            copy(comments = comments + comment)
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun deleteComment(pk: Int) {
+        deleteCommentJob?.cancel()
+        deleteCommentJob = viewModelScope.launch {
+            deleteCommentUseCase(pk).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = {
+                        updateViewBlogState {
+                            copy(comments = comments.filter { it.pk != pk })
+                        }
                     }
                 )
             }

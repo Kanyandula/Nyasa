@@ -4,7 +4,9 @@ package com.kanyandula.nyasa.ui.main.create_blog
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
+import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.fakes.FakeCreateBlogRepository
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.util.MainDispatcherRule
@@ -24,13 +26,16 @@ class CreateBlogViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var fakeRepository: FakeCreateBlogRepository
+    private lateinit var fakeCategoryRepository: FakeCategoryRepository
     private lateinit var viewModel: CreateBlogViewModel
 
     @Before
     fun setup() {
         fakeRepository = FakeCreateBlogRepository()
+        fakeCategoryRepository = FakeCategoryRepository()
         viewModel = CreateBlogViewModel(
-            createBlogPostUseCase = CreateBlogPostUseCase(fakeRepository)
+            createBlogPostUseCase = CreateBlogPostUseCase(fakeRepository),
+            getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository)
         )
     }
 

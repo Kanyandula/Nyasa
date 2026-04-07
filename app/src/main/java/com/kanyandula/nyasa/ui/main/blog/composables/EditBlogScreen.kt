@@ -27,8 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kanyandula.nyasa.models.Category
 import com.kanyandula.nyasa.ui.components.ImagePickerBox
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
+import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
@@ -39,13 +41,18 @@ fun EditBlogScreen(
     initialTitle: String,
     initialBody: String,
     imageUri: Uri?,
+    selectedCategory: String?,
+    initialTags: String,
+    categories: List<Category>,
     isLoading: Boolean,
-    onSave: (title: String, body: String) -> Unit,
+    onSave: (title: String, body: String, tags: String) -> Unit,
     onPickImage: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onCategorySelected: (String?) -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf(initialTitle) }
     var body by rememberSaveable { mutableStateOf(initialBody) }
+    var tags by rememberSaveable { mutableStateOf(initialTags) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -56,7 +63,7 @@ fun EditBlogScreen(
                     onNavigationClick = onNavigateBack,
                     actions = {
                         IconButton(
-                            onClick = { onSave(title, body) },
+                            onClick = { onSave(title, body, tags) },
                             enabled = !isLoading
                         ) {
                             Icon(
@@ -98,6 +105,25 @@ fun EditBlogScreen(
                 )
                 Spacer(Modifier.height(16.dp))
 
+                if (categories.isNotEmpty()) {
+                    NyasaCategoryDropdown(
+                        categories = categories,
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = onCategorySelected
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                NyasaTextField(
+                    value = tags,
+                    onValueChange = { tags = it },
+                    label = "Tags",
+                    helperText = "Comma-separated (e.g. Travel, Culture)",
+                    singleLine = true,
+                    imeAction = ImeAction.Next
+                )
+                Spacer(Modifier.height(16.dp))
+
                 NyasaTextField(
                     value = body,
                     onValueChange = { body = it },
@@ -120,10 +146,17 @@ private fun EditBlogScreenPreview() {
             initialTitle = "Whispers of the Lake",
             initialBody = "The sun hung low over the Dedza mountains...",
             imageUri = null,
+            selectedCategory = "travel",
+            initialTags = "Malawi, Travel",
+            categories = listOf(
+                Category(1, "Travel", "travel"),
+                Category(2, "Culture", "culture")
+            ),
             isLoading = false,
-            onSave = { _, _ -> },
+            onSave = { _, _, _ -> },
             onPickImage = {},
-            onNavigateBack = {}
+            onNavigateBack = {},
+            onCategorySelected = {}
         )
     }
 }

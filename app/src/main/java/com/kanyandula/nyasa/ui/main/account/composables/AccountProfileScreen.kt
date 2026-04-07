@@ -16,8 +16,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.LockReset
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,15 +33,20 @@ import androidx.compose.ui.unit.dp
 import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaButton
+import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
 @Composable
 fun AccountProfileScreen(
     email: String,
     username: String,
+    bio: String?,
+    location: String?,
+    profileImage: String?,
     isLoading: Boolean,
     onEditProfile: () -> Unit,
     onChangePassword: () -> Unit,
+    onBookmarks: () -> Unit,
     onLogout: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -51,12 +57,7 @@ fun AccountProfileScreen(
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            ProfileAvatar(imageUrl = profileImage, size = 80.dp)
             Spacer(Modifier.height(16.dp))
             Text(
                 text = username.ifEmpty { "Username" },
@@ -69,6 +70,32 @@ fun AccountProfileScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (!bio.isNullOrBlank()) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = bio,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            if (!location.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = location,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             Spacer(Modifier.height(32.dp))
 
             Surface(
@@ -80,6 +107,12 @@ fun AccountProfileScreen(
                         icon = Icons.Filled.EditNote,
                         label = "Edit Profile",
                         onClick = onEditProfile
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceContainerLow)
+                    AccountMenuItem(
+                        icon = Icons.Outlined.Bookmarks,
+                        label = "Bookmarks",
+                        onClick = onBookmarks
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceContainerLow)
                     AccountMenuItem(
@@ -145,9 +178,13 @@ private fun AccountProfileScreenPreview() {
         AccountProfileScreen(
             email = "creator@nyasablog.mw",
             username = "nyasa_creator",
+            bio = "Storyteller from the warm heart of Africa",
+            location = "Lilongwe, Malawi",
+            profileImage = null,
             isLoading = false,
             onEditProfile = {},
             onChangePassword = {},
+            onBookmarks = {},
             onLogout = {}
         )
     }

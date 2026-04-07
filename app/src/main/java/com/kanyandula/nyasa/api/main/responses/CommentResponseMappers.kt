@@ -6,6 +6,7 @@ import com.kanyandula.nyasa.util.DateUtils
 fun CommentResponse.toComment(): Comment = Comment(
     pk = pk,
     body = body,
-    username = username,
-    dateCreated = DateUtils.convertServerStringDateToLong(date_created)
+    username = username ?: "",
+    dateCreated = date_created?.let { DateUtils.convertServerStringDateToLong(it) }
+        ?: System.currentTimeMillis()
 )
