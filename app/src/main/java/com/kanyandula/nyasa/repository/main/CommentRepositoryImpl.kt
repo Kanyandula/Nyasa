@@ -22,7 +22,7 @@ constructor(
     ): Flow<Resource<List<Comment>>> = networkApiFlow(
         connectivityObserver = connectivityObserver,
         apiCall = { apiService.getComments(slug) },
-        onSuccess = { body -> Resource.Success(body.results.map { it.toComment() }) }
+        onSuccess = { body -> Resource.Success(body.map { it.toComment() }) }
     )
 
     override fun createComment(

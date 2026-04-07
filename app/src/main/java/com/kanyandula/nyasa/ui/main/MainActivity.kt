@@ -572,6 +572,11 @@ private fun BookmarksRoute(
     val vm: BookmarksViewModel = hiltViewModel()
     val state by vm.viewState.collectAsStateWithLifecycle()
     val isLoading by vm.isLoading.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    LaunchedEffect(Unit) {
+        vm.events.collect { event -> handleStandardEvent(context, event) }
+    }
 
     BookmarksScreen(
         bookmarks = state.bookmarks,

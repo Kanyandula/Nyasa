@@ -7,7 +7,6 @@ import com.kanyandula.nyasa.api.main.responses.BlogSearchResponse
 import com.kanyandula.nyasa.api.main.responses.BookmarkResponse
 import com.kanyandula.nyasa.api.main.responses.CategoryResponse
 import com.kanyandula.nyasa.api.main.responses.CommentResponse
-import com.kanyandula.nyasa.api.main.responses.CommentsListResponse
 import com.kanyandula.nyasa.api.main.responses.LikeResponse
 import com.kanyandula.nyasa.api.main.responses.TagResponse
 import com.kanyandula.nyasa.api.main.responses.UserProfileResponse
@@ -116,12 +115,12 @@ interface NyasaBlogApiMainService {
     ): Response<BookmarkResponse>
 
     @GET("blog/bookmarks/")
-    suspend fun getBookmarks(): Response<BlogListSearchResponse>
+    suspend fun getBookmarks(): Response<List<BlogSearchResponse>>
 
     @GET("blog/{slug}/comments/")
     suspend fun getComments(
         @Path("slug") slug: String
-    ): Response<CommentsListResponse>
+    ): Response<List<CommentResponse>>
 
     @POST("blog/{slug}/comments/create/")
     @FormUrlEncoded

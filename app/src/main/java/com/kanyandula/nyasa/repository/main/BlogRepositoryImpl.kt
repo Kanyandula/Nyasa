@@ -140,6 +140,6 @@ constructor(
     override fun getBookmarks(): Flow<Resource<List<BlogPost>>> = networkApiFlow(
         connectivityObserver = connectivityObserver,
         apiCall = { nyasaBlogApiMainService.getBookmarks() },
-        onSuccess = { body -> Resource.Success(body.results.map { it.toBlogPost() }) }
+        onSuccess = { body -> Resource.Success(body.map { it.toBlogPost() }) }
     )
 }

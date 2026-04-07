@@ -11,11 +11,11 @@ class BlogListSearchResponse(
 
     @SerializedName("results")
     @Expose
-    var results: List<BlogSearchResponse>,
+    var results: List<BlogSearchResponse> = emptyList(),
 
     @SerializedName("detail")
     @Expose
-    var detail: String
+    var detail: String = ""
 ) {
 
     override fun toString(): String {
