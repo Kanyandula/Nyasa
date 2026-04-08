@@ -54,17 +54,13 @@ import com.kanyandula.nyasa.ui.theme.SunsetOrange
 fun LoginScreen(
     initialEmail: String,
     isLoading: Boolean,
-    onLogin: (email: String, password: String) -> Unit,
-    onForgotPassword: () -> Unit,
-    onNavigateToRegister: () -> Unit,
-    onEmailChanged: (String) -> Unit,
-    onBackClick: () -> Unit = {}
+    onAction: (LoginAction) -> Unit
 ) {
     var email by rememberSaveable { mutableStateOf(initialEmail) }
     var password by rememberSaveable { mutableStateOf("") }
 
     DisposableEffect(Unit) {
-        onDispose { onEmailChanged(email) }
+        onDispose { onAction(LoginAction.EmailChanged(email)) }
     }
 
     Surface(
@@ -84,7 +80,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(onClick = { onAction(LoginAction.NavigateBack) }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -175,7 +171,9 @@ fun LoginScreen(
                         letterSpacing = 0.5.sp
                     ),
                     color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.clickable(onClick = onForgotPassword)
+                    modifier = Modifier.clickable(
+                        onClick = { onAction(LoginAction.ForgotPassword) }
+                    )
                 )
             }
             Spacer(Modifier.height(8.dp))
@@ -186,14 +184,14 @@ fun LoginScreen(
                 leadingIcon = Icons.Filled.Lock,
                 isPassword = true,
                 imeAction = ImeAction.Done,
-                onImeAction = { onLogin(email, password) }
+                onImeAction = { onAction(LoginAction.Login(email, password)) }
             )
 
             Spacer(Modifier.height(28.dp))
 
             NyasaButton(
                 text = "Login",
-                onClick = { onLogin(email, password) },
+                onClick = { onAction(LoginAction.Login(email, password)) },
                 loading = isLoading,
                 trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
             )
@@ -236,7 +234,7 @@ fun LoginScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                TextButton(onClick = onNavigateToRegister) {
+                TextButton(onClick = { onAction(LoginAction.NavigateToRegister) }) {
                     Text(
                         text = "Sign up",
                         style = MaterialTheme.typography.titleSmall,
@@ -320,11 +318,7 @@ private fun LoginScreenPreview() {
         LoginScreen(
             initialEmail = "",
             isLoading = false,
-            onLogin = { _, _ -> },
-            onForgotPassword = {},
-            onNavigateToRegister = {},
-            onEmailChanged = {},
-            onBackClick = {}
+            onAction = {}
         )
     }
 }

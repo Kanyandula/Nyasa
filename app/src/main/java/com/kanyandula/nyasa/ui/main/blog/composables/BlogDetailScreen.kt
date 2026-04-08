@@ -69,14 +69,7 @@ import com.kanyandula.nyasa.util.DateUtils
 fun BlogDetailScreen(
     state: ViewBlogUiState,
     isLoading: Boolean,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    onNavigateBack: () -> Unit,
-    onLikeClick: () -> Unit,
-    onBookmarkClick: () -> Unit,
-    onAuthorClick: (String) -> Unit,
-    onAddComment: (String) -> Unit,
-    onDeleteComment: (Int) -> Unit
+    onAction: (BlogDetailAction) -> Unit
 ) {
     val blogPost = state.blogPost
     val isLiked = state.isLiked
@@ -87,9 +80,9 @@ fun BlogDetailScreen(
             topBar = {
                 NyasaTopBar(
                     title = "",
-                    onNavigationClick = onNavigateBack,
+                    onNavigationClick = { onAction(BlogDetailAction.NavigateBack) },
                     actions = {
-                        IconButton(onClick = onLikeClick) {
+                        IconButton(onClick = { onAction(BlogDetailAction.LikeClicked) }) {
                             Icon(
                                 imageVector = if (isLiked) {
                                     Icons.Filled.Favorite
@@ -104,7 +97,7 @@ fun BlogDetailScreen(
                                 }
                             )
                         }
-                        IconButton(onClick = onBookmarkClick) {
+                        IconButton(onClick = { onAction(BlogDetailAction.BookmarkClicked) }) {
                             Icon(
                                 imageVector = if (isBookmarked) {
                                     Icons.Filled.Bookmark
@@ -187,7 +180,7 @@ fun BlogDetailScreen(
                             readingTime = blogPost.reading_time,
                             likeCount = state.likeCount,
                             onAuthorClick = {
-                                onAuthorClick(blogPost.username)
+                                onAction(BlogDetailAction.AuthorClicked(blogPost.username))
                             }
                         )
 
@@ -227,14 +220,14 @@ fun BlogDetailScreen(
                             Spacer(Modifier.height(32.dp))
                             NyasaButton(
                                 text = "Edit",
-                                onClick = onEditClick,
+                                onClick = { onAction(BlogDetailAction.EditClicked) },
                                 style = ButtonStyle.Secondary,
                                 trailingIcon = Icons.Filled.EditNote
                             )
                             Spacer(Modifier.height(12.dp))
                             NyasaButton(
                                 text = "Delete",
-                                onClick = onDeleteClick,
+                                onClick = { onAction(BlogDetailAction.DeleteClicked) },
                                 style = ButtonStyle.Destructive,
                                 trailingIcon = Icons.Filled.Delete
                             )
@@ -250,8 +243,8 @@ fun BlogDetailScreen(
                         CommentsSection(
                             comments = state.comments,
                             currentUsername = state.currentUsername,
-                            onAddComment = onAddComment,
-                            onDeleteComment = onDeleteComment
+                            onAddComment = { onAction(BlogDetailAction.AddComment(it)) },
+                            onDeleteComment = { onAction(BlogDetailAction.DeleteComment(it)) }
                         )
                     }
                 }
@@ -543,14 +536,7 @@ private fun BlogDetailScreenPreview() {
                 currentUsername = "Reader1"
             ),
             isLoading = false,
-            onEditClick = {},
-            onDeleteClick = {},
-            onNavigateBack = {},
-            onLikeClick = {},
-            onBookmarkClick = {},
-            onAuthorClick = {},
-            onAddComment = {},
-            onDeleteComment = {}
+            onAction = {}
         )
     }
 }

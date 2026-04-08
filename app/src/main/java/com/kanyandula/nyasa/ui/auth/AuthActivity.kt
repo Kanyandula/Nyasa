@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.auth.composables.ForgotPasswordScreen
+import com.kanyandula.nyasa.ui.auth.composables.LoginAction
 import com.kanyandula.nyasa.ui.auth.composables.LoginScreen
 import com.kanyandula.nyasa.ui.auth.composables.RegisterScreen
 import com.kanyandula.nyasa.ui.auth.composables.WelcomeScreen
@@ -90,20 +91,19 @@ class AuthActivity : ComponentActivity() {
                             LoginScreen(
                                 initialEmail = state.loginFields?.login_email.orEmpty(),
                                 isLoading = isLoading,
-                                onLogin = { email, password ->
-                                    viewModel.attemptLogin(email, password)
-                                },
-                                onForgotPassword = {
-                                    navController.navigate(Routes.FORGOT_PASSWORD)
-                                },
-                                onNavigateToRegister = {
-                                    navController.navigate(Routes.REGISTER)
-                                },
-                                onEmailChanged = { email ->
-                                    viewModel.setLoginFields(LoginFields(email))
-                                },
-                                onBackClick = {
-                                    navController.popBackStack()
+                                onAction = { action ->
+                                    when (action) {
+                                        is LoginAction.Login ->
+                                            viewModel.attemptLogin(action.email, action.password)
+                                        is LoginAction.ForgotPassword ->
+                                            navController.navigate(Routes.FORGOT_PASSWORD)
+                                        is LoginAction.NavigateToRegister ->
+                                            navController.navigate(Routes.REGISTER)
+                                        is LoginAction.EmailChanged ->
+                                            viewModel.setLoginFields(LoginFields(action.email))
+                                        is LoginAction.NavigateBack ->
+                                            navController.popBackStack()
+                                    }
                                 }
                             )
                         }

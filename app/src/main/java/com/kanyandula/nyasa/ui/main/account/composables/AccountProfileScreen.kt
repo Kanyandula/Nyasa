@@ -35,24 +35,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
+import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
-@Suppress("UnusedParameter")
 @Composable
 fun AccountProfileScreen(
-    email: String,
-    username: String,
-    bio: String?,
-    location: String?,
-    profileImage: String?,
+    state: AccountViewState,
     isLoading: Boolean,
-    onEditProfile: () -> Unit,
-    onChangePassword: () -> Unit,
-    onBookmarks: () -> Unit,
-    onLogout: () -> Unit
+    onAction: (AccountProfileAction) -> Unit
 ) {
+    val account = state.accountProperties
+    val email = account?.email.orEmpty()
+    val username = account?.username.orEmpty()
+    val profileImage = account?.profile_image
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -127,7 +125,7 @@ fun AccountProfileScreen(
                     AccountMenuItem(
                         icon = Icons.Filled.EditNote,
                         label = "Edit Profile",
-                        onClick = onEditProfile
+                        onClick = { onAction(AccountProfileAction.EditProfile) }
                     )
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.surfaceContainerLow
@@ -135,14 +133,14 @@ fun AccountProfileScreen(
                     AccountMenuItem(
                         icon = Icons.Filled.LockReset,
                         label = "Change Password",
-                        onClick = onChangePassword
+                        onClick = { onAction(AccountProfileAction.ChangePassword) }
                     )
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            TextButton(onClick = onLogout) {
+            TextButton(onClick = { onAction(AccountProfileAction.Logout) }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,
                     contentDescription = null,
@@ -293,16 +291,17 @@ private fun AccountMenuItem(
 private fun AccountProfileScreenPreview() {
     NyasaTheme {
         AccountProfileScreen(
-            email = "creator@nyasablog.mw",
-            username = "nyasa_creator",
-            bio = "Storyteller from the warm heart of Africa",
-            location = "Lilongwe, Malawi",
-            profileImage = null,
+            state = AccountViewState(
+                accountProperties = AccountProperties(
+                    pk = 1,
+                    email = "creator@nyasablog.mw",
+                    username = "nyasa_creator",
+                    bio = "Storyteller from the warm heart of Africa",
+                    location = "Lilongwe, Malawi"
+                )
+            ),
             isLoading = false,
-            onEditProfile = {},
-            onChangePassword = {},
-            onBookmarks = {},
-            onLogout = {}
+            onAction = {}
         )
     }
 }

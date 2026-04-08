@@ -59,6 +59,7 @@ import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaBlogCard
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
+import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.util.BlogUtils
 import kotlinx.coroutines.flow.Flow
 
@@ -66,22 +67,17 @@ import kotlinx.coroutines.flow.Flow
 @Composable
 fun BlogFeedScreen(
     pagingDataFlow: Flow<PagingData<BlogPost>>,
-    searchQuery: String,
-    currentFilter: String,
-    currentOrder: String,
-    categories: List<Category>,
-    selectedCategory: String?,
-    onBlogClick: (String) -> Unit,
-    onSearch: (String) -> Unit,
-    onFilterApply: (filter: String, order: String) -> Unit,
-    onCategorySelected: (String?) -> Unit,
-    onBookmarkClick: (String) -> Unit,
-    onRefresh: () -> Unit
+    state: BlogListUiState,
+    onAction: (BlogFeedAction) -> Unit
 ) {
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
-    var query by rememberSaveable { mutableStateOf(searchQuery) }
+    var query by rememberSaveable { mutableStateOf(state.searchQuery) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     var showSearch by rememberSaveable { mutableStateOf(false) }
+    val refreshFeed = {
+        onAction(BlogFeedAction.Refresh)
+        pagingItems.refresh()
+    }
 
     Scaffold(
         topBar = {
@@ -114,7 +110,7 @@ fun BlogFeedScreen(
                 BlogSearchBar(
                     query = query,
                     onQueryChange = { query = it },
-                    onSearch = { onSearch(it) },
+                    onSearch = { onAction(BlogFeedAction.Search(it)) },
                     modifier = Modifier.padding(
                         horizontal = 16.dp,
                         vertical = 8.dp
@@ -123,20 +119,17 @@ fun BlogFeedScreen(
             }
 
             // Category chips
-            if (categories.isNotEmpty()) {
+            if (state.categories.isNotEmpty()) {
                 CategoryChipsRow(
-                    categories = categories,
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected
+                    categories = state.categories,
+                    selectedCategory = state.selectedCategory,
+                    onCategorySelected = { onAction(BlogFeedAction.CategorySelected(it)) }
                 )
             }
 
             PullToRefreshBox(
                 isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
-                onRefresh = {
-                    onRefresh()
-                    pagingItems.refresh()
-                },
+                onRefresh = refreshFeed,
                 modifier = Modifier.fillMaxSize()
             ) {
                 LazyColumn(
@@ -157,7 +150,9 @@ fun BlogFeedScreen(
                             if (index == 0 && query.isBlank()) {
                                 EditorPickCard(
                                     blogPost = blogPost,
-                                    onClick = { onBlogClick(blogPost.slug) }
+                                    onClick = {
+                                        onAction(BlogFeedAction.BlogClicked(blogPost.slug))
+                                    }
                                 )
                             } else {
                                 NyasaBlogCard(
@@ -174,10 +169,10 @@ fun BlogFeedScreen(
                                         .takeIf { it.isNotBlank() },
                                     likeCount = blogPost.like_count,
                                     onClick = {
-                                        onBlogClick(blogPost.slug)
+                                        onAction(BlogFeedAction.BlogClicked(blogPost.slug))
                                     },
                                     onBookmarkClick = {
-                                        onBookmarkClick(blogPost.slug)
+                                        onAction(BlogFeedAction.BookmarkClicked(blogPost.slug))
                                     }
                                 )
                             }
@@ -219,7 +214,7 @@ fun BlogFeedScreen(
                                         text = "Clear Search",
                                         onClick = {
                                             query = ""
-                                            onSearch("")
+                                            onAction(BlogFeedAction.Search(""))
                                         },
                                         style = ButtonStyle.Secondary
                                     )
@@ -234,12 +229,7 @@ fun BlogFeedScreen(
                         pagingItems.loadState.append.endOfPaginationReached
                     ) {
                         item {
-                            EndOfFeedMessage(
-                                onRefresh = {
-                                    onRefresh()
-                                    pagingItems.refresh()
-                                }
-                            )
+                            EndOfFeedMessage(onRefresh = refreshFeed)
                         }
                     }
 
@@ -272,16 +262,16 @@ fun BlogFeedScreen(
 
     if (showFilterSheet) {
         BlogFilterSheet(
-            currentFilter = currentFilter,
-            currentOrder = currentOrder,
-            categories = categories,
-            selectedCategory = selectedCategory,
+            currentFilter = state.filter,
+            currentOrder = state.order,
+            categories = state.categories,
+            selectedCategory = state.selectedCategory,
             onApply = { filter, order ->
-                onFilterApply(filter, order)
+                onAction(BlogFeedAction.FilterApply(filter, order))
                 showFilterSheet = false
             },
             onCategorySelected = { category ->
-                onCategorySelected(category)
+                onAction(BlogFeedAction.CategorySelected(category))
             },
             onDismiss = { showFilterSheet = false }
         )
