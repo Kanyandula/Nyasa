@@ -1,27 +1,39 @@
 package com.kanyandula.nyasa.ui.auth.composables
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.kanyandula.nyasa.R
+import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.ui.theme.Primary
+import com.kanyandula.nyasa.ui.theme.SunsetOrange
 
 @Composable
 fun WelcomeScreen(
@@ -29,45 +41,170 @@ fun WelcomeScreen(
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
     ) {
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            text = "Discover the pulse of Malawian stories, where every voice finds its horizon.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(48.dp))
-        NyasaButton(
-            text = "Login",
-            onClick = onLoginClick,
-            trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
-        )
-        Spacer(Modifier.height(12.dp))
-        NyasaButton(
-            text = "Register",
-            onClick = onRegisterClick,
-            style = ButtonStyle.Secondary
-        )
-        Spacer(Modifier.height(16.dp))
-        TextButton(onClick = onForgotPasswordClick) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(48.dp))
+
             Text(
-                text = "Forgot Password?",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                text = "NyasaBlog",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
             )
+
+            Spacer(Modifier.height(24.dp))
+
+            SunsetHeroIllustration(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            Text(
+                text = "Welcome to\nNyasaBlog",
+                style = MaterialTheme.typography.displaySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Discover the pulse of Malawian stories," +
+                    " where every voice finds its horizon.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(40.dp))
+
+            NyasaButton(
+                text = "Login",
+                onClick = onLoginClick,
+                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            NyasaButton(
+                text = "Register",
+                onClick = onRegisterClick,
+                style = ButtonStyle.Secondary
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            TextButton(onClick = onForgotPasswordClick) {
+                Text(
+                    text = "FORGOT PASSWORD",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        letterSpacing = 1.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .aspectRatio(4f / 3f)
+            .clip(RoundedCornerShape(16.dp))
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+
+            // Sky gradient — warm sunset tones
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF87CEEB),
+                        Color(0xFFFDB777),
+                        Color(0xFFF4A460),
+                        Color(0xFFE8883C)
+                    )
+                )
+            )
+
+            // Sun glow
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFFFFF3E0),
+                        Color(0xFFFFCC80).copy(alpha = 0.6f),
+                        Color.Transparent
+                    ),
+                    center = Offset(w * 0.5f, h * 0.45f),
+                    radius = w * 0.35f
+                ),
+                center = Offset(w * 0.5f, h * 0.45f),
+                radius = w * 0.35f
+            )
+
+            // Sun disc
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFFFFF8E1),
+                        Color(0xFFFFE0B2)
+                    ),
+                    center = Offset(w * 0.5f, h * 0.45f),
+                    radius = w * 0.1f
+                ),
+                center = Offset(w * 0.5f, h * 0.45f),
+                radius = w * 0.1f
+            )
+
+            // Water reflection
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        SunsetOrange.copy(alpha = 0.5f),
+                        Primary.copy(alpha = 0.3f),
+                        Primary.copy(alpha = 0.5f)
+                    ),
+                    startY = h * 0.65f,
+                    endY = h
+                ),
+                topLeft = Offset(0f, h * 0.65f),
+                size = androidx.compose.ui.geometry.Size(w, h * 0.35f)
+            )
+
+            // Chitenje dot pattern overlay
+            val dotRadius = 2f
+            val spacing = 20f
+            val patternColor = Primary.copy(alpha = 0.04f)
+            var y = 0f
+            while (y < h) {
+                var x = 0f
+                while (x < w) {
+                    drawCircle(
+                        color = patternColor,
+                        radius = dotRadius,
+                        center = Offset(x, y)
+                    )
+                    x += spacing
+                }
+                y += spacing
+            }
         }
     }
 }

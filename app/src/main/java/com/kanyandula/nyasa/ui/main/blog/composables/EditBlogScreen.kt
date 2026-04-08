@@ -1,32 +1,48 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.Preview
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.models.Category
 import com.kanyandula.nyasa.ui.components.ImagePickerBox
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
@@ -34,6 +50,8 @@ import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.ui.theme.Primary
+import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,17 +80,28 @@ fun EditBlogScreen(
                     navigationIcon = Icons.Filled.Close,
                     onNavigationClick = onNavigateBack,
                     actions = {
-                        IconButton(
+                        Button(
                             onClick = { onSave(title, body, tags) },
-                            enabled = !isLoading
+                            enabled = !isLoading,
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Primary
+                            ),
+                            contentPadding = PaddingValues(
+                                horizontal = 20.dp,
+                                vertical = 8.dp
+                            )
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = "Save"
+                            Text(
+                                text = "Save",
+                                style = MaterialTheme.typography.labelLarge
                             )
                         }
                     }
                 )
+            },
+            bottomBar = {
+                EditBottomToolbar()
             }
         ) { padding ->
             Column(
@@ -89,12 +118,24 @@ fun EditBlogScreen(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Tap to change image",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "TAP TO CHANGE",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 1.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Spacer(Modifier.height(20.dp))
+
+                // Article Headline
+                Text(
+                    text = "ARTICLE HEADLINE",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 0.5.sp
+                    ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(16.dp))
-
+                Spacer(Modifier.height(8.dp))
                 NyasaTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -103,27 +144,17 @@ fun EditBlogScreen(
                     maxLines = 3,
                     imeAction = ImeAction.Next
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
 
-                if (categories.isNotEmpty()) {
-                    NyasaCategoryDropdown(
-                        categories = categories,
-                        selectedCategory = selectedCategory,
-                        onCategorySelected = onCategorySelected
-                    )
-                    Spacer(Modifier.height(16.dp))
-                }
-
-                NyasaTextField(
-                    value = tags,
-                    onValueChange = { tags = it },
-                    label = "Tags",
-                    helperText = "Comma-separated (e.g. Travel, Culture)",
-                    singleLine = true,
-                    imeAction = ImeAction.Next
+                // Main Narrative
+                Text(
+                    text = "MAIN NARRATIVE",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(16.dp))
-
+                Spacer(Modifier.height(8.dp))
                 NyasaTextField(
                     value = body,
                     onValueChange = { body = it },
@@ -132,21 +163,150 @@ fun EditBlogScreen(
                     maxLines = Int.MAX_VALUE,
                     imeAction = ImeAction.Default
                 )
+                Spacer(Modifier.height(20.dp))
+
+                // Category + Reading Time row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "CATEGORY",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = MaterialTheme.colorScheme
+                                .onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        if (categories.isNotEmpty()) {
+                            NyasaCategoryDropdown(
+                                categories = categories,
+                                selectedCategory = selectedCategory,
+                                onCategorySelected = onCategorySelected
+                            )
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "READING TIME",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = MaterialTheme.colorScheme
+                                .onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement
+                                .spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Timer,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme
+                                    .onSurfaceVariant
+                            )
+                            val readTime = remember(body) {
+                                val wordCount = body
+                                    .split("\\s+".toRegex())
+                                    .count { it.isNotBlank() }
+                                (wordCount / 200).coerceAtLeast(1)
+                            }
+                            Text(
+                                text = "$readTime min",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Tags
+                NyasaTextField(
+                    value = tags,
+                    onValueChange = { tags = it },
+                    label = "Tags",
+                    helperText = "Comma-separated (e.g. Travel, Culture)",
+                    singleLine = true,
+                    imeAction = ImeAction.Done
+                )
+                Spacer(Modifier.height(16.dp))
             }
         }
         LoadingOverlay(isLoading = isLoading)
     }
 }
 
-@Preview(showSystemUi = true)
+@Composable
+private fun EditBottomToolbar() {
+    Column {
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            ToolbarItem(Icons.Filled.Image, "Media")
+            ToolbarItem(Icons.Filled.LocalOffer, "Tags")
+            ToolbarItem(Icons.Filled.Preview, "Preview")
+            ToolbarItem(
+                Icons.Filled.DeleteOutline,
+                "Discard",
+                tintError = true
+            )
+        }
+    }
+}
+
+@Composable
+private fun ToolbarItem(
+    icon: ImageVector,
+    label: String,
+    tintError: Boolean = false
+) {
+    val color = if (tintError) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    TextButton(onClick = { }) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(20.dp),
+                tint = color
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = color
+            )
+        }
+    }
+}
+
+@ComposePreview(showSystemUi = true)
 @Composable
 private fun EditBlogScreenPreview() {
     NyasaTheme {
         EditBlogScreen(
-            initialTitle = "Whispers of the Lake",
-            initialBody = "The sun hung low over the Dedza mountains...",
+            initialTitle = "The Silent Wisdom of the Baobab:",
+            initialBody = "The sun hung low over the Dedza mountains," +
+                " painting the landscape in a shade of burnt sienna" +
+                " and deep ochre. Under the sprawling branches of" +
+                " an ancient baobab, time seems to slow down.",
             imageUri = null,
-            selectedCategory = "travel",
+            selectedCategory = "culture",
             initialTags = "Malawi, Travel",
             categories = listOf(
                 Category(1, "Travel", "travel"),

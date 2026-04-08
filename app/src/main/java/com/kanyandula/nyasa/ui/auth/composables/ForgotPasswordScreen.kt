@@ -6,19 +6,27 @@ import android.os.Looper
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kanyandula.nyasa.ui.auth.WebAppInterface
+import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.util.Constants
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -53,48 +62,135 @@ fun ForgotPasswordScreen(
         }
     }
 
-    AnimatedContent(
-        targetState = resetLinkSent,
-        label = "forgot_password_transition"
-    ) { linkSent ->
-        if (linkSent) {
-            PasswordResetSuccessContent(onNavigateBack = onNavigateBack)
-        } else {
-            AndroidView(
-                factory = { context ->
-                    WebView(context).apply {
-                        webViewRef = this
-                        settings.javaScriptEnabled = true
-                        webViewClient = object : WebViewClient() {
-                            override fun onPageFinished(view: WebView?, url: String?) {
-                                super.onPageFinished(view, url)
-                                handler.post { onLoadingChanged(false) }
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top bar with back arrow
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            AnimatedContent(
+                targetState = resetLinkSent,
+                label = "forgot_password_transition"
+            ) { linkSent ->
+                if (linkSent) {
+                    PasswordResetSuccessContent(onNavigateBack = onNavigateBack)
+                } else {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Icon + header section
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(Modifier.height(16.dp))
+
+                            // Lock reset icon in circle
+                            Box(
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.LockReset,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(32.dp)
+                                )
                             }
+
+                            Spacer(Modifier.height(24.dp))
+
+                            Text(
+                                text = "Forgot Password?",
+                                style = MaterialTheme.typography.headlineLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = "Enter your email to receive a reset link." +
+                                    " We\u2019ll help you get back to your" +
+                                    " stories in no time.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
                         }
-                        addJavascriptInterface(
-                            WebAppInterface(
-                                object : WebAppInterface.OnWebInteractionCallback {
-                                    override fun onSuccess(email: String) {
-                                        handler.post { resetLinkSent = true }
-                                    }
 
-                                    override fun onError(errorMessage: String) {
-                                        handler.post { onError(errorMessage) }
-                                    }
+                        Spacer(Modifier.height(24.dp))
 
-                                    override fun onLoading(isLoading: Boolean) {
-                                        handler.post { onLoadingChanged(isLoading) }
+                        // WebView for Django password reset form
+                        AndroidView(
+                            factory = { context ->
+                                WebView(context).apply {
+                                    webViewRef = this
+                                    settings.javaScriptEnabled = true
+                                    webViewClient = object : WebViewClient() {
+                                        override fun onPageFinished(
+                                            view: WebView?,
+                                            url: String?
+                                        ) {
+                                            super.onPageFinished(view, url)
+                                            handler.post { onLoadingChanged(false) }
+                                        }
                                     }
+                                    addJavascriptInterface(
+                                        WebAppInterface(
+                                            object :
+                                                WebAppInterface.OnWebInteractionCallback {
+                                                override fun onSuccess(email: String) {
+                                                    handler.post { resetLinkSent = true }
+                                                }
+
+                                                override fun onError(
+                                                    errorMessage: String
+                                                ) {
+                                                    handler.post { onError(errorMessage) }
+                                                }
+
+                                                override fun onLoading(
+                                                    isLoading: Boolean
+                                                ) {
+                                                    handler.post {
+                                                        onLoadingChanged(isLoading)
+                                                    }
+                                                }
+                                            }
+                                        ),
+                                        "AndroidTextListener"
+                                    )
+                                    onLoadingChanged(true)
+                                    loadUrl(Constants.PASSWORD_RESET_URL)
                                 }
-                            ),
-                            "AndroidTextListener"
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(horizontal = 16.dp)
                         )
-                        onLoadingChanged(true)
-                        loadUrl(Constants.PASSWORD_RESET_URL)
                     }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
+                }
+            }
         }
     }
 }
@@ -108,12 +204,22 @@ private fun PasswordResetSuccessContent(onNavigateBack: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Filled.CheckCircle,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(64.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(36.dp)
+            )
+        }
         Spacer(Modifier.height(24.dp))
         Text(
             text = "Password Reset Email Sent",
@@ -129,12 +235,9 @@ private fun PasswordResetSuccessContent(onNavigateBack: () -> Unit) {
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(32.dp))
-        TextButton(onClick = onNavigateBack) {
-            Text(
-                text = "Return to Login",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+        NyasaButton(
+            text = "Return to Login",
+            onClick = onNavigateBack
+        )
     }
 }
