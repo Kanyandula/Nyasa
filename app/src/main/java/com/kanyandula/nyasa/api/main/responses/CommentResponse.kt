@@ -7,17 +7,17 @@ class CommentResponse(
 
     @SerializedName("pk")
     @Expose
-    var pk: Int,
+    var pk: Int = 0,
 
     @SerializedName("body")
     @Expose
-    var body: String,
+    var body: String = "",
 
     @SerializedName("username")
     @Expose
-    var username: String,
+    var username: String? = null,
 
     @SerializedName("date_created")
     @Expose
-    var date_created: String
+    var date_created: String? = null
 )

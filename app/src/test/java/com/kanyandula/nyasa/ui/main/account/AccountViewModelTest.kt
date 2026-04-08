@@ -5,7 +5,9 @@ import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.domain.usecase.account.ChangePasswordUseCase
 import com.kanyandula.nyasa.domain.usecase.account.GetAccountPropertiesUseCase
 import com.kanyandula.nyasa.domain.usecase.account.SaveAccountPropertiesUseCase
+import com.kanyandula.nyasa.domain.usecase.profile.UpdateProfileUseCase
 import com.kanyandula.nyasa.fakes.FakeAccountRepository
+import com.kanyandula.nyasa.fakes.FakeProfileRepository
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.UiEvent
@@ -31,19 +33,22 @@ class AccountViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var fakeRepository: FakeAccountRepository
+    private lateinit var fakeProfileRepository: FakeProfileRepository
     private lateinit var sessionManager: SessionManager
     private lateinit var viewModel: AccountViewModel
 
     @Before
     fun setup() {
         fakeRepository = FakeAccountRepository()
+        fakeProfileRepository = FakeProfileRepository()
         sessionManager = mockk(relaxed = true)
         every { sessionManager.cachedToken } returns MutableStateFlow(null)
         viewModel = AccountViewModel(
             sessionManager = sessionManager,
             getAccountPropertiesUseCase = GetAccountPropertiesUseCase(fakeRepository),
             saveAccountPropertiesUseCase = SaveAccountPropertiesUseCase(fakeRepository),
-            changePasswordUseCase = ChangePasswordUseCase(fakeRepository)
+            changePasswordUseCase = ChangePasswordUseCase(fakeRepository),
+            updateProfileUseCase = UpdateProfileUseCase(fakeProfileRepository)
         )
     }
 

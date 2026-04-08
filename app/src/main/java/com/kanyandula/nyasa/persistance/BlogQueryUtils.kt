@@ -31,7 +31,7 @@ fun BlogPostDao.getOrderedBlogPagingSource(
         filterAndOrder.contains(ORDER_BY_ASC_DATE_UPDATED) -> "ORDER BY date_updated ASC"
         filterAndOrder.contains(ORDER_BY_DESC_USERNAME) -> "ORDER BY username DESC"
         filterAndOrder.contains(ORDER_BY_ASC_USERNAME) -> "ORDER BY username ASC"
-        else -> "ORDER BY date_updated ASC"
+        else -> "ORDER BY date_updated DESC"
     }
 
     val sql = """

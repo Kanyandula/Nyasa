@@ -1,18 +1,28 @@
 package com.kanyandula.nyasa.ui.main.account.composables
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.LockReset
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,10 +31,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTextField
@@ -42,11 +55,15 @@ fun ChangePasswordScreen(
     var newPassword by rememberSaveable { mutableStateOf("") }
     var confirmNewPassword by rememberSaveable { mutableStateOf("") }
 
-    val passwordMismatch = confirmNewPassword.isNotEmpty() && newPassword != confirmNewPassword
+    val passwordMismatch = confirmNewPassword.isNotEmpty() &&
+        newPassword != confirmNewPassword
+    val hasMinLength = newPassword.length >= 8
+    val hasNumber = newPassword.any { it.isDigit() }
     val canSubmit = currentPassword.isNotEmpty() &&
         newPassword.isNotEmpty() &&
         confirmNewPassword.isNotEmpty() &&
-        !passwordMismatch
+        !passwordMismatch &&
+        hasMinLength
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -62,73 +79,200 @@ fun ChangePasswordScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = 32.dp)
             ) {
+                Spacer(Modifier.height(16.dp))
+
+                // Lock icon in circle
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(72.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.LockReset,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
                 Text(
                     text = "Secure Your Account",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Ensure your new password is strong and contains at least 8 characters.",
+                    text = "Ensure your new password is strong and" +
+                        " contains at least 8 characters.",
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(28.dp))
+
+                // Current Password
+                Text(
+                    text = "Current Password",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 0.5.sp
+                    ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(24.dp))
-
+                Spacer(Modifier.height(8.dp))
                 NyasaTextField(
                     value = currentPassword,
                     onValueChange = { currentPassword = it },
-                    label = "Current Password",
-                    leadingIcon = Icons.Filled.Password,
+                    label = "Enter existing password",
+                    leadingIcon = Icons.Filled.LockReset,
                     isPassword = true,
                     imeAction = ImeAction.Next
                 )
-                Spacer(Modifier.height(16.dp))
 
+                Spacer(Modifier.height(20.dp))
+
+                // New Password
+                Text(
+                    text = "New Password",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
                 NyasaTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = "New Password",
+                    label = "Min. 8 characters",
                     leadingIcon = Icons.Filled.VpnKey,
                     isPassword = true,
                     imeAction = ImeAction.Next
                 )
-                Spacer(Modifier.height(16.dp))
 
+                Spacer(Modifier.height(20.dp))
+
+                // Confirm New Password
+                Text(
+                    text = "Confirm New Password",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
                 NyasaTextField(
                     value = confirmNewPassword,
                     onValueChange = { confirmNewPassword = it },
-                    label = "Confirm New Password",
+                    label = "Re-type new password",
                     leadingIcon = Icons.Filled.VerifiedUser,
                     isPassword = true,
                     isError = passwordMismatch,
-                    errorMessage = if (passwordMismatch) "Passwords do not match" else null,
+                    errorMessage = if (passwordMismatch) {
+                        "Passwords do not match"
+                    } else {
+                        null
+                    },
                     imeAction = ImeAction.Done,
                     onImeAction = {
                         if (canSubmit) {
-                            onUpdatePassword(currentPassword, newPassword, confirmNewPassword)
+                            onUpdatePassword(
+                                currentPassword,
+                                newPassword,
+                                confirmNewPassword
+                            )
                         }
                     }
                 )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = "You will be logged out of other devices.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(32.dp))
+
+                Spacer(Modifier.height(16.dp))
+
+                // Password requirements checklist
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    PasswordRequirement(
+                        text = "8+ CHARACTERS",
+                        met = hasMinLength
+                    )
+                    PasswordRequirement(
+                        text = "1 NUMBER",
+                        met = hasNumber
+                    )
+                }
+
+                Spacer(Modifier.height(28.dp))
 
                 NyasaButton(
-                    text = "Update Password",
-                    onClick = { onUpdatePassword(currentPassword, newPassword, confirmNewPassword) },
+                    text = "UPDATE PASSWORD",
+                    onClick = {
+                        onUpdatePassword(
+                            currentPassword,
+                            newPassword,
+                            confirmNewPassword
+                        )
+                    },
                     enabled = canSubmit,
                     loading = isLoading
                 )
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    text = "You will be logged out of other devices.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(32.dp))
             }
         }
         LoadingOverlay(isLoading = isLoading)
+    }
+}
+
+@Composable
+private fun PasswordRequirement(text: String, met: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = if (met) {
+                Icons.Filled.CheckCircle
+            } else {
+                Icons.Filled.RadioButtonUnchecked
+            },
+            contentDescription = null,
+            tint = if (met) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outlineVariant
+            },
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(
+                letterSpacing = 0.5.sp
+            ),
+            color = if (met) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
     }
 }
 

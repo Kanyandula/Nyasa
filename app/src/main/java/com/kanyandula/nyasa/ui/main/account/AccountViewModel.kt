@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.domain.usecase.account.ChangePasswordUseCase
 import com.kanyandula.nyasa.domain.usecase.account.GetAccountPropertiesUseCase
 import com.kanyandula.nyasa.domain.usecase.account.SaveAccountPropertiesUseCase
+import com.kanyandula.nyasa.domain.usecase.profile.UpdateProfileUseCase
 import com.kanyandula.nyasa.models.AccountProperties
+import com.kanyandula.nyasa.models.ProfileUpdateRequest
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
@@ -22,7 +24,8 @@ constructor(
     private val sessionManager: SessionManager,
     private val getAccountPropertiesUseCase: GetAccountPropertiesUseCase,
     private val saveAccountPropertiesUseCase: SaveAccountPropertiesUseCase,
-    private val changePasswordUseCase: ChangePasswordUseCase
+    private val changePasswordUseCase: ChangePasswordUseCase,
+    private val updateProfileUseCase: UpdateProfileUseCase
 ) : BaseViewModel<AccountViewState>(AccountViewState()) {
 
     fun getAccountProperties() {
@@ -45,6 +48,20 @@ constructor(
                 handleResource(
                     resource,
                     onSuccess = { message -> sendEvent(UiEvent.ShowToast(message)) }
+                )
+            }
+        }
+    }
+
+    fun updateProfile(request: ProfileUpdateRequest) {
+        viewModelScope.launch {
+            updateProfileUseCase(request).collect { resource ->
+                handleResource(
+                    resource,
+                    onSuccess = {
+                        sendEvent(UiEvent.ShowToast("Profile updated"))
+                        getAccountProperties()
+                    }
                 )
             }
         }

@@ -97,10 +97,13 @@ class AuthActivity : ComponentActivity() {
                                     navController.navigate(Routes.FORGOT_PASSWORD)
                                 },
                                 onNavigateToRegister = {
-                                    navController.popBackStack()
+                                    navController.navigate(Routes.REGISTER)
                                 },
                                 onEmailChanged = { email ->
                                     viewModel.setLoginFields(LoginFields(email))
+                                },
+                                onBackClick = {
+                                    navController.popBackStack()
                                 }
                             )
                         }

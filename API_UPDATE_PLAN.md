@@ -176,11 +176,11 @@ di/main/MainModule.kt
 
 ### Tasks
 
-- [ ] Create Compose theme: `NyasaHorizonTheme` with Material 3 color scheme
-- [ ] Add Newsreader + Plus Jakarta Sans font families
-- [ ] Create reusable components: `NyasaCard`, `NyasaButton`, `NyasaTextField`
-- [ ] Apply theme to existing screens
-- [ ] Verify: all screens render with correct colors, fonts, spacing
+- [x] Create Compose theme: `NyasaTheme` with Material 3 color scheme
+- [x] Add Newsreader + Plus Jakarta Sans font families (Google Fonts)
+- [x] Create reusable components: `NyasaBlogCard`, `NyasaButton`, `NyasaTextField`, `NyasaTopBar`, `NyasaBottomBar`
+- [x] Apply theme to existing screens (both activities wrap in `NyasaTheme`)
+- [x] Verify: all screens render with correct colors, fonts, spacing
 
 ### Files
 
@@ -216,19 +216,19 @@ ui/components/ (new shared composables)
 
 ### Tasks per screen
 
-- [ ] Create ViewModel + UiState
-- [ ] Create Compose screen
-- [ ] Add navigation destination
-- [ ] Match Stitch design (layout, spacing, colors)
-- [ ] Write ViewModel tests
+- [x] Create ViewModel + UiState (AuthorProfileViewModel, BookmarksViewModel + states)
+- [x] Create Compose screen (all 12 screens implemented/updated)
+- [x] Add navigation destination (Routes + NavHost composables)
+- [x] Match Stitch design (layout, spacing, colors)
+- [ ] Write ViewModel tests (existing tests updated; new VM tests pending)
 
 ### Navigation updates
 
-- Add Welcome as start destination (first launch only)
-- Add Forgot Password from Login screen
-- Add Bookmarks to bottom nav or menu
-- Add Author Profile (navigate from blog post author name)
-- Add Filter Dialog (from blog feed toolbar)
+- [x] Welcome as start destination (first launch only)
+- [x] Forgot Password from Login screen
+- [x] Bookmarks accessible from Account menu
+- [x] Author Profile navigable from blog post author name
+- [x] Filter Dialog from blog feed toolbar
 
 ---
 

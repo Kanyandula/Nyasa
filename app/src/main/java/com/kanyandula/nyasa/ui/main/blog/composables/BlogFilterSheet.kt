@@ -1,14 +1,18 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -24,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kanyandula.nyasa.models.Category
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_DATE_UPDATED
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_FILTER_USERNAME
 import com.kanyandula.nyasa.persistance.BlogQueryUtils.BLOG_ORDER_ASC
@@ -37,11 +42,15 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 fun BlogFilterSheet(
     currentFilter: String,
     currentOrder: String,
+    categories: List<Category>,
+    selectedCategory: String?,
     onApply: (filter: String, order: String) -> Unit,
+    onCategorySelected: (String?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var selectedFilter by remember { mutableStateOf(currentFilter) }
     var selectedOrder by remember { mutableStateOf(currentOrder) }
+    var pickedCategory by remember { mutableStateOf(selectedCategory) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -59,8 +68,42 @@ fun BlogFilterSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(24.dp))
+            if (categories.isNotEmpty()) {
+                Spacer(Modifier.height(20.dp))
+                Text(
+                    text = "Category",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = pickedCategory == null,
+                        onClick = { pickedCategory = null },
+                        label = { Text("All") }
+                    )
+                    categories.forEach { category ->
+                        FilterChip(
+                            selected = pickedCategory == category.slug,
+                            onClick = {
+                                pickedCategory = if (pickedCategory == category.slug) {
+                                    null
+                                } else {
+                                    category.slug
+                                }
+                            },
+                            label = { Text(category.name) }
+                        )
+                    }
+                }
+            }
 
+            Spacer(Modifier.height(20.dp))
             Text(
                 text = "Filter by",
                 style = MaterialTheme.typography.titleSmall,
@@ -101,7 +144,10 @@ fun BlogFilterSheet(
 
             NyasaButton(
                 text = "Apply filters",
-                onClick = { onApply(selectedFilter, selectedOrder) }
+                onClick = {
+                    onCategorySelected(pickedCategory)
+                    onApply(selectedFilter, selectedOrder)
+                }
             )
             Spacer(Modifier.height(8.dp))
             NyasaButton(
@@ -147,7 +193,13 @@ private fun BlogFilterSheetPreview() {
         BlogFilterSheet(
             currentFilter = BLOG_FILTER_DATE_UPDATED,
             currentOrder = BLOG_ORDER_ASC,
+            categories = listOf(
+                Category(1, "Travel", "travel"),
+                Category(2, "Culture", "culture")
+            ),
+            selectedCategory = null,
             onApply = { _, _ -> },
+            onCategorySelected = {},
             onDismiss = {}
         )
     }
