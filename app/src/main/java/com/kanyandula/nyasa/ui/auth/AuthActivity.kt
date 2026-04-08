@@ -101,7 +101,7 @@ class AuthActivity : ComponentActivity() {
                                             navController.navigate(Routes.REGISTER)
                                         is LoginAction.EmailChanged ->
                                             viewModel.setLoginFields(LoginFields(action.email))
-                                        is LoginAction.BackClicked ->
+                                        is LoginAction.NavigateBack ->
                                             navController.popBackStack()
                                     }
                                 }

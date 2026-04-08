@@ -80,7 +80,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { onAction(LoginAction.BackClicked) }) {
+                IconButton(onClick = { onAction(LoginAction.NavigateBack) }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",

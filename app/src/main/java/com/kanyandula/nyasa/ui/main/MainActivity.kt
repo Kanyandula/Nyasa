@@ -108,11 +108,7 @@ class MainActivity : ComponentActivity() {
 
                                 BlogFeedScreen(
                                     pagingDataFlow = vm.pagingDataFlow,
-                                    searchQuery = state.searchQuery,
-                                    currentFilter = state.filter,
-                                    currentOrder = state.order,
-                                    categories = state.categories,
-                                    selectedCategory = state.selectedCategory,
+                                    state = state,
                                     onAction = { action ->
                                         when (action) {
                                             is BlogFeedAction.BlogClicked ->
@@ -314,15 +310,16 @@ private fun BlogDetailRoute(
         onAction = { action ->
             when (action) {
                 is BlogDetailAction.EditClicked -> {
-                    val blogPost = viewModel.getBlogPost() ?: return@BlogDetailScreen
-                    viewModel.setUpdatedBlogFields(
-                        title = blogPost.title,
-                        body = blogPost.body,
-                        uri = blogPost.image.toUri(),
-                        category = blogPost.category,
-                        tags = blogPost.tags
-                    )
-                    onEdit(slug)
+                    viewModel.getBlogPost()?.let { blogPost ->
+                        viewModel.setUpdatedBlogFields(
+                            title = blogPost.title,
+                            body = blogPost.body,
+                            uri = blogPost.image.toUri(),
+                            category = blogPost.category,
+                            tags = blogPost.tags
+                        )
+                        onEdit(slug)
+                    }
                 }
                 is BlogDetailAction.DeleteClicked -> showDeleteDialog = true
                 is BlogDetailAction.NavigateBack -> onNavigateBack()
@@ -479,11 +476,7 @@ private fun AccountProfileRoute(
     }
 
     AccountProfileScreen(
-        email = state.accountProperties?.email.orEmpty(),
-        username = state.accountProperties?.username.orEmpty(),
-        bio = state.accountProperties?.bio,
-        location = state.accountProperties?.location,
-        profileImage = state.accountProperties?.profile_image,
+        state = state,
         isLoading = isLoading,
         onAction = { action ->
             when (action) {

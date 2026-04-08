@@ -5,5 +5,5 @@ sealed interface LoginAction {
     data object ForgotPassword : LoginAction
     data object NavigateToRegister : LoginAction
     data class EmailChanged(val email: String) : LoginAction
-    data object BackClicked : LoginAction
+    data object NavigateBack : LoginAction
 }

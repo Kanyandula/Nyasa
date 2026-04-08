@@ -59,6 +59,7 @@ import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaBlogCard
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
+import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.util.BlogUtils
 import kotlinx.coroutines.flow.Flow
 
@@ -66,17 +67,17 @@ import kotlinx.coroutines.flow.Flow
 @Composable
 fun BlogFeedScreen(
     pagingDataFlow: Flow<PagingData<BlogPost>>,
-    searchQuery: String,
-    currentFilter: String,
-    currentOrder: String,
-    categories: List<Category>,
-    selectedCategory: String?,
+    state: BlogListUiState,
     onAction: (BlogFeedAction) -> Unit
 ) {
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
-    var query by rememberSaveable { mutableStateOf(searchQuery) }
+    var query by rememberSaveable { mutableStateOf(state.searchQuery) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     var showSearch by rememberSaveable { mutableStateOf(false) }
+    val refreshFeed = {
+        onAction(BlogFeedAction.Refresh)
+        pagingItems.refresh()
+    }
 
     Scaffold(
         topBar = {
@@ -118,20 +119,17 @@ fun BlogFeedScreen(
             }
 
             // Category chips
-            if (categories.isNotEmpty()) {
+            if (state.categories.isNotEmpty()) {
                 CategoryChipsRow(
-                    categories = categories,
-                    selectedCategory = selectedCategory,
+                    categories = state.categories,
+                    selectedCategory = state.selectedCategory,
                     onCategorySelected = { onAction(BlogFeedAction.CategorySelected(it)) }
                 )
             }
 
             PullToRefreshBox(
                 isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
-                onRefresh = {
-                    onAction(BlogFeedAction.Refresh)
-                    pagingItems.refresh()
-                },
+                onRefresh = refreshFeed,
                 modifier = Modifier.fillMaxSize()
             ) {
                 LazyColumn(
@@ -231,12 +229,7 @@ fun BlogFeedScreen(
                         pagingItems.loadState.append.endOfPaginationReached
                     ) {
                         item {
-                            EndOfFeedMessage(
-                                onRefresh = {
-                                    onAction(BlogFeedAction.Refresh)
-                                    pagingItems.refresh()
-                                }
-                            )
+                            EndOfFeedMessage(onRefresh = refreshFeed)
                         }
                     }
 
@@ -269,10 +262,10 @@ fun BlogFeedScreen(
 
     if (showFilterSheet) {
         BlogFilterSheet(
-            currentFilter = currentFilter,
-            currentOrder = currentOrder,
-            categories = categories,
-            selectedCategory = selectedCategory,
+            currentFilter = state.filter,
+            currentOrder = state.order,
+            categories = state.categories,
+            selectedCategory = state.selectedCategory,
             onApply = { filter, order ->
                 onAction(BlogFeedAction.FilterApply(filter, order))
                 showFilterSheet = false
