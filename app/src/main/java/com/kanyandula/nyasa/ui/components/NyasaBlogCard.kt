@@ -1,6 +1,7 @@
 package com.kanyandula.nyasa.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,19 +55,47 @@ fun NyasaBlogCard(
         shape = MaterialTheme.shapes.medium
     ) {
         Column {
+            // Image with category badge overlay
             if (imageUrl != null) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(16f / 9f)
-                        .clip(MaterialTheme.shapes.large),
-                    contentScale = ContentScale.Crop
-                )
+                Box {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(16f / 9f)
+                            .clip(MaterialTheme.shapes.large),
+                        contentScale = ContentScale.Crop
+                    )
+                    if (category != null) {
+                        Surface(
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .align(Alignment.TopEnd),
+                            color = MaterialTheme.colorScheme.secondary
+                                .copy(alpha = 0.85f),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = category.uppercase(),
+                                modifier = Modifier.padding(
+                                    horizontal = 10.dp,
+                                    vertical = 4.dp
+                                ),
+                                style = MaterialTheme.typography
+                                    .labelSmall.copy(
+                                        letterSpacing = 0.8.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                    }
+                }
             }
             Column(modifier = Modifier.padding(16.dp)) {
-                if (category != null) {
+                // Category text fallback when no image
+                if (category != null && imageUrl == null) {
                     Text(
                         text = category.uppercase(),
                         style = MaterialTheme.typography.labelSmall.copy(
@@ -91,15 +122,21 @@ fun NyasaBlogCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    // Author + read time inline with dot separator
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = authorName,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "  \u00B7  ",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -109,6 +146,7 @@ fun NyasaBlogCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    // Engagement icons
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (likeCount != null) {
                             Icon(
@@ -164,15 +202,16 @@ private fun NyasaBlogCardPreview() {
     NyasaTheme {
         Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
             NyasaBlogCard(
-                title = "Whispers of the Lake: A Journey into Mangochi",
-                authorName = "Mphatso K.",
+                title = "The Emerald Slopes: Discovering the Hidden Tea Trails of Mulanje",
+                authorName = "Kondwani Phiri",
                 imageUrl = null,
-                readTime = "8 min read",
+                readTime = "12 min read",
                 onClick = {},
-                category = "Travel & Culture",
-                excerpt = "Exploring the serene shores of Lake Malawi...",
-                likeCount = 24,
-                commentCount = 8,
+                category = "Lifestyle",
+                excerpt = "Wandering through the misty plantations of Mulanje" +
+                    " reveals a world of tradition and tranquil beauty...",
+                likeCount = 48,
+                commentCount = 15,
                 onBookmarkClick = {},
                 modifier = Modifier.padding(16.dp)
             )
