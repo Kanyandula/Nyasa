@@ -39,14 +39,18 @@ import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.auth.AuthActivity
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
 import com.kanyandula.nyasa.ui.main.account.AccountViewModel
+import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileAction
 import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileScreen
 import com.kanyandula.nyasa.ui.main.account.composables.ChangePasswordScreen
 import com.kanyandula.nyasa.ui.main.account.composables.EditAccountScreen
 import com.kanyandula.nyasa.ui.main.account.state.AccountUiEvent
 import com.kanyandula.nyasa.ui.main.blog.composables.AuthorProfileScreen
+import com.kanyandula.nyasa.ui.main.blog.composables.BlogDetailAction
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogDetailScreen
+import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedAction
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.BookmarksScreen
+import com.kanyandula.nyasa.ui.main.blog.composables.EditBlogAction
 import com.kanyandula.nyasa.ui.main.blog.composables.EditBlogScreen
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.AuthorProfileViewModel
@@ -109,24 +113,27 @@ class MainActivity : ComponentActivity() {
                                     currentOrder = state.order,
                                     categories = state.categories,
                                     selectedCategory = state.selectedCategory,
-                                    onBlogClick = { slug ->
-                                        navController.navigate(Routes.blogDetail(slug))
-                                    },
-                                    onSearch = { query ->
-                                        vm.setQuery(query)
-                                        vm.executeSearch()
-                                    },
-                                    onFilterApply = { filter, order ->
-                                        vm.setBlogFilter(filter)
-                                        vm.setBlogOrder(order)
-                                        vm.saveFilterOptions(filter, order)
-                                        vm.executeSearch()
-                                    },
-                                    onCategorySelected = { category ->
-                                        vm.setSelectedCategory(category)
-                                    },
-                                    onBookmarkClick = { slug -> vm.bookmarkBlog(slug) },
-                                    onRefresh = { vm.executeSearch() }
+                                    onAction = { action ->
+                                        when (action) {
+                                            is BlogFeedAction.BlogClicked ->
+                                                navController.navigate(Routes.blogDetail(action.slug))
+                                            is BlogFeedAction.Search -> {
+                                                vm.setQuery(action.query)
+                                                vm.executeSearch()
+                                            }
+                                            is BlogFeedAction.FilterApply -> {
+                                                vm.setBlogFilter(action.filter)
+                                                vm.setBlogOrder(action.order)
+                                                vm.saveFilterOptions(action.filter, action.order)
+                                                vm.executeSearch()
+                                            }
+                                            is BlogFeedAction.CategorySelected ->
+                                                vm.setSelectedCategory(action.category)
+                                            is BlogFeedAction.BookmarkClicked ->
+                                                vm.bookmarkBlog(action.slug)
+                                            is BlogFeedAction.Refresh -> vm.executeSearch()
+                                        }
+                                    }
                                 )
                             }
                             composable(
@@ -304,24 +311,28 @@ private fun BlogDetailRoute(
     BlogDetailScreen(
         state = state,
         isLoading = isLoading,
-        onEditClick = {
-            val blogPost = viewModel.getBlogPost() ?: return@BlogDetailScreen
-            viewModel.setUpdatedBlogFields(
-                title = blogPost.title,
-                body = blogPost.body,
-                uri = blogPost.image.toUri(),
-                category = blogPost.category,
-                tags = blogPost.tags
-            )
-            onEdit(slug)
-        },
-        onDeleteClick = { showDeleteDialog = true },
-        onNavigateBack = onNavigateBack,
-        onLikeClick = { viewModel.likeBlog(slug) },
-        onBookmarkClick = { viewModel.bookmarkBlog(slug) },
-        onAuthorClick = onAuthorClick,
-        onAddComment = { body -> viewModel.addComment(slug, body) },
-        onDeleteComment = { pk -> viewModel.deleteComment(pk) }
+        onAction = { action ->
+            when (action) {
+                is BlogDetailAction.EditClicked -> {
+                    val blogPost = viewModel.getBlogPost() ?: return@BlogDetailScreen
+                    viewModel.setUpdatedBlogFields(
+                        title = blogPost.title,
+                        body = blogPost.body,
+                        uri = blogPost.image.toUri(),
+                        category = blogPost.category,
+                        tags = blogPost.tags
+                    )
+                    onEdit(slug)
+                }
+                is BlogDetailAction.DeleteClicked -> showDeleteDialog = true
+                is BlogDetailAction.NavigateBack -> onNavigateBack()
+                is BlogDetailAction.LikeClicked -> viewModel.likeBlog(slug)
+                is BlogDetailAction.BookmarkClicked -> viewModel.bookmarkBlog(slug)
+                is BlogDetailAction.AuthorClicked -> onAuthorClick(action.username)
+                is BlogDetailAction.AddComment -> viewModel.addComment(slug, action.body)
+                is BlogDetailAction.DeleteComment -> viewModel.deleteComment(action.commentPk)
+            }
+        }
     )
 
     if (showDeleteDialog) {
@@ -376,15 +387,23 @@ private fun EditBlogRoute(
         initialTags = state.updatedTags.orEmpty(),
         categories = state.categories,
         isLoading = isLoading,
-        onSave = { title, body, tags ->
-            viewModel.setUpdatedTags(tags)
-            viewModel.updateBlogPost(slug, title, body, viewModel.getUpdatedBlogUri())
-        },
-        onPickImage = {
-            imagePickerLauncher.launch(createImagePickerIntent(activity))
-        },
-        onNavigateBack = onNavigateBack,
-        onCategorySelected = { viewModel.setUpdatedCategory(it) }
+        onAction = { action ->
+            when (action) {
+                is EditBlogAction.Save -> {
+                    viewModel.setUpdatedTags(action.tags)
+                    viewModel.updateBlogPost(
+                        slug,
+                        action.title,
+                        action.body,
+                        viewModel.getUpdatedBlogUri()
+                    )
+                }
+                is EditBlogAction.PickImage ->
+                    imagePickerLauncher.launch(createImagePickerIntent(activity))
+                is EditBlogAction.NavigateBack -> onNavigateBack()
+                is EditBlogAction.CategorySelected -> viewModel.setUpdatedCategory(action.category)
+            }
+        }
     )
 }
 
@@ -466,10 +485,14 @@ private fun AccountProfileRoute(
         location = state.accountProperties?.location,
         profileImage = state.accountProperties?.profile_image,
         isLoading = isLoading,
-        onEditProfile = onEditProfile,
-        onChangePassword = onChangePassword,
-        onBookmarks = onBookmarks,
-        onLogout = { viewModel.logout() }
+        onAction = { action ->
+            when (action) {
+                is AccountProfileAction.EditProfile -> onEditProfile()
+                is AccountProfileAction.ChangePassword -> onChangePassword()
+                is AccountProfileAction.Bookmarks -> onBookmarks()
+                is AccountProfileAction.Logout -> viewModel.logout()
+            }
+        }
     )
 }
 

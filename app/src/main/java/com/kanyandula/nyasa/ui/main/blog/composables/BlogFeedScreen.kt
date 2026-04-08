@@ -71,12 +71,7 @@ fun BlogFeedScreen(
     currentOrder: String,
     categories: List<Category>,
     selectedCategory: String?,
-    onBlogClick: (String) -> Unit,
-    onSearch: (String) -> Unit,
-    onFilterApply: (filter: String, order: String) -> Unit,
-    onCategorySelected: (String?) -> Unit,
-    onBookmarkClick: (String) -> Unit,
-    onRefresh: () -> Unit
+    onAction: (BlogFeedAction) -> Unit
 ) {
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
     var query by rememberSaveable { mutableStateOf(searchQuery) }
@@ -114,7 +109,7 @@ fun BlogFeedScreen(
                 BlogSearchBar(
                     query = query,
                     onQueryChange = { query = it },
-                    onSearch = { onSearch(it) },
+                    onSearch = { onAction(BlogFeedAction.Search(it)) },
                     modifier = Modifier.padding(
                         horizontal = 16.dp,
                         vertical = 8.dp
@@ -127,14 +122,14 @@ fun BlogFeedScreen(
                 CategoryChipsRow(
                     categories = categories,
                     selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected
+                    onCategorySelected = { onAction(BlogFeedAction.CategorySelected(it)) }
                 )
             }
 
             PullToRefreshBox(
                 isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
                 onRefresh = {
-                    onRefresh()
+                    onAction(BlogFeedAction.Refresh)
                     pagingItems.refresh()
                 },
                 modifier = Modifier.fillMaxSize()
@@ -157,7 +152,9 @@ fun BlogFeedScreen(
                             if (index == 0 && query.isBlank()) {
                                 EditorPickCard(
                                     blogPost = blogPost,
-                                    onClick = { onBlogClick(blogPost.slug) }
+                                    onClick = {
+                                        onAction(BlogFeedAction.BlogClicked(blogPost.slug))
+                                    }
                                 )
                             } else {
                                 NyasaBlogCard(
@@ -174,10 +171,10 @@ fun BlogFeedScreen(
                                         .takeIf { it.isNotBlank() },
                                     likeCount = blogPost.like_count,
                                     onClick = {
-                                        onBlogClick(blogPost.slug)
+                                        onAction(BlogFeedAction.BlogClicked(blogPost.slug))
                                     },
                                     onBookmarkClick = {
-                                        onBookmarkClick(blogPost.slug)
+                                        onAction(BlogFeedAction.BookmarkClicked(blogPost.slug))
                                     }
                                 )
                             }
@@ -219,7 +216,7 @@ fun BlogFeedScreen(
                                         text = "Clear Search",
                                         onClick = {
                                             query = ""
-                                            onSearch("")
+                                            onAction(BlogFeedAction.Search(""))
                                         },
                                         style = ButtonStyle.Secondary
                                     )
@@ -236,7 +233,7 @@ fun BlogFeedScreen(
                         item {
                             EndOfFeedMessage(
                                 onRefresh = {
-                                    onRefresh()
+                                    onAction(BlogFeedAction.Refresh)
                                     pagingItems.refresh()
                                 }
                             )
@@ -277,11 +274,11 @@ fun BlogFeedScreen(
             categories = categories,
             selectedCategory = selectedCategory,
             onApply = { filter, order ->
-                onFilterApply(filter, order)
+                onAction(BlogFeedAction.FilterApply(filter, order))
                 showFilterSheet = false
             },
             onCategorySelected = { category ->
-                onCategorySelected(category)
+                onAction(BlogFeedAction.CategorySelected(category))
             },
             onDismiss = { showFilterSheet = false }
         )

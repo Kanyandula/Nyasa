@@ -63,10 +63,7 @@ fun EditBlogScreen(
     initialTags: String,
     categories: List<Category>,
     isLoading: Boolean,
-    onSave: (title: String, body: String, tags: String) -> Unit,
-    onPickImage: () -> Unit,
-    onNavigateBack: () -> Unit,
-    onCategorySelected: (String?) -> Unit
+    onAction: (EditBlogAction) -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf(initialTitle) }
     var body by rememberSaveable { mutableStateOf(initialBody) }
@@ -78,10 +75,12 @@ fun EditBlogScreen(
                 NyasaTopBar(
                     title = "Edit Story",
                     navigationIcon = Icons.Filled.Close,
-                    onNavigationClick = onNavigateBack,
+                    onNavigationClick = { onAction(EditBlogAction.NavigateBack) },
                     actions = {
                         Button(
-                            onClick = { onSave(title, body, tags) },
+                            onClick = {
+                                onAction(EditBlogAction.Save(title, body, tags))
+                            },
                             enabled = !isLoading,
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
@@ -113,7 +112,7 @@ fun EditBlogScreen(
             ) {
                 ImagePickerBox(
                     imageUri = imageUri,
-                    onPickImage = onPickImage,
+                    onPickImage = { onAction(EditBlogAction.PickImage) },
                     showPlaceholderText = false
                 )
                 Spacer(Modifier.height(4.dp))
@@ -184,7 +183,9 @@ fun EditBlogScreen(
                             NyasaCategoryDropdown(
                                 categories = categories,
                                 selectedCategory = selectedCategory,
-                                onCategorySelected = onCategorySelected
+                                onCategorySelected = {
+                                    onAction(EditBlogAction.CategorySelected(it))
+                                }
                             )
                         }
                     }
@@ -313,10 +314,7 @@ private fun EditBlogScreenPreview() {
                 Category(2, "Culture", "culture")
             ),
             isLoading = false,
-            onSave = { _, _, _ -> },
-            onPickImage = {},
-            onNavigateBack = {},
-            onCategorySelected = {}
+            onAction = {}
         )
     }
 }

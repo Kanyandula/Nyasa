@@ -48,10 +48,7 @@ fun AccountProfileScreen(
     location: String?,
     profileImage: String?,
     isLoading: Boolean,
-    onEditProfile: () -> Unit,
-    onChangePassword: () -> Unit,
-    onBookmarks: () -> Unit,
-    onLogout: () -> Unit
+    onAction: (AccountProfileAction) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -127,7 +124,7 @@ fun AccountProfileScreen(
                     AccountMenuItem(
                         icon = Icons.Filled.EditNote,
                         label = "Edit Profile",
-                        onClick = onEditProfile
+                        onClick = { onAction(AccountProfileAction.EditProfile) }
                     )
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.surfaceContainerLow
@@ -135,14 +132,14 @@ fun AccountProfileScreen(
                     AccountMenuItem(
                         icon = Icons.Filled.LockReset,
                         label = "Change Password",
-                        onClick = onChangePassword
+                        onClick = { onAction(AccountProfileAction.ChangePassword) }
                     )
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            TextButton(onClick = onLogout) {
+            TextButton(onClick = { onAction(AccountProfileAction.Logout) }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,
                     contentDescription = null,
@@ -299,10 +296,7 @@ private fun AccountProfileScreenPreview() {
             location = "Lilongwe, Malawi",
             profileImage = null,
             isLoading = false,
-            onEditProfile = {},
-            onChangePassword = {},
-            onBookmarks = {},
-            onLogout = {}
+            onAction = {}
         )
     }
 }
