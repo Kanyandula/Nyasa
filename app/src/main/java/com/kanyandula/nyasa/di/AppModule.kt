@@ -90,7 +90,7 @@ object AppModule {
     fun provideAppDb(app: Application): AppDatabase {
         return Room
             .databaseBuilder(app, AppDatabase::class.java, DATABASE_NAME)
-            .addMigrations(AppDatabase.MIGRATION_3_4)
+            .addMigrations(AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5)
             .fallbackToDestructiveMigration() // fallback if migration path not found
             .build()
     }

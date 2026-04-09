@@ -56,6 +56,10 @@ class BlogCreateUpdateResponse(
 
     @SerializedName("like_count")
     @Expose
-    override var like_count: Int? = null
+    override var like_count: Int? = null,
+
+    @SerializedName("comment_count")
+    @Expose
+    override var comment_count: Int? = null
 
 ) : BlogResponseFields

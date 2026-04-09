@@ -52,13 +52,18 @@ class BlogSearchResponse(
 
     @SerializedName("like_count")
     @Expose
-    override var like_count: Int? = null
+    override var like_count: Int? = null,
+
+    @SerializedName("comment_count")
+    @Expose
+    override var comment_count: Int? = null
 
 ) : BlogResponseFields {
     override fun toString(): String {
         return "BlogSearchResponse(pk=$pk, title='$title', slug='$slug', " +
             "image='$image', date_updated='$date_updated', username='$username', " +
             "category=$category, reading_time=$reading_time, " +
-            "view_count=$view_count, like_count=$like_count)"
+            "view_count=$view_count, like_count=$like_count, " +
+            "comment_count=$comment_count)"
     }
 }

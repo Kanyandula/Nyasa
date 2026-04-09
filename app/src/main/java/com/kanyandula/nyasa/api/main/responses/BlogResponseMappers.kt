@@ -15,5 +15,6 @@ fun BlogResponseFields.toBlogPost(): BlogPost = BlogPost(
     tags = tags?.joinToString(","),
     reading_time = reading_time,
     view_count = view_count,
-    like_count = like_count
+    like_count = like_count,
+    comment_count = comment_count
 )
