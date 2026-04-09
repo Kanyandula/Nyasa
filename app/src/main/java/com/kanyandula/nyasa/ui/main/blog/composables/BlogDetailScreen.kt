@@ -1,5 +1,8 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,12 +48,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import coil3.compose.AsyncImage
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.models.Comment
@@ -63,6 +68,7 @@ import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.DateUtils
+import android.graphics.Color as AndroidColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -256,42 +262,147 @@ fun BlogDetailScreen(
 
 @Composable
 private fun BlogBody(body: String) {
-    val paragraphs = remember(body) { body.split("\n\n").filter { it.isNotBlank() } }
-    paragraphs.forEachIndexed { index, paragraph ->
-        val trimmed = paragraph.trim()
-        val isQuote = trimmed.startsWith("\"") || trimmed.startsWith("\u201C")
-        if (isQuote) {
-            // Pull-quote styling
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = trimmed,
-                    modifier = Modifier.padding(20.dp),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontStyle = FontStyle.Italic,
-                        lineHeight = 28.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
+    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
+    val bgColor = MaterialTheme.colorScheme.surface.toArgb()
+    val linkColor = MaterialTheme.colorScheme.primary.toArgb()
+    val quoteBg = MaterialTheme.colorScheme.surfaceContainerHigh.toArgb()
+
+    val htmlContent = remember(body, textColor, bgColor, linkColor, quoteBg) {
+        buildBlogHtml(body, textColor, bgColor, linkColor, quoteBg)
+    }
+
+    val density = LocalDensity.current
+    var webViewHeight by remember { mutableStateOf(200.dp) }
+
+    AndroidView(
+        factory = { context ->
+            WebView(context).apply {
+                setBackgroundColor(AndroidColor.TRANSPARENT)
+                settings.javaScriptEnabled = true
+                settings.loadWithOverviewMode = true
+                settings.useWideViewPort = true
+                settings.allowFileAccess = false
+                settings.allowContentAccess = false
+                isVerticalScrollBarEnabled = false
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        view?.evaluateJavascript(
+                            "document.body.scrollHeight"
+                        ) { heightStr ->
+                            heightStr?.toIntOrNull()?.let { px ->
+                                with(density) {
+                                    webViewHeight = px.toDp()
+                                }
+                            }
+                        }
+                    }
+
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView?,
+                        request: WebResourceRequest?
+                    ): Boolean {
+                        request?.url?.let { uri ->
+                            context.startActivity(
+                                android.content.Intent(
+                                    android.content.Intent.ACTION_VIEW,
+                                    uri
+                                )
+                            )
+                        }
+                        return true
+                    }
+                }
+            }
+        },
+        update = { webView ->
+            if (webView.tag != htmlContent) {
+                webView.tag = htmlContent
+                webView.loadDataWithBaseURL(
+                    null,
+                    htmlContent,
+                    "text/html",
+                    "UTF-8",
+                    null
                 )
             }
-        } else {
-            Text(
-                text = trimmed,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 28.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        if (index < paragraphs.size - 1) {
-            Spacer(Modifier.height(16.dp))
-        }
+        },
+        onRelease = { webView ->
+            webView.stopLoading()
+            webView.destroy()
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(webViewHeight)
+    )
+}
+
+private fun buildBlogHtml(
+    body: String,
+    textColor: Int,
+    bgColor: Int,
+    linkColor: Int,
+    quoteBgColor: Int
+): String {
+    fun Int.toCssRgb(): String {
+        val r = (this shr 16) and 0xFF
+        val g = (this shr 8) and 0xFF
+        val b = this and 0xFF
+        return "rgb($r,$g,$b)"
     }
+
+    return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                color: ${textColor.toCssRgb()};
+                background: ${bgColor.toCssRgb()};
+                font-family: sans-serif;
+                font-size: 16px;
+                line-height: 1.75;
+                margin: 0;
+                padding: 0;
+                word-wrap: break-word;
+            }
+            a { color: ${linkColor.toCssRgb()}; }
+            img, video, iframe {
+                max-width: 100%;
+                height: auto;
+                border-radius: 8px;
+            }
+            blockquote {
+                background: ${quoteBgColor.toCssRgb()};
+                border-left: 4px solid ${linkColor.toCssRgb()};
+                margin: 16px 0;
+                padding: 12px 16px;
+                border-radius: 4px;
+                font-style: italic;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 16px 0;
+            }
+            th, td {
+                border: 1px solid ${textColor.toCssRgb()};
+                padding: 8px;
+                text-align: left;
+            }
+            pre, code {
+                background: ${quoteBgColor.toCssRgb()};
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 14px;
+            }
+            pre { padding: 12px; overflow-x: auto; }
+        </style>
+        </head>
+        <body>$body</body>
+        </html>
+    """.trimIndent()
 }
 
 @Composable
