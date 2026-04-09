@@ -1,5 +1,6 @@
 package com.kanyandula.nyasa.repository.main
 
+import android.content.Context
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
@@ -35,6 +36,7 @@ class BlogRepositoryImplTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private lateinit var context: Context
     private lateinit var apiService: NyasaBlogApiMainService
     private lateinit var database: AppDatabase
     private lateinit var blogPostDao: BlogPostDao
@@ -53,6 +55,7 @@ class BlogRepositoryImplTest {
 
     @Before
     fun setup() {
+        context = mockk(relaxed = true)
         apiService = mockk()
         blogPostDao = mockk(relaxed = true)
         database = mockk {
@@ -60,7 +63,7 @@ class BlogRepositoryImplTest {
         }
         connectivityObserver = mockk()
         every { connectivityObserver.isConnected } returns MutableStateFlow(true)
-        repository = BlogRepositoryImpl(apiService, database, connectivityObserver)
+        repository = BlogRepositoryImpl(context, apiService, database, connectivityObserver)
     }
 
     @Test
