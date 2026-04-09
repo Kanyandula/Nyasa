@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.Flow
 interface BlogRepository {
     fun getBlogPagingData(
         query: String,
-        filterAndOrder: String
+        filterAndOrder: String,
+        category: String? = null
     ): Flow<PagingData<BlogPost>>
     fun isAuthorOfBlogPost(slug: String): Flow<Resource<Boolean>>
     fun deleteBlogPost(blogPost: BlogPost): Flow<Resource<String>>

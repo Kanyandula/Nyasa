@@ -8,7 +8,7 @@ interface BlogResponseFields {
     val image: String
     val date_updated: String
     val username: String
-    val category: String?
+    val category: CategoryResponse?
     val tags: List<String>?
     val reading_time: Int?
     val view_count: Int?

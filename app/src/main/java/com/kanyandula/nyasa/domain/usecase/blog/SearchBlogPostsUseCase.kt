@@ -11,7 +11,8 @@ class SearchBlogPostsUseCase
 constructor(private val blogRepository: BlogRepository) {
     operator fun invoke(
         query: String,
-        filterAndOrder: String
+        filterAndOrder: String,
+        category: String? = null
     ): Flow<PagingData<BlogPost>> =
-        blogRepository.getBlogPagingData(query, filterAndOrder)
+        blogRepository.getBlogPagingData(query, filterAndOrder, category)
 }

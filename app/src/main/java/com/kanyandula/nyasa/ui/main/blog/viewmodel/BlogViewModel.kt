@@ -79,7 +79,11 @@ constructor(
     private var addCommentJob: Job? = null
     private var deleteCommentJob: Job? = null
 
-    private data class SearchParams(val query: String, val filterAndOrder: String)
+    private data class SearchParams(
+        val query: String,
+        val filterAndOrder: String,
+        val category: String? = null
+    )
 
     private val searchParams = MutableStateFlow<SearchParams?>(null)
 
@@ -87,7 +91,7 @@ constructor(
     val pagingDataFlow: Flow<PagingData<BlogPost>> = searchParams
         .filterNotNull()
         .flatMapLatest { params ->
-            searchBlogPostsUseCase(params.query, params.filterAndOrder)
+            searchBlogPostsUseCase(params.query, params.filterAndOrder, params.category)
         }
         .cachedIn(viewModelScope)
 
@@ -146,8 +150,9 @@ constructor(
 
     fun executeSearch() {
         searchParams.value = SearchParams(
-            viewState.value.searchQuery,
-            viewState.value.order + viewState.value.filter
+            query = viewState.value.searchQuery,
+            filterAndOrder = viewState.value.order + viewState.value.filter,
+            category = viewState.value.selectedCategory
         )
     }
 
@@ -158,7 +163,9 @@ constructor(
     }
 
     fun setSelectedCategory(category: String?) {
+        if (viewState.value.selectedCategory == category) return
         updateState { copy(selectedCategory = category) }
+        executeSearch()
     }
 
     fun loadCategories() {
