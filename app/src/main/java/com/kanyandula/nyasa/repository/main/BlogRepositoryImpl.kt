@@ -41,7 +41,8 @@ constructor(
     @OptIn(ExperimentalPagingApi::class)
     override fun getBlogPagingData(
         query: String,
-        filterAndOrder: String
+        filterAndOrder: String,
+        category: String?
     ): Flow<PagingData<BlogPost>> = Pager(
         config = PagingConfig(
             pageSize = PAGINATION_PAGE_SIZE,
@@ -50,6 +51,7 @@ constructor(
         remoteMediator = BlogRemoteMediator(
             query = query,
             filterAndOrder = filterAndOrder,
+            category = category,
             apiService = nyasaBlogApiMainService,
             database = database,
             connectivityObserver = connectivityObserver

@@ -40,7 +40,7 @@ class BlogCreateUpdateResponse(
 
     @SerializedName("category")
     @Expose
-    override var category: String? = null,
+    override var category: CategoryResponse? = null,
 
     @SerializedName("tags")
     @Expose

@@ -17,4 +17,7 @@ interface BlogRemoteKeyDao {
 
     @Query("DELETE FROM blog_remote_keys WHERE queryKey = :queryKey")
     suspend fun deleteByQuery(queryKey: String)
+
+    @Query("DELETE FROM blog_remote_keys")
+    suspend fun clearAll()
 }

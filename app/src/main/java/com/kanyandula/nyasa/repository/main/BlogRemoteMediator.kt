@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 class BlogRemoteMediator(
     private val query: String,
     private val filterAndOrder: String,
+    private val category: String? = null,
     private val apiService: NyasaBlogApiMainService,
     private val database: AppDatabase,
     private val connectivityObserver: ConnectivityObserver
@@ -32,10 +33,13 @@ class BlogRemoteMediator(
     private val blogPostDao = database.getBlogPostDao()
     private val remoteKeyDao = database.getBlogRemoteKeyDao()
 
-    private fun queryKey(): String = "search=$query&ordering=$filterAndOrder"
+    private val cachedQueryKey: String = buildString {
+        append("search=$query&ordering=$filterAndOrder")
+        if (!category.isNullOrBlank()) append("&category=$category")
+    }
 
     override suspend fun initialize(): InitializeAction {
-        val remoteKey = remoteKeyDao.getRemoteKey(queryKey())
+        val remoteKey = remoteKeyDao.getRemoteKey(cachedQueryKey)
         val cacheTimeout = TimeUnit.MINUTES.toMillis(CACHE_TIMEOUT_MINUTES)
         return if (remoteKey != null &&
             System.currentTimeMillis() - remoteKey.lastUpdated < cacheTimeout
@@ -51,18 +55,9 @@ class BlogRemoteMediator(
         loadType: LoadType,
         state: PagingState<Int, BlogPost>
     ): MediatorResult {
-        val key = queryKey()
         return try {
-            val page = when (loadType) {
-                LoadType.REFRESH -> 1
-                LoadType.PREPEND ->
-                    return MediatorResult.Success(endOfPaginationReached = true)
-                LoadType.APPEND -> {
-                    val remoteKey = remoteKeyDao.getRemoteKey(key)
-                    remoteKey?.nextPage
-                        ?: return MediatorResult.Success(endOfPaginationReached = true)
-                }
-            }
+            val page = resolvePageOrEarlyReturn(loadType)
+                ?: return MediatorResult.Success(endOfPaginationReached = true)
 
             if (!connectivityObserver.isConnected.value) {
                 return if (loadType == LoadType.REFRESH) {
@@ -72,45 +67,75 @@ class BlogRemoteMediator(
                 }
             }
 
-            val response = apiService.searchListBlogPosts(
-                query = query,
-                ordering = filterAndOrder,
-                page = page
-            )
-
-            if (!response.isSuccessful) {
-                val errorBody = response.errorBody()?.string()
-                if (ErrorHandling.isPaginationDone(errorBody)) {
-                    remoteKeyDao.insertOrReplace(
-                        BlogRemoteKey(key, nextPage = null, lastUpdated = System.currentTimeMillis())
-                    )
-                    return MediatorResult.Success(endOfPaginationReached = true)
-                }
-                return MediatorResult.Error(Exception(response.message()))
-            }
-
-            val body = response.body() ?: return MediatorResult.Error(Exception("Empty response body"))
-            val blogPosts = body.results.map { it.toBlogPost() }
-            val endOfPagination = blogPosts.size < PAGINATION_PAGE_SIZE
-
-            database.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    blogPostDao.clearAll()
-                    remoteKeyDao.deleteByQuery(key)
-                }
-                blogPostDao.insertAll(blogPosts)
-                remoteKeyDao.insertOrReplace(
-                    BlogRemoteKey(
-                        queryKey = key,
-                        nextPage = if (endOfPagination) null else page + 1,
-                        lastUpdated = System.currentTimeMillis()
-                    )
-                )
-            }
-
-            MediatorResult.Success(endOfPaginationReached = endOfPagination)
+            fetchAndCachePage(page, loadType)
         } catch (e: Exception) {
             MediatorResult.Error(e)
         }
+    }
+
+    private suspend fun resolvePageOrEarlyReturn(loadType: LoadType): Int? {
+        return when (loadType) {
+            LoadType.REFRESH -> 1
+            LoadType.PREPEND -> null
+            LoadType.APPEND -> {
+                val remoteKey = remoteKeyDao.getRemoteKey(cachedQueryKey)
+                remoteKey?.nextPage
+            }
+        }
+    }
+
+    private suspend fun fetchAndCachePage(
+        page: Int,
+        loadType: LoadType
+    ): MediatorResult {
+        val response = apiService.searchListBlogPosts(
+            query = query,
+            ordering = filterAndOrder,
+            page = page,
+            category = category
+        )
+
+        if (!response.isSuccessful) {
+            return handleErrorResponse(response)
+        }
+
+        val body = response.body()
+            ?: return MediatorResult.Error(Exception("Empty response body"))
+        val blogPosts = body.results.map { it.toBlogPost() }
+        val endOfPagination = blogPosts.size < PAGINATION_PAGE_SIZE
+
+        database.withTransaction {
+            if (loadType == LoadType.REFRESH) {
+                blogPostDao.clearAll()
+                remoteKeyDao.clearAll()
+            }
+            blogPostDao.insertAll(blogPosts)
+            remoteKeyDao.insertOrReplace(
+                BlogRemoteKey(
+                    queryKey = cachedQueryKey,
+                    nextPage = if (endOfPagination) null else page + 1,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+        }
+
+        return MediatorResult.Success(endOfPaginationReached = endOfPagination)
+    }
+
+    private suspend fun handleErrorResponse(
+        response: retrofit2.Response<*>
+    ): MediatorResult {
+        val errorBody = response.errorBody()?.string()
+        if (ErrorHandling.isPaginationDone(errorBody)) {
+            remoteKeyDao.insertOrReplace(
+                BlogRemoteKey(
+                    cachedQueryKey,
+                    nextPage = null,
+                    lastUpdated = System.currentTimeMillis()
+                )
+            )
+            return MediatorResult.Success(endOfPaginationReached = true)
+        }
+        return MediatorResult.Error(Exception(response.message()))
     }
 }

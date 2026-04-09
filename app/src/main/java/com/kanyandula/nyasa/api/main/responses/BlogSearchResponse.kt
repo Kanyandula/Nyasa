@@ -36,7 +36,7 @@ class BlogSearchResponse(
 
     @SerializedName("category")
     @Expose
-    override var category: String? = null,
+    override var category: CategoryResponse? = null,
 
     @SerializedName("tags")
     @Expose
@@ -62,7 +62,7 @@ class BlogSearchResponse(
     override fun toString(): String {
         return "BlogSearchResponse(pk=$pk, title='$title', slug='$slug', " +
             "image='$image', date_updated='$date_updated', username='$username', " +
-            "category=$category, reading_time=$reading_time, " +
+            "category=${category?.name}, reading_time=$reading_time, " +
             "view_count=$view_count, like_count=$like_count, " +
             "comment_count=$comment_count)"
     }
