@@ -49,7 +49,10 @@ data class BlogPost(
     var view_count: Int? = null,
 
     @ColumnInfo(name = "like_count")
-    var like_count: Int? = null
+    var like_count: Int? = null,
+
+    @ColumnInfo(name = "comment_count")
+    var comment_count: Int? = null
 
 ) : Parcelable {
 
@@ -63,6 +66,7 @@ data class BlogPost(
             "category=$category, " +
             "reading_time=$reading_time, " +
             "view_count=$view_count, " +
-            "like_count=$like_count)"
+            "like_count=$like_count, " +
+            "comment_count=$comment_count)"
     }
 }

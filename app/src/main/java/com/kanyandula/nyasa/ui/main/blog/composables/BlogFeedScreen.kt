@@ -168,6 +168,7 @@ fun BlogFeedScreen(
                                         .take(120)
                                         .takeIf { it.isNotBlank() },
                                     likeCount = blogPost.like_count,
+                                    commentCount = blogPost.comment_count,
                                     onClick = {
                                         onAction(BlogFeedAction.BlogClicked(blogPost.slug))
                                     },
