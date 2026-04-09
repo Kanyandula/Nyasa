@@ -38,6 +38,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -155,6 +156,11 @@ fun BlogFeedScreen(
                                     }
                                 )
                             } else {
+                                val excerpt = remember(blogPost.pk) {
+                                    BlogUtils.stripHtml(blogPost.body)
+                                        .take(120)
+                                        .takeIf { it.isNotBlank() }
+                                }
                                 NyasaBlogCard(
                                     title = blogPost.title,
                                     authorName = blogPost.username,
@@ -164,9 +170,7 @@ fun BlogFeedScreen(
                                             blogPost.reading_time
                                         ),
                                     category = blogPost.category,
-                                    excerpt = blogPost.body
-                                        .take(120)
-                                        .takeIf { it.isNotBlank() },
+                                    excerpt = excerpt,
                                     likeCount = blogPost.like_count,
                                     commentCount = blogPost.comment_count,
                                     onClick = {
