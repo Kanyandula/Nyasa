@@ -2,6 +2,7 @@
 
 package com.kanyandula.nyasa.repository.main
 
+import android.content.Context
 import android.net.Uri
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.toBlogPost
@@ -11,14 +12,16 @@ import com.kanyandula.nyasa.repository.networkApiFlow
 import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
 import com.kanyandula.nyasa.util.Resource
-import com.kanyandula.nyasa.util.toMultipartImage
+import com.kanyandula.nyasa.util.toCompressedMultipartImage
 import com.kanyandula.nyasa.util.toPlainTextBody
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class CreateBlogRepositoryImpl
 @Inject
 constructor(
+    @ApplicationContext private val context: Context,
     private val blogApiMainService: NyasaBlogApiMainService,
     private val blogPostDao: BlogPostDao,
     private val connectivityObserver: ConnectivityObserver
@@ -35,7 +38,7 @@ constructor(
         apiCall = {
             val titleBody = title.toPlainTextBody()
             val bodyBody = body.toPlainTextBody()
-            val imagePart = image?.toMultipartImage()
+            val imagePart = image?.toCompressedMultipartImage(context)
             val categoryBody = category?.toPlainTextBody()
             val tagsBody = tags?.takeIf { it.isNotEmpty() }?.joinToString(",")?.toPlainTextBody()
             blogApiMainService.createBlog(titleBody, bodyBody, imagePart, categoryBody, tagsBody)

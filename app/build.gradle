@@ -169,6 +169,9 @@ dependencies {
     // Image Picker + Cropper
     implementation "com.github.Drjacky:ImagePicker:2.3.22"
 
+    // Image Compression
+    implementation "id.zelory:compressor:3.0.1"
+
     // Encrypted SharedPreferences
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
 

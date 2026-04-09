@@ -1,5 +1,6 @@
 package com.kanyandula.nyasa.repository.main
 
+import android.content.Context
 import android.net.Uri
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -20,14 +21,16 @@ import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_HAS_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_NO_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
-import com.kanyandula.nyasa.util.toMultipartImage
+import com.kanyandula.nyasa.util.toCompressedMultipartImage
 import com.kanyandula.nyasa.util.toPlainTextBody
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class BlogRepositoryImpl
 @Inject
 constructor(
+    @ApplicationContext private val context: Context,
     private val nyasaBlogApiMainService: NyasaBlogApiMainService,
     private val database: AppDatabase,
     private val connectivityObserver: ConnectivityObserver
@@ -97,7 +100,7 @@ constructor(
         apiCall = {
             val titleBody = title.toPlainTextBody()
             val bodyBody = body.toPlainTextBody()
-            val imagePart = image?.toMultipartImage()
+            val imagePart = image?.toCompressedMultipartImage(context)
             val categoryBody = category?.toPlainTextBody()
             val tagsBody = tags?.takeIf { it.isNotEmpty() }?.joinToString(",")?.toPlainTextBody()
             nyasaBlogApiMainService.updateBlog(
