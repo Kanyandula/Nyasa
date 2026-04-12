@@ -5,7 +5,6 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,7 +29,6 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,6 +62,7 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
+import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
@@ -187,7 +185,8 @@ fun BlogDetailScreen(
                             likeCount = state.likeCount,
                             onAuthorClick = {
                                 onAction(BlogDetailAction.AuthorClicked(blogPost.username))
-                            }
+                            },
+                            authorAvatarUrl = blogPost.author_avatar
                         )
 
                         Spacer(Modifier.height(24.dp))
@@ -451,28 +450,14 @@ private fun AuthorRow(
     date: String,
     readingTime: Int?,
     likeCount: Int,
-    onAuthorClick: () -> Unit
+    onAuthorClick: () -> Unit,
+    authorAvatarUrl: String? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        ProfileAvatar(imageUrl = authorAvatarUrl, size = 40.dp)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(

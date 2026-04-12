@@ -16,5 +16,6 @@ fun BlogResponseFields.toBlogPost(): BlogPost = BlogPost(
     reading_time = reading_time,
     view_count = view_count,
     like_count = like_count,
-    comment_count = comment_count
+    comment_count = comment_count,
+    author_avatar = author_avatar
 )

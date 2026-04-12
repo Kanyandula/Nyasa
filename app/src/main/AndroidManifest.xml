@@ -27,10 +27,6 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:windowSoftInputMode="adjustPan"
-            android:exported="false" />
-        <activity
-            android:name=".ui.auth.AuthActivity"
-            android:windowSoftInputMode="adjustPan"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

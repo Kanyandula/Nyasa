@@ -46,7 +46,8 @@ fun NyasaBlogCard(
     excerpt: String? = null,
     likeCount: Int? = null,
     commentCount: Int? = null,
-    onBookmarkClick: (() -> Unit)? = null
+    onBookmarkClick: (() -> Unit)? = null,
+    authorAvatarUrl: String? = null
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -130,6 +131,11 @@ fun NyasaBlogCard(
                 ) {
                     // Author + read time inline with dot separator
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        ProfileAvatar(
+                            imageUrl = authorAvatarUrl,
+                            size = 24.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
                         Text(
                             text = authorName,
                             style = MaterialTheme.typography.labelLarge,

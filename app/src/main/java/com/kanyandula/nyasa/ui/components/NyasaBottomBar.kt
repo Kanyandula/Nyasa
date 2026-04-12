@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
@@ -72,7 +71,7 @@ fun NyasaBottomBar(
         currentItem = currentItem,
         onItemSelected = { item ->
             navController.navigate(item.route) {
-                popUpTo(navController.graph.findStartDestination().id) {
+                popUpTo(Routes.MAIN_GRAPH) {
                     saveState = true
                 }
                 launchSingleTop = true
