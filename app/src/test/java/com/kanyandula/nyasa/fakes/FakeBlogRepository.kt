@@ -29,7 +29,8 @@ class FakeBlogRepository : BlogRepository {
 
     override fun getBlogPagingData(
         query: String,
-        filterAndOrder: String
+        filterAndOrder: String,
+        category: String?
     ): Flow<PagingData<BlogPost>> = flowOf(PagingData.from(blogPosts))
 
     override fun isAuthorOfBlogPost(slug: String): Flow<Resource<Boolean>> =

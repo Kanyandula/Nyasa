@@ -29,6 +29,7 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaBlogCard
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.BlogUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +91,10 @@ fun BookmarksScreen(
                             authorName = blogPost.username,
                             imageUrl = blogPost.image,
                             readTime = BlogUtils.formatReadingTime(blogPost.reading_time),
-                            onClick = { onBlogClick(blogPost.slug) },
+                            onClick = {
+                                BlogDetailPrefetch.pendingPost = blogPost
+                                onBlogClick(blogPost.slug)
+                            },
                             onBookmarkClick = { onRemoveBookmark(blogPost.slug) },
                             modifier = Modifier.fillMaxWidth()
                         )
