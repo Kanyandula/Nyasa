@@ -11,7 +11,7 @@ import com.kanyandula.nyasa.models.BlogRemoteKey
 
 @Database(
     entities = [AuthToken::class, AccountProperties::class, BlogPost::class, BlogRemoteKey::class],
-    version = 5
+    version = 6
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -34,6 +34,12 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_4_5 = Migration(4, 5) {
             it.execSQL(
                 "ALTER TABLE blog_post ADD COLUMN comment_count INTEGER DEFAULT NULL"
+            )
+        }
+
+        val MIGRATION_5_6 = Migration(5, 6) {
+            it.execSQL(
+                "ALTER TABLE blog_post ADD COLUMN author_avatar TEXT DEFAULT NULL"
             )
         }
 

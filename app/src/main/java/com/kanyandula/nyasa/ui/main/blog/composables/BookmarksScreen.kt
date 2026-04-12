@@ -96,6 +96,7 @@ fun BookmarksScreen(
                                 onBlogClick(blogPost.slug)
                             },
                             onBookmarkClick = { onRemoveBookmark(blogPost.slug) },
+                            authorAvatarUrl = blogPost.author_avatar,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

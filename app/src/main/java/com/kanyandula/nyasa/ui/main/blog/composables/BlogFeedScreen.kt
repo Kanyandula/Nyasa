@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -68,6 +67,7 @@ import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaBlogCard
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
+import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.util.BlogUtils
 import kotlinx.coroutines.flow.Flow
@@ -244,7 +244,8 @@ private fun FeedItem(
             likeCount = blogPost.like_count,
             commentCount = blogPost.comment_count,
             onClick = { onAction(BlogFeedAction.BlogClicked(blogPost.slug)) },
-            onBookmarkClick = { onAction(BlogFeedAction.BookmarkClicked(blogPost.slug)) }
+            onBookmarkClick = { onAction(BlogFeedAction.BookmarkClicked(blogPost.slug)) },
+            authorAvatarUrl = blogPost.author_avatar
         )
     }
 }
@@ -356,21 +357,10 @@ private fun EditorPickCard(
                 )
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        modifier = Modifier.size(32.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = blogPost.username
-                                    .take(2).uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme
-                                    .onPrimaryContainer
-                            )
-                        }
-                    }
+                    ProfileAvatar(
+                        imageUrl = blogPost.author_avatar,
+                        size = 32.dp
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = blogPost.username,

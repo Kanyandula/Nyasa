@@ -60,6 +60,10 @@ class BlogCreateUpdateResponse(
 
     @SerializedName("comment_count")
     @Expose
-    override var comment_count: Int? = null
+    override var comment_count: Int? = null,
+
+    @SerializedName("author_avatar")
+    @Expose
+    override var author_avatar: String? = null
 
 ) : BlogResponseFields
