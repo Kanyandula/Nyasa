@@ -21,6 +21,7 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
+import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
@@ -66,6 +67,7 @@ class BlogViewModelTest {
         editor = mockk(relaxed = true)
 
         every { sharedPreferences.getString(any(), any()) } answers { secondArg() }
+        BlogDetailPrefetch.pendingPost = null
 
         viewModel = BlogViewModel(
             searchBlogPostsUseCase = SearchBlogPostsUseCase(fakeRepository),
@@ -176,6 +178,32 @@ class BlogViewModelTest {
 
         // Second call with same slug should be skipped, keeping original data
         assertThat(viewModel.viewBlogState.value.blogPost?.title).isEqualTo("Test Blog")
+    }
+
+    @Test
+    fun `loadBlogBySlug uses prefetched post when slug matches`() = runTest {
+        val prefetchedPost = createTestBlogPost(title = "Prefetched Blog", slug = "bookmarked-blog")
+        BlogDetailPrefetch.pendingPost = prefetchedPost
+        fakeRepository.blogPostBySlug = null
+
+        viewModel.loadBlogBySlug("bookmarked-blog")
+        advanceUntilIdle()
+
+        assertThat(viewModel.viewBlogState.value.blogPost).isEqualTo(prefetchedPost)
+        assertThat(BlogDetailPrefetch.pendingPost).isNull()
+    }
+
+    @Test
+    fun `loadBlogBySlug ignores prefetched post when slug does not match`() = runTest {
+        val prefetchedPost = createTestBlogPost(title = "Other Blog", slug = "other-slug")
+        BlogDetailPrefetch.pendingPost = prefetchedPost
+        val dbPost = createTestBlogPost(title = "DB Blog", slug = "db-slug")
+        fakeRepository.blogPostBySlug = dbPost
+
+        viewModel.loadBlogBySlug("db-slug")
+        advanceUntilIdle()
+
+        assertThat(viewModel.viewBlogState.value.blogPost).isEqualTo(dbPost)
     }
 
     @Test

@@ -25,6 +25,7 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
 import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
+import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
@@ -232,19 +233,29 @@ constructor(
 
     fun loadBlogBySlug(slug: String) {
         if (_viewBlogState.value.blogPost?.slug == slug) return
+
+        val prefetched = BlogDetailPrefetch.pendingPost
+        if (prefetched != null && prefetched.slug == slug) {
+            BlogDetailPrefetch.pendingPost = null
+            displayBlogPost(prefetched)
+            return
+        }
+
         loadBlogJob?.cancel()
         loadBlogJob = viewModelScope.launch {
             val blogPost = getBlogPostBySlugUseCase(slug)
             if (blogPost != null) {
-                setBlogPost(blogPost)
-                updateViewBlogState {
-                    copy(likeCount = blogPost.like_count ?: 0)
-                }
-                loadComments(slug)
+                displayBlogPost(blogPost)
             } else {
                 sendEvent(UiEvent.ShowErrorDialog(ErrorHandling.ERROR_BLOG_POST_NOT_FOUND))
             }
         }
+    }
+
+    private fun displayBlogPost(blogPost: BlogPost) {
+        setBlogPost(blogPost)
+        updateViewBlogState { copy(likeCount = blogPost.like_count ?: 0) }
+        loadComments(blogPost.slug)
     }
 
     fun checkIsAuthorOfBlogPost(slug: String) {
