@@ -3,6 +3,9 @@ package com.kanyandula.nyasa.ui.navigation
 import android.net.Uri
 
 object Routes {
+    const val AUTH_GRAPH = "auth"
+    const val MAIN_GRAPH = "main"
+
     const val BLOG_GRAPH = "blog"
     const val BLOG_FEED = "blog/feed"
     const val BLOG_SEARCH = "blog/search"
