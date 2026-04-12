@@ -20,22 +20,29 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,42 +72,59 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.util.BlogUtils
 import kotlinx.coroutines.flow.Flow
 
+enum class FeedMode { Home, Search }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlogFeedScreen(
     pagingDataFlow: Flow<PagingData<BlogPost>>,
     state: BlogListUiState,
-    onAction: (BlogFeedAction) -> Unit
+    onAction: (BlogFeedAction) -> Unit,
+    mode: FeedMode = FeedMode.Home
 ) {
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
     var query by rememberSaveable { mutableStateOf(state.searchQuery) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
-    var showSearch by rememberSaveable { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
     val refreshFeed = {
         onAction(BlogFeedAction.Refresh)
         pagingItems.refresh()
     }
 
+    LaunchedEffect(mode) {
+        if (mode == FeedMode.Search) {
+            searchFocusRequester.requestFocus()
+        }
+    }
+
     Scaffold(
         topBar = {
-            NyasaTopBar(
-                title = "NyasaBlog",
-                navigationIcon = null,
-                actions = {
-                    IconButton(onClick = { showSearch = !showSearch }) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search"
-                        )
-                    }
-                    IconButton(onClick = { showFilterSheet = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.FilterList,
-                            contentDescription = "Filter"
-                        )
-                    }
+            when (mode) {
+                FeedMode.Home -> HomeTopBar(
+                    onFilterClick = { showFilterSheet = true }
+                )
+                FeedMode.Search -> SearchTopBar(
+                    query = query,
+                    onQueryChange = { query = it },
+                    onSearch = { onAction(BlogFeedAction.Search(it)) },
+                    onBack = { onAction(BlogFeedAction.BackClicked) },
+                    focusRequester = searchFocusRequester
+                )
+            }
+        },
+        floatingActionButton = {
+            if (mode == FeedMode.Home) {
+                FloatingActionButton(
+                    onClick = { onAction(BlogFeedAction.CreateClicked) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Create post"
+                    )
                 }
-            )
+            }
         }
     ) { padding ->
         Column(
@@ -107,19 +132,6 @@ fun BlogFeedScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (showSearch) {
-                BlogSearchBar(
-                    query = query,
-                    onQueryChange = { query = it },
-                    onSearch = { onAction(BlogFeedAction.Search(it)) },
-                    modifier = Modifier.padding(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    )
-                )
-            }
-
-            // Category chips
             if (state.categories.isNotEmpty()) {
                 CategoryChipsRow(
                     categories = state.categories,
@@ -128,140 +140,14 @@ fun BlogFeedScreen(
                 )
             }
 
-            PullToRefreshBox(
-                isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
+            FeedPagingList(
+                pagingItems = pagingItems,
+                mode = mode,
+                query = query,
+                onQueryChange = { query = it },
                 onRefresh = refreshFeed,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(32.dp)
-                ) {
-                    items(
-                        count = pagingItems.itemCount,
-                        key = { index ->
-                            pagingItems.peek(index)?.pk ?: index
-                        }
-                    ) { index ->
-                        pagingItems[index]?.let { blogPost ->
-                            if (index == 0 && query.isBlank()) {
-                                EditorPickCard(
-                                    blogPost = blogPost,
-                                    onClick = {
-                                        onAction(BlogFeedAction.BlogClicked(blogPost.slug))
-                                    }
-                                )
-                            } else {
-                                val excerpt = remember(blogPost.pk) {
-                                    BlogUtils.stripHtml(blogPost.body)
-                                        .take(120)
-                                        .takeIf { it.isNotBlank() }
-                                }
-                                NyasaBlogCard(
-                                    title = blogPost.title,
-                                    authorName = blogPost.username,
-                                    imageUrl = blogPost.image,
-                                    readTime = BlogUtils
-                                        .formatReadingTime(
-                                            blogPost.reading_time
-                                        ),
-                                    category = blogPost.category,
-                                    excerpt = excerpt,
-                                    likeCount = blogPost.like_count,
-                                    commentCount = blogPost.comment_count,
-                                    onClick = {
-                                        onAction(BlogFeedAction.BlogClicked(blogPost.slug))
-                                    },
-                                    onBookmarkClick = {
-                                        onAction(BlogFeedAction.BookmarkClicked(blogPost.slug))
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    // Empty state
-                    if (pagingItems.itemCount == 0 &&
-                        pagingItems.loadState.refresh is LoadState.NotLoading
-                    ) {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 64.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.SearchOff,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp),
-                                    tint = MaterialTheme.colorScheme
-                                        .onSurfaceVariant
-                                )
-                                Spacer(Modifier.height(16.dp))
-                                Text(
-                                    text = if (query.isNotBlank()) {
-                                        "No stories found for \"$query\""
-                                    } else {
-                                        "No stories yet"
-                                    },
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme
-                                        .onSurfaceVariant
-                                )
-                                if (query.isNotBlank()) {
-                                    Spacer(Modifier.height(16.dp))
-                                    NyasaButton(
-                                        text = "Clear Search",
-                                        onClick = {
-                                            query = ""
-                                            onAction(BlogFeedAction.Search(""))
-                                        },
-                                        style = ButtonStyle.Secondary
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // End-of-list message
-                    if (pagingItems.itemCount > 0 &&
-                        pagingItems.loadState.append is LoadState.NotLoading &&
-                        pagingItems.loadState.append.endOfPaginationReached
-                    ) {
-                        item {
-                            EndOfFeedMessage(onRefresh = refreshFeed)
-                        }
-                    }
-
-                    when (pagingItems.loadState.append) {
-                        is LoadState.Loading -> {
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-                        }
-                        is LoadState.Error -> {
-                            item {
-                                NyasaButton(
-                                    text = "Retry",
-                                    onClick = { pagingItems.retry() },
-                                    style = ButtonStyle.Secondary
-                                )
-                            }
-                        }
-                        is LoadState.NotLoading -> { /* no-op */ }
-                    }
-                }
-            }
+                onAction = onAction
+            )
         }
     }
 
@@ -280,6 +166,152 @@ fun BlogFeedScreen(
             },
             onDismiss = { showFilterSheet = false }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeedPagingList(
+    pagingItems: LazyPagingItems<BlogPost>,
+    mode: FeedMode,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onRefresh: () -> Unit,
+    onAction: (BlogFeedAction) -> Unit
+) {
+    PullToRefreshBox(
+        isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(32.dp)
+        ) {
+            items(
+                count = pagingItems.itemCount,
+                key = { index -> pagingItems.peek(index)?.pk ?: index }
+            ) { index ->
+                pagingItems[index]?.let { blogPost ->
+                    FeedItem(
+                        blogPost = blogPost,
+                        showEditorPick = mode == FeedMode.Home &&
+                            index == 0 &&
+                            query.isBlank(),
+                        onAction = onAction
+                    )
+                }
+            }
+            if (pagingItems.itemCount == 0 &&
+                pagingItems.loadState.refresh is LoadState.NotLoading
+            ) {
+                item { FeedEmptyState(query = query, onQueryChange = onQueryChange, onAction = onAction) }
+            }
+            if (pagingItems.itemCount > 0 &&
+                pagingItems.loadState.append is LoadState.NotLoading &&
+                pagingItems.loadState.append.endOfPaginationReached
+            ) {
+                item { EndOfFeedMessage(onRefresh = onRefresh) }
+            }
+            feedAppendState(appendState = pagingItems.loadState.append, onRetry = { pagingItems.retry() })
+        }
+    }
+}
+
+@Composable
+private fun FeedItem(
+    blogPost: BlogPost,
+    showEditorPick: Boolean,
+    onAction: (BlogFeedAction) -> Unit
+) {
+    if (showEditorPick) {
+        EditorPickCard(
+            blogPost = blogPost,
+            onClick = { onAction(BlogFeedAction.BlogClicked(blogPost.slug)) }
+        )
+    } else {
+        val excerpt = remember(blogPost.pk) {
+            BlogUtils.stripHtml(blogPost.body).take(120).takeIf { it.isNotBlank() }
+        }
+        NyasaBlogCard(
+            title = blogPost.title,
+            authorName = blogPost.username,
+            imageUrl = blogPost.image,
+            readTime = BlogUtils.formatReadingTime(blogPost.reading_time),
+            category = blogPost.category,
+            excerpt = excerpt,
+            likeCount = blogPost.like_count,
+            commentCount = blogPost.comment_count,
+            onClick = { onAction(BlogFeedAction.BlogClicked(blogPost.slug)) },
+            onBookmarkClick = { onAction(BlogFeedAction.BookmarkClicked(blogPost.slug)) }
+        )
+    }
+}
+
+@Composable
+private fun FeedEmptyState(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onAction: (BlogFeedAction) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 64.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.SearchOff,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = if (query.isNotBlank()) {
+                "No stories found for \"$query\""
+            } else {
+                "No stories yet"
+            },
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (query.isNotBlank()) {
+            Spacer(Modifier.height(16.dp))
+            NyasaButton(
+                text = "Clear Search",
+                onClick = {
+                    onQueryChange("")
+                    onAction(BlogFeedAction.Search(""))
+                },
+                style = ButtonStyle.Secondary
+            )
+        }
+    }
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.feedAppendState(
+    appendState: LoadState,
+    onRetry: () -> Unit
+) {
+    when (appendState) {
+        is LoadState.Loading -> item {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is LoadState.Error -> item {
+            NyasaButton(
+                text = "Retry",
+                onClick = onRetry,
+                style = ButtonStyle.Secondary
+            )
+        }
+        is LoadState.NotLoading -> Unit
     }
 }
 
@@ -324,7 +356,6 @@ private fun EditorPickCard(
                 )
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Author avatar placeholder
                     Surface(
                         modifier = Modifier.size(32.dp),
                         shape = CircleShape,
@@ -372,11 +403,65 @@ private fun EditorPickCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+private fun HomeTopBar(onFilterClick: () -> Unit) {
+    NyasaTopBar(
+        title = "NyasaBlog",
+        navigationIcon = null,
+        actions = {
+            IconButton(onClick = onFilterClick) {
+                Icon(
+                    imageVector = Icons.Filled.FilterList,
+                    contentDescription = "Filter"
+                )
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchTopBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: (String) -> Unit,
+    onBack: () -> Unit,
+    focusRequester: FocusRequester
+) {
+    TopAppBar(
+        title = {
+            BlogSearchBar(
+                query = query,
+                onQueryChange = onQueryChange,
+                onSearch = onSearch,
+                focusRequester = focusRequester
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    )
+}
+
+@Composable
 private fun CategoryChipsRow(
     categories: List<Category>,
     selectedCategory: String?,
     onCategorySelected: (String?) -> Unit
 ) {
+    val chipShape = RoundedCornerShape(50)
+    val chipColors = FilterChipDefaults.filterChipColors(
+        selectedContainerColor = MaterialTheme.colorScheme.primary,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+    )
+
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -392,11 +477,8 @@ private fun CategoryChipsRow(
                         style = MaterialTheme.typography.labelMedium
                     )
                 },
-                shape = RoundedCornerShape(50),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                )
+                shape = chipShape,
+                colors = chipColors
             )
         }
         items(categories, key = { it.pk }) { category ->
@@ -409,11 +491,8 @@ private fun CategoryChipsRow(
                         style = MaterialTheme.typography.labelMedium
                     )
                 },
-                shape = RoundedCornerShape(50),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                )
+                shape = chipShape,
+                colors = chipColors
             )
         }
     }
@@ -427,6 +506,13 @@ private fun EndOfFeedMessage(onRefresh: () -> Unit) {
             .padding(vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(
+            imageVector = Icons.Outlined.Eco,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.height(16.dp))
         Text(
             text = "You\u2019ve reached the roots.",
             style = MaterialTheme.typography.titleMedium,

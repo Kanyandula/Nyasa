@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -40,8 +42,14 @@ enum class BottomNavItem(
     val unselectedIcon: ImageVector
 ) {
     Home("Home", Routes.BLOG_GRAPH, Icons.Filled.Home, Icons.Outlined.Home),
-    Create("Create", Routes.CREATE, Icons.Filled.AddCircle, Icons.Outlined.AddCircleOutline),
-    Account("Account", Routes.ACCOUNT_GRAPH, Icons.Filled.Person, Icons.Outlined.Person)
+    Search("Search", Routes.BLOG_SEARCH, Icons.Filled.Search, Icons.Outlined.Search),
+    Bookmarks(
+        "Bookmarks",
+        Routes.BOOKMARKS,
+        Icons.Filled.Bookmark,
+        Icons.Outlined.BookmarkBorder
+    ),
+    Profile("Profile", Routes.ACCOUNT_GRAPH, Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 @Composable
@@ -53,9 +61,10 @@ fun NyasaBottomBar(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val currentItem = when {
-        currentRoute?.startsWith("blog") == true -> BottomNavItem.Home
-        currentRoute?.startsWith("create") == true -> BottomNavItem.Create
-        currentRoute?.startsWith("account") == true -> BottomNavItem.Account
+        currentRoute?.startsWith(Routes.BLOG_SEARCH) == true -> BottomNavItem.Search
+        currentRoute?.startsWith(Routes.BOOKMARKS) == true -> BottomNavItem.Bookmarks
+        currentRoute?.startsWith(Routes.ACCOUNT_GRAPH) == true -> BottomNavItem.Profile
+        currentRoute?.startsWith(Routes.BLOG_GRAPH) == true -> BottomNavItem.Home
         else -> BottomNavItem.Home
     }
 

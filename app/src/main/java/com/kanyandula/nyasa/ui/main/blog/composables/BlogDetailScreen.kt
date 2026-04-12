@@ -1,5 +1,7 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
+import android.content.Intent
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -50,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -129,7 +130,6 @@ fun BlogDetailScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(padding)
                 ) {
-                    // Hero image with category badge overlay
                     Box {
                         AsyncImage(
                             model = blogPost.image,
@@ -194,8 +194,9 @@ fun BlogDetailScreen(
 
                         BlogBody(body = blogPost.body)
 
-                        // Tags
-                        val parsedTags = BlogUtils.parseTags(blogPost.tags)
+                        val parsedTags = remember(blogPost.tags) {
+                            BlogUtils.parseTags(blogPost.tags)
+                        }
                         if (parsedTags.isNotEmpty()) {
                             Spacer(Modifier.height(24.dp))
                             HorizontalDivider(
@@ -221,7 +222,6 @@ fun BlogDetailScreen(
                             }
                         }
 
-                        // Author actions
                         if (state.isAuthorOfBlogPost) {
                             Spacer(Modifier.height(32.dp))
                             NyasaButton(
@@ -262,6 +262,8 @@ fun BlogDetailScreen(
 
 @Composable
 private fun BlogBody(body: String) {
+    if (body.isBlank()) return
+
     val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
     val bgColor = MaterialTheme.colorScheme.surface.toArgb()
     val linkColor = MaterialTheme.colorScheme.primary.toArgb()
@@ -271,43 +273,32 @@ private fun BlogBody(body: String) {
         buildBlogHtml(body, textColor, bgColor, linkColor, quoteBg)
     }
 
-    val density = LocalDensity.current
-    var webViewHeight by remember { mutableStateOf(200.dp) }
+    var webViewHeight by remember { mutableStateOf(WEBVIEW_INITIAL_HEIGHT) }
 
     AndroidView(
         factory = { context ->
             WebView(context).apply {
                 setBackgroundColor(AndroidColor.TRANSPARENT)
+                @Suppress("SetJavaScriptEnabled")
                 settings.javaScriptEnabled = true
-                settings.loadWithOverviewMode = true
-                settings.useWideViewPort = true
                 settings.allowFileAccess = false
                 settings.allowContentAccess = false
                 isVerticalScrollBarEnabled = false
-                webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        view?.evaluateJavascript(
-                            "document.body.scrollHeight"
-                        ) { heightStr ->
-                            heightStr?.toIntOrNull()?.let { px ->
-                                with(density) {
-                                    webViewHeight = px.toDp()
-                                }
-                            }
+                addJavascriptInterface(
+                    HtmlHeightBridge { heightPx ->
+                        post {
+                            webViewHeight = heightPx.dp
                         }
-                    }
-
+                    },
+                    "AndroidBridge"
+                )
+                webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(
                         view: WebView?,
                         request: WebResourceRequest?
                     ): Boolean {
                         request?.url?.let { uri ->
-                            context.startActivity(
-                                android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    uri
-                                )
-                            )
+                            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                         }
                         return true
                     }
@@ -336,6 +327,30 @@ private fun BlogBody(body: String) {
     )
 }
 
+private val WEBVIEW_INITIAL_HEIGHT = 200.dp
+
+private class HtmlHeightBridge(
+    private val onHeight: (Int) -> Unit
+) {
+    private var lastHeight = -1
+
+    @Suppress("unused")
+    @JavascriptInterface
+    fun onHeightChanged(height: Int) {
+        if (height > 0 && height != lastHeight) {
+            lastHeight = height
+            onHeight(height)
+        }
+    }
+}
+
+private fun Int.toCssRgb(): String {
+    val r = (this shr 16) and 0xFF
+    val g = (this shr 8) and 0xFF
+    val b = this and 0xFF
+    return "rgb($r,$g,$b)"
+}
+
 private fun buildBlogHtml(
     body: String,
     textColor: Int,
@@ -343,67 +358,92 @@ private fun buildBlogHtml(
     linkColor: Int,
     quoteBgColor: Int
 ): String {
-    fun Int.toCssRgb(): String {
-        val r = (this shr 16) and 0xFF
-        val g = (this shr 8) and 0xFF
-        val b = this and 0xFF
-        return "rgb($r,$g,$b)"
-    }
-
+    val css = buildBlogCss(textColor, bgColor, linkColor, quoteBgColor)
+    val nonce = java.util.UUID.randomUUID().toString()
     return """
         <!DOCTYPE html>
         <html>
         <head>
+        <meta http-equiv="Content-Security-Policy"
+            content="default-src 'none'; style-src 'unsafe-inline'; img-src https: data:; script-src 'nonce-$nonce';">
         <meta name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-        <style>
-            body {
-                color: ${textColor.toCssRgb()};
-                background: ${bgColor.toCssRgb()};
-                font-family: sans-serif;
-                font-size: 16px;
-                line-height: 1.75;
-                margin: 0;
-                padding: 0;
-                word-wrap: break-word;
-            }
-            a { color: ${linkColor.toCssRgb()}; }
-            img, video, iframe {
-                max-width: 100%;
-                height: auto;
-                border-radius: 8px;
-            }
-            blockquote {
-                background: ${quoteBgColor.toCssRgb()};
-                border-left: 4px solid ${linkColor.toCssRgb()};
-                margin: 16px 0;
-                padding: 12px 16px;
-                border-radius: 4px;
-                font-style: italic;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 16px 0;
-            }
-            th, td {
-                border: 1px solid ${textColor.toCssRgb()};
-                padding: 8px;
-                text-align: left;
-            }
-            pre, code {
-                background: ${quoteBgColor.toCssRgb()};
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-size: 14px;
-            }
-            pre { padding: 12px; overflow-x: auto; }
-        </style>
+        <style>$css</style>
         </head>
-        <body>$body</body>
+        <body>
+        $body
+        <script nonce="$nonce">$HEIGHT_REPORT_SCRIPT</script>
+        </body>
         </html>
     """.trimIndent()
 }
+
+private fun buildBlogCss(
+    textColor: Int,
+    bgColor: Int,
+    linkColor: Int,
+    quoteBgColor: Int
+): String = """
+    body {
+        color: ${textColor.toCssRgb()};
+        background: ${bgColor.toCssRgb()};
+        font-family: sans-serif;
+        font-size: 16px;
+        line-height: 1.75;
+        margin: 0;
+        padding: 0;
+        word-wrap: break-word;
+    }
+    a { color: ${linkColor.toCssRgb()}; }
+    img, video, iframe {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    blockquote {
+        background: ${quoteBgColor.toCssRgb()};
+        border-left: 4px solid ${linkColor.toCssRgb()};
+        margin: 16px 0;
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-style: italic;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+    th, td {
+        border: 1px solid ${textColor.toCssRgb()};
+        padding: 8px;
+        text-align: left;
+    }
+    pre, code {
+        background: ${quoteBgColor.toCssRgb()};
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 14px;
+    }
+    pre { padding: 12px; overflow-x: auto; }
+""".trimIndent()
+
+private const val HEIGHT_REPORT_SCRIPT = """
+    (function() {
+        function reportHeight() {
+            if (window.AndroidBridge && window.AndroidBridge.onHeightChanged) {
+                var h = Math.max(
+                    document.documentElement.scrollHeight,
+                    document.body.scrollHeight
+                );
+                window.AndroidBridge.onHeightChanged(h);
+            }
+        }
+        window.addEventListener('load', reportHeight);
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(reportHeight).observe(document.body);
+        }
+        Array.prototype.forEach.call(
+            document.querySelectorAll('img,iframe'),
+            function(el) { el.addEventListener('load', reportHeight); }
+        );
+    })();
+"""
 
 @Composable
 private fun AuthorRow(

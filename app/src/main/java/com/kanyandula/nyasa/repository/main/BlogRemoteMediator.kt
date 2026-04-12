@@ -107,7 +107,7 @@ class BlogRemoteMediator(
         database.withTransaction {
             if (loadType == LoadType.REFRESH) {
                 blogPostDao.clearAll()
-                remoteKeyDao.clearAll()
+                remoteKeyDao.deleteByQuery(cachedQueryKey)
             }
             blogPostDao.insertAll(blogPosts)
             remoteKeyDao.insertOrReplace(
