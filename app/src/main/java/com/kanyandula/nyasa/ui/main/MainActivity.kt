@@ -52,6 +52,7 @@ import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.BookmarksScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.EditBlogAction
 import com.kanyandula.nyasa.ui.main.blog.composables.EditBlogScreen
+import com.kanyandula.nyasa.ui.main.blog.composables.FeedMode
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.AuthorProfileViewModel
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
@@ -106,30 +107,31 @@ class MainActivity : ComponentActivity() {
                                 val vm: BlogViewModel = hiltViewModel(parentEntry)
                                 val state by vm.viewState.collectAsStateWithLifecycle()
 
+                                val feedAction = remember(vm) {
+                                    handleBlogFeedAction(vm, navController)
+                                }
                                 BlogFeedScreen(
                                     pagingDataFlow = vm.pagingDataFlow,
                                     state = state,
-                                    onAction = { action ->
-                                        when (action) {
-                                            is BlogFeedAction.BlogClicked ->
-                                                navController.navigate(Routes.blogDetail(action.slug))
-                                            is BlogFeedAction.Search -> {
-                                                vm.setQuery(action.query)
-                                                vm.executeSearch()
-                                            }
-                                            is BlogFeedAction.FilterApply -> {
-                                                vm.setBlogFilter(action.filter)
-                                                vm.setBlogOrder(action.order)
-                                                vm.saveFilterOptions(action.filter, action.order)
-                                                vm.executeSearch()
-                                            }
-                                            is BlogFeedAction.CategorySelected ->
-                                                vm.setSelectedCategory(action.category)
-                                            is BlogFeedAction.BookmarkClicked ->
-                                                vm.bookmarkBlog(action.slug)
-                                            is BlogFeedAction.Refresh -> vm.executeSearch()
-                                        }
-                                    }
+                                    mode = FeedMode.Home,
+                                    onAction = feedAction
+                                )
+                            }
+                            composable(Routes.BLOG_SEARCH) { entry ->
+                                val parentEntry = remember(entry) {
+                                    navController.getBackStackEntry(Routes.BLOG_GRAPH)
+                                }
+                                val vm: BlogViewModel = hiltViewModel(parentEntry)
+                                val state by vm.viewState.collectAsStateWithLifecycle()
+
+                                val feedAction = remember(vm) {
+                                    handleBlogFeedAction(vm, navController)
+                                }
+                                BlogFeedScreen(
+                                    pagingDataFlow = vm.pagingDataFlow,
+                                    state = state,
+                                    mode = FeedMode.Search,
+                                    onAction = feedAction
                                 )
                             }
                             composable(
@@ -208,7 +210,8 @@ class MainActivity : ComponentActivity() {
                             val vm: CreateBlogViewModel = hiltViewModel()
                             CreateBlogRoute(
                                 viewModel = vm,
-                                activity = this@MainActivity
+                                activity = this@MainActivity,
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
 
@@ -275,6 +278,35 @@ class MainActivity : ComponentActivity() {
 }
 
 // region Route Composables
+
+private fun handleBlogFeedAction(
+    vm: BlogViewModel,
+    navController: androidx.navigation.NavController
+): (BlogFeedAction) -> Unit = { action ->
+    when (action) {
+        is BlogFeedAction.BlogClicked ->
+            navController.navigate(Routes.blogDetail(action.slug))
+        is BlogFeedAction.Search -> {
+            vm.setQuery(action.query)
+            vm.executeSearch()
+        }
+        is BlogFeedAction.FilterApply -> {
+            vm.setBlogFilter(action.filter)
+            vm.setBlogOrder(action.order)
+            vm.saveFilterOptions(action.filter, action.order)
+            vm.executeSearch()
+        }
+        is BlogFeedAction.CategorySelected ->
+            vm.setSelectedCategory(action.category)
+        is BlogFeedAction.BookmarkClicked ->
+            vm.bookmarkBlog(action.slug)
+        is BlogFeedAction.CreateClicked ->
+            navController.navigate(Routes.CREATE)
+        is BlogFeedAction.BackClicked ->
+            navController.popBackStack()
+        is BlogFeedAction.Refresh -> vm.executeSearch()
+    }
+}
 
 @Composable
 private fun BlogDetailRoute(
@@ -407,7 +439,8 @@ private fun EditBlogRoute(
 @Composable
 private fun CreateBlogRoute(
     viewModel: CreateBlogViewModel,
-    activity: Activity
+    activity: Activity,
+    onNavigateBack: () -> Unit
 ) {
     val blogFields by viewModel.viewState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -450,7 +483,9 @@ private fun CreateBlogRoute(
         onPickImage = {
             imagePickerLauncher.launch(createImagePickerIntent(activity))
         },
-        onCategorySelected = { viewModel.setCategory(it) }
+        onCategorySelected = { viewModel.setCategory(it) },
+        onNavigateBack = onNavigateBack,
+        onSaveDraft = onNavigateBack
     )
 }
 
