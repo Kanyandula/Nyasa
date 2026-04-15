@@ -2,7 +2,6 @@
 
 package com.kanyandula.nyasa.ui.main.create_blog.composables
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,7 +72,7 @@ import com.kanyandula.nyasa.util.BlogUtils
 fun CreateBlogScreen(
     initialTitle: String,
     initialBody: String,
-    imageUri: Uri?,
+    imageModel: Any?,
     selectedCategory: String?,
     initialTags: String,
     categories: List<Category>,
@@ -124,7 +123,7 @@ fun CreateBlogScreen(
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 ImagePickerBox(
-                    imageUri = imageUri,
+                    imageModel = imageModel,
                     onPickImage = onPickImage
                 )
                 Spacer(Modifier.height(8.dp))
@@ -422,7 +421,7 @@ private fun CreateBlogScreenPreview() {
         CreateBlogScreen(
             initialTitle = "",
             initialBody = "",
-            imageUri = null,
+            imageModel = null,
             selectedCategory = null,
             initialTags = "",
             categories = listOf(

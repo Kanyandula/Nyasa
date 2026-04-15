@@ -205,6 +205,7 @@ constructor(
         title: String? = null,
         body: String? = null,
         uri: Uri? = null,
+        originalImageUrl: String? = null,
         category: String? = null,
         tags: String? = null
     ) {
@@ -213,10 +214,15 @@ constructor(
                 updatedBlogTitle = title ?: updatedBlogTitle,
                 updatedBlogBody = body ?: updatedBlogBody,
                 updatedImageUri = uri ?: updatedImageUri,
+                originalImageUrl = originalImageUrl ?: this.originalImageUrl,
                 updatedCategory = category ?: updatedCategory,
                 updatedTags = tags ?: updatedTags
             )
         }
+    }
+
+    fun clearUpdatedImageUri() {
+        updateUpdateBlogState { copy(updatedImageUri = null) }
     }
 
     fun setUpdatedCategory(category: String?) {
@@ -397,11 +403,13 @@ constructor(
     // endregion
 
     private fun onBlogPostUpdateSuccess(blogPost: BlogPost) {
+        clearUpdatedImageUri()
         setUpdatedBlogFields(
-            uri = null,
             title = blogPost.title,
-            body = blogPost.body
+            body = blogPost.body,
+            originalImageUrl = blogPost.image
         )
         setBlogPost(blogPost)
+        updateViewBlogState { copy(likeCount = blogPost.like_count ?: 0) }
     }
 }

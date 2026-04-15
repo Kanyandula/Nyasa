@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun EditBlogScreen(
     initialTitle: String,
     initialBody: String,
-    imageUri: Uri?,
+    imageModel: Any?,
     selectedCategory: String?,
     initialTags: String,
     categories: List<Category>,
@@ -111,7 +110,7 @@ fun EditBlogScreen(
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 ImagePickerBox(
-                    imageUri = imageUri,
+                    imageModel = imageModel,
                     onPickImage = { onAction(EditBlogAction.PickImage) },
                     showPlaceholderText = false
                 )
@@ -306,7 +305,7 @@ private fun EditBlogScreenPreview() {
                 " painting the landscape in a shade of burnt sienna" +
                 " and deep ochre. Under the sprawling branches of" +
                 " an ancient baobab, time seems to slow down.",
-            imageUri = null,
+            imageModel = null,
             selectedCategory = "culture",
             initialTags = "Malawi, Travel",
             categories = listOf(

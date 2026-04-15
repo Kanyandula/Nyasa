@@ -16,7 +16,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -110,10 +109,11 @@ internal fun BlogDetailRoute(
             when (action) {
                 is BlogDetailAction.EditClicked -> {
                     viewModel.getBlogPost()?.let { blogPost ->
+                        viewModel.clearUpdatedImageUri()
                         viewModel.setUpdatedBlogFields(
                             title = blogPost.title,
                             body = blogPost.body,
-                            uri = blogPost.image.toUri(),
+                            originalImageUrl = blogPost.image,
                             category = blogPost.category,
                             tags = blogPost.tags
                         )
@@ -178,7 +178,7 @@ internal fun EditBlogRoute(
     EditBlogScreen(
         initialTitle = state.updatedBlogTitle.orEmpty(),
         initialBody = state.updatedBlogBody.orEmpty(),
-        imageUri = state.updatedImageUri,
+        imageModel = state.updatedImageUri ?: state.originalImageUrl,
         selectedCategory = state.updatedCategory,
         initialTags = state.updatedTags.orEmpty(),
         categories = state.categories,
@@ -234,7 +234,7 @@ internal fun CreateBlogRoute(
     CreateBlogScreen(
         initialTitle = blogFields.blogFields.newBlogTitle.orEmpty(),
         initialBody = blogFields.blogFields.newBlogBody.orEmpty(),
-        imageUri = blogFields.blogFields.newImageUri,
+        imageModel = blogFields.blogFields.newImageUri,
         selectedCategory = blogFields.blogFields.category,
         initialTags = blogFields.blogFields.tags.orEmpty(),
         categories = blogFields.categories,

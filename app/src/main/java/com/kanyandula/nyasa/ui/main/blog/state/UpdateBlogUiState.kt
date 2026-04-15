@@ -7,6 +7,7 @@ data class UpdateBlogUiState(
     val updatedBlogTitle: String? = null,
     val updatedBlogBody: String? = null,
     val updatedImageUri: Uri? = null,
+    val originalImageUrl: String? = null,
     val updatedCategory: String? = null,
     val updatedTags: String? = null,
     val categories: List<Category> = emptyList()

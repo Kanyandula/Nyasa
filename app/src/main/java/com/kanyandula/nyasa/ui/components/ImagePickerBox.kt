@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.ui.components
 
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,7 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
 @Composable
 fun ImagePickerBox(
-    imageUri: Uri?,
+    imageModel: Any?,
     onPickImage: () -> Unit,
     modifier: Modifier = Modifier,
     showPlaceholderText: Boolean = true
@@ -40,15 +39,15 @@ fun ImagePickerBox(
             .clickable(onClick = onPickImage),
         contentAlignment = Alignment.Center
     ) {
-        if (imageUri != null) {
+        if (imageModel != null) {
             AsyncImage(
-                model = imageUri,
+                model = imageModel,
                 contentDescription = "Blog image",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
         }
-        if (imageUri == null && showPlaceholderText) {
+        if (imageModel == null && showPlaceholderText) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     imageVector = Icons.Filled.AddAPhoto,
@@ -82,6 +81,6 @@ fun ImagePickerBox(
 @Composable
 private fun ImagePickerBoxEmptyPreview() {
     NyasaTheme {
-        ImagePickerBox(imageUri = null, onPickImage = {})
+        ImagePickerBox(imageModel = null, onPickImage = {})
     }
 }
