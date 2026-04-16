@@ -48,19 +48,20 @@ Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Reposito
 - `di/` — Hilt modules (`AppModule`, `AuthModule`, `MainModule`); binds repository interfaces to implementations
 - `domain/repository/` — Repository interfaces (`AuthRepository`, `BlogRepository`, `AccountRepository`, `CreateBlogRepository`, plus comment/category/profile)
 - `domain/usecase/` — Use case classes organized by feature (`auth/`, `blog/`, `account/`, `createblog/`, `comment/`, `category/`, `profile/`)
-- `models/` — Room entities (`AuthToken`, `AccountProperties`, `BlogPost`) + DTOs
+- `models/` — Room entities (`AuthToken`, `AccountProperties`, `BlogPost`, `BlogRemoteKey`) + DTOs (`Category`, `Tag`, `Comment`, `UserProfile`, `LikeResult`, `ProfileUpdateRequest`)
 - `persistance/` — Room database, DAOs, query utils
 - `repository/` — Repository implementations (`*Impl`) returning `Flow<Resource<T>>`
 - `session/` — `SessionManager`
 - `ui/` — Compose screens, ViewModels, state classes:
+  - `ui/BaseViewModel.kt`, `ui/UiEvent.kt` — shared abstractions at the package root
   - `ui/auth/{composables, state}`
+  - `ui/main/MainActivity.kt`, `ui/main/MainRouteComposables.kt` — single activity hosting the root NavHost
   - `ui/main/blog/{composables, viewmodel, state}`
   - `ui/main/account/{composables, state}`
-  - `ui/main/create_blog/{composables, state}`
+  - `ui/main/create_blog/{composables, state}` _(directory uses underscore; matching use-case package is `usecase/createblog/` without underscore — pre-existing inconsistency, do not "fix")_
   - `ui/navigation/` — `AuthNavGraph.kt`, `MainNavGraph.kt` (navigation-compose)
   - `ui/components/` — shared composables (`NyasaTopBar`, `NyasaBottomBar`, `ImagePickerBox`, `NyasaCategoryDropdown`)
   - `ui/theme/` — Compose theme
-  - `ui/main/MainActivity.kt` — single activity hosting the root NavHost
 - `util/` — Constants, error handling, `safeApiCall`, `GenericApiResponse`, `Resource`
 
 **Blog state**: Per-screen state classes — `BlogListUiState`, `ViewBlogUiState`, `UpdateBlogUiState`. `BlogViewModel` is shared across blog composables via `hiltViewModel()` scoped to the nav graph, exposing separate `StateFlow` for each screen.
@@ -79,8 +80,8 @@ Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Reposito
 ## Build Configuration
 
 - compileSdk/targetSdk: 35, minSdk: 24
-- Kotlin 1.9.24 with KSP (not KAPT)
+- Kotlin 2.0.21 with KSP (not KAPT); Compose compiler via `org.jetbrains.kotlin.plugin.compose`
 - Java 17 compatibility
-- Hilt 2.51.1, Room 2.6.1, Retrofit 2.11.0, Navigation 2.7.7
+- Hilt 2.53.1, Room 2.6.1, Retrofit 2.11.0, Navigation-Compose 2.7.7, Paging 3.3.6, Coil 3 (`io.coil-kt.coil3`)
 - Detekt max line length: 120, max method length: 60, max cyclomatic complexity: 20
 - Main branch: `Deploy_0.01`

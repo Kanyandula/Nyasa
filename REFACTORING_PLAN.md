@@ -215,24 +215,24 @@ Forward-looking hardening and modularization work: `COMPOSE_REFACTOR.md`.
 
 ---
 
-## Phase Dependency Graph
+## Phase Dependency Graph (historical — all except Phase 10 are ✅ done)
 
 ```
-Phase 1 (deps/SDK)
+Phase 1 (deps/SDK)                             ✅
     |
-Phase 2 (suspend Retrofit)
+Phase 2 (suspend Retrofit)                     ✅
     |
-Phase 3 (Flow repositories)
+Phase 3 (Flow repositories)                    ✅
     |
-Phase 4 (StateFlow + split ViewState)
-    |--- Phase 5 (domain layer)      <-- can parallel with 6
-    |--- Phase 6 (SafeArgs)          <-- can parallel with 5
+Phase 4 (StateFlow + split ViewState)          ✅
+    |--- Phase 5 (domain layer)                ✅
+    |--- Phase 6 (SafeArgs — superseded by 9)  ✅
     |
-Phase 7 (session) <-- can start after Phase 1, independent
+Phase 7 (session)                              ✅
     |
-Phase 8 (Paging 3) <-- requires Phase 3+4
+Phase 8 (Paging 3)                             ✅
     |
-Phase 9 (Compose) <-- requires Phase 4
+Phase 9 (Compose)                              ✅
     |
-Phase 10 (Testing) <-- start alongside Phase 3, continue throughout
+Phase 10 (Testing)                             ⏳ covered by H9 in COMPOSE_REFACTOR.md
 ```

@@ -5,7 +5,7 @@ Living reference for post-Phase-9 hardening, modularization, and feature expansi
 - **Status:** Compose migration **complete** (Phase 9 landed). Focus now: modularization, observability, HTML renderer, adaptive layout, tests.
 - **Target branch:** `Deploy_0.01`
 - **Backend:** `https://nyasablog.com/api/` (unchanged)
-- **Min/Target SDK:** 24 / 35 · **Kotlin:** 1.9.24 · **Java:** 17
+- **Min/Target SDK:** 24 / 35 · **Kotlin:** 2.0.21 · **Java:** 17 · **Hilt:** 2.53.1 · **Room:** 2.6.1 · **Retrofit:** 2.11.0 (Gson — H1 swaps to kotlinx-serialization) · **Paging:** 3.3.6 · **Coil:** 3.0.4
 
 ## Current State (verified 2026-04-15)
 
@@ -114,7 +114,7 @@ Base `https://nyasablog.com/api/` — auth header: `Authorization: Token <token>
 - **AccountProperties**(`pk` PK, email, username, bio?, location?, website?, twitter?, facebook?, instagram?, linkedin?, profile_image?)
 - **BlogPost**(`pk` PK, `slug` unique idx, title, body, image, date_updated, username, category?, tags?, reading_time?, view_count?, like_count?, comment_count?, author_avatar?)
 - **CommentEntity**(`pk` PK, `post_slug` FK→BlogPost CASCADE idx, body, username, date_created) — **new**
-- **RemoteKeys**(`slug` PK, prevKey?, nextKey?) — for Paging 3 RemoteMediator
+- **BlogRemoteKey**(`slug` PK, prevKey?, nextKey?) — for Paging 3 `BlogRemoteMediator`
 
 ### Non-persisted DTOs
 `UserProfile`, `Category`, `Tag`, `LikeResult`, `BookmarkResponse`.
@@ -191,17 +191,28 @@ UI consumes `AppError` via single `ErrorMessageMapper` in `:core:ui` → string 
 ## 8. Performance
 
 ### Image pipeline
-Singleton `ImageLoader` in `:core:network` sharing OkHttp with Retrofit:
+Singleton `ImageLoader` in `:core:network` sharing OkHttp with Retrofit. **Coil 3** API (project uses `io.coil-kt.coil3:coil-compose:3.0.4` + `coil-network-okhttp:3.0.4`):
 
 ```kotlin
+import coil3.ImageLoader
+import coil3.memory.MemoryCache
+import coil3.disk.DiskCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import okio.Path.Companion.toOkioPath
+
 ImageLoader.Builder(ctx)
-  .okHttpClient(sharedOkHttp)
-  .memoryCache { MemoryCache.Builder(ctx).maxSizePercent(0.25).build() }
-  .diskCache  { DiskCache.Builder().directory(ctx.cacheDir.resolve("img"))
-                  .maxSizeBytes(100L * 1024 * 1024).build() }
-  .respectCacheHeaders(false)
+  .components { add(OkHttpNetworkFetcherFactory(callFactory = { sharedOkHttp })) }
+  .memoryCache { MemoryCache.Builder().maxSizePercent(ctx, 0.25).build() }
+  .diskCache {
+    DiskCache.Builder()
+      .directory(ctx.cacheDir.resolve("img").toOkioPath())
+      .maxSizeBytes(100L * 1024 * 1024)
+      .build()
+  }
   .build()
 ```
+
+Coil 3 differs from Coil 2: package is `coil3.*`, OkHttp integration goes through `OkHttpNetworkFetcherFactory` in `coil-network-okhttp`, and `DiskCache.directory` takes an Okio `Path`.
 
 ### Feed prefetch
 Observe `firstVisibleItemIndex + 10` in `LazyColumn`; enqueue Coil requests for upcoming covers with explicit `.size(w, h)` (feed card dimensions known — avoids decoding 4 MP originals).
@@ -361,7 +372,7 @@ Phase 10 stack:
 | Paging 3 + `paging-compose` | `BlogRemoteMediator` already built |
 | Room 2.6 + KSP | Existing |
 | Retrofit + OkHttp + `kotlinx-serialization-converter` | Replace Gson — smaller, faster, multiplatform-ready |
-| Coil 2 | Compose-native, shares OkHttp |
+| Coil 3 (`io.coil-kt.coil3`) | Compose-native, shares OkHttp via `OkHttpNetworkFetcherFactory`; already on Coil 3.0.4 |
 | Jsoup (+ `compose-richtext` or Markwon) | HTML rendering (§12) |
 | CanHub ImagePicker + zelory/Compressor | Proven in repo |
 | DataStore Preferences | Replace raw SharedPrefs (EncryptedSP kept for token) |
