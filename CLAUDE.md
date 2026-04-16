@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 NyasaBlog is a native Android app (Kotlin) that interacts with the REST API at `nyasablog.com`. It is a blogging platform for Malawian content creators. The app supports authentication, blog CRUD with image uploads, account management, and offline caching.
 
-The codebase is undergoing a 10-phase modernization (see `REFACTORING_PLAN.md`). Phases 1-5 are complete.
+**Status:** Phases 1–9 of the 10-phase modernization are complete (see `REFACTORING_PLAN.md`). UI is 100% Jetpack Compose — no Fragments, no layout XML, no navigation XML remain. Forward-looking hardening work (H1–H10) lives in `COMPOSE_REFACTOR.md` with the execution runbook in `WORKTREE_REFACTOR_GUIDE.md`.
 
 ## Build & Quality Commands
 
@@ -29,10 +29,10 @@ Pre-commit hook runs detekt, spotlessCheck, and lintDebug. Fix spotless issues w
 
 ## Architecture
 
-**Pattern**: MVVM with StateFlow, Use Cases, and Repository pattern (Clean Architecture).
+**Pattern**: MVVM with StateFlow, Use Cases, and Repository pattern (Clean Architecture). UI is 100% Jetpack Compose.
 
 ```
-Fragments (collect StateFlow) → ViewModel → UseCase → Repository Interface → RepositoryImpl → Room DAOs + Retrofit Services
+Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Repository Interface → RepositoryImpl → Room DAOs + Retrofit Services
 ```
 
 **Key abstractions**:
@@ -46,27 +46,35 @@ Fragments (collect StateFlow) → ViewModel → UseCase → Repository Interface
 **Package layout** (`com.kanyandula.nyasa`):
 - `api/` — Retrofit services (`auth/`, `main/`), interceptors, response models
 - `di/` — Hilt modules (`AppModule`, `AuthModule`, `MainModule`); binds repository interfaces to implementations
-- `domain/repository/` — Repository interfaces (`AuthRepository`, `BlogRepository`, `AccountRepository`, `CreateBlogRepository`)
-- `domain/usecase/` — Use case classes organized by feature (`auth/`, `blog/`, `account/`, `create_blog/`)
-- `models/` — Room entities (`AuthToken`, `AccountProperties`, `BlogPost`)
+- `domain/repository/` — Repository interfaces (`AuthRepository`, `BlogRepository`, `AccountRepository`, `CreateBlogRepository`, plus comment/category/profile)
+- `domain/usecase/` — Use case classes organized by feature (`auth/`, `blog/`, `account/`, `createblog/`, `comment/`, `category/`, `profile/`)
+- `models/` — Room entities (`AuthToken`, `AccountProperties`, `BlogPost`) + DTOs
 - `persistance/` — Room database, DAOs, query utils
 - `repository/` — Repository implementations (`*Impl`) returning `Flow<Resource<T>>`
 - `session/` — `SessionManager`
-- `ui/` — Activities, Fragments, ViewModels, state classes (`auth/`, `main/blog/`, `main/account/`, `main/create_blog/`)
+- `ui/` — Compose screens, ViewModels, state classes:
+  - `ui/auth/{composables, state}`
+  - `ui/main/blog/{composables, viewmodel, state}`
+  - `ui/main/account/{composables, state}`
+  - `ui/main/create_blog/{composables, state}`
+  - `ui/navigation/` — `AuthNavGraph.kt`, `MainNavGraph.kt` (navigation-compose)
+  - `ui/components/` — shared composables (`NyasaTopBar`, `NyasaBottomBar`, `ImagePickerBox`, `NyasaCategoryDropdown`)
+  - `ui/theme/` — Compose theme
+  - `ui/main/MainActivity.kt` — single activity hosting the root NavHost
 - `util/` — Constants, error handling, `safeApiCall`, `GenericApiResponse`, `Resource`
 
-**Blog state**: Split into per-screen state — `BlogListUiState`, `ViewBlogUiState`, `UpdateBlogUiState`. `BlogViewModel` is shared across blog fragments via `activityViewModels()`, exposing separate `StateFlow` for each screen.
+**Blog state**: Per-screen state classes — `BlogListUiState`, `ViewBlogUiState`, `UpdateBlogUiState`. `BlogViewModel` is shared across blog composables via `hiltViewModel()` scoped to the nav graph, exposing separate `StateFlow` for each screen.
 
 ## Key Technical Details
 
 - **API base URL**: `https://nyasablog.com/api/` (defined in `util/Constants.kt`)
 - **Auth**: Token-based via django-auth-token. Token stored in `EncryptedSharedPreferences` (AES256)
-- **Retrofit services** use `suspend fun` returning `Response<T>` (Phase 2 migration). Calls wrapped with `safeApiCall()` in `util/SafeApiCall.kt`
+- **Retrofit services** use `suspend fun` returning `Response<T>`. Calls wrapped with `safeApiCall()` in `util/SafeApiCall.kt`
 - **`GenericApiResponse`**: Sealed class (`ApiSuccessResponse`, `ApiErrorResponse`, `ApiEmptyResponse`) used to normalize API responses
-- **Room DB**: 3 entities — `AuthToken` (FK to `AccountProperties`), `AccountProperties`, `BlogPost`. DAOs return `Flow`
-- **Navigation**: 4 separate nav graphs (`auth_nav_graph`, `nav_blog`, `nav_account`, `nav_create_blog`). Uses raw `R.id` actions, not SafeArgs
+- **Room DB**: entities — `AuthToken` (FK to `AccountProperties`), `AccountProperties`, `BlogPost`. DAOs return `Flow`. Paging 3 via `BlogRemoteMediator` + `RemoteKeys`
+- **Navigation**: single `NavHost` with nested graphs — `AuthNavGraph`, `MainNavGraph`. Session-gated at the root. Hosted by `MainActivity`
 - **Image uploads**: Multipart via `UploadStreamRequestBody`, with CanHub ImagePicker for selection/cropping and Compressor for size reduction
-- **State observation**: Fragments use `repeatOnLifecycle(Lifecycle.State.STARTED)` to collect `StateFlow` and events
+- **State observation**: Composables collect `StateFlow` via `collectAsStateWithLifecycle()`; one-shot events via `LaunchedEffect` on `SharedFlow`
 
 ## Build Configuration
 

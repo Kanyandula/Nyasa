@@ -3,20 +3,22 @@
 > Modernize the codebase incrementally from 2018-era patterns to current Android best practices.
 > Each phase leaves the app in a working, shippable state.
 
-## Current State (after Phase 8)
+> **Status:** Phases 1–9 complete. Forward-looking hardening (H1–H10) lives in [`COMPOSE_REFACTOR.md`](COMPOSE_REFACTOR.md) with the execution runbook in [`WORKTREE_REFACTOR_GUIDE.md`](WORKTREE_REFACTOR_GUIDE.md).
+
+## Current State
 
 | Layer | Status | Current |
 |-------|--------|---------|
-| Build | Done (Phase 1) | compileSdk 35, KSP, R8 enabled |
-| Networking | Done (Phase 2) | Retrofit `suspend` functions, `safeApiCall` |
-| Repository | Done (Phase 3+5) | `Flow<Resource<T>>`, interfaces in `domain/repository/`, impls in `repository/` |
-| State | Done (Phase 4) | Per-screen `UiState` with `StateFlow`, `SharedFlow<UiEvent>` for one-shot events |
-| Architecture | Done (Phase 5) | ViewModel -> UseCase -> Repository (interface) |
-| Navigation | Done (Phase 6) | Type-safe SafeArgs with `navArgs()` and generated `Directions` classes |
-| Session | Done (Phase 7) | Reactive `ConnectivityObserver` with `NetworkCallback` + `StateFlow` token |
-| Pagination | Done (Phase 8) | Paging 3: `RemoteMediator` + `PagingDataAdapter` + `Flow<PagingData<BlogPost>>` |
-| UI | Pending (Phase 9) | XML Views + ViewBinding — see [COMPOSE_MIGRATION.md](COMPOSE_MIGRATION.md) |
-| Testing | Pending (Phase 10) | Scaffold only |
+| Build | ✅ Done (Phase 1) | compileSdk 35, KSP, R8 enabled |
+| Networking | ✅ Done (Phase 2) | Retrofit `suspend` functions, `safeApiCall` |
+| Repository | ✅ Done (Phase 3+5) | `Flow<Resource<T>>`, interfaces in `domain/repository/`, impls in `repository/` |
+| State | ✅ Done (Phase 4) | Per-screen `UiState` with `StateFlow`, `SharedFlow<UiEvent>` for one-shot events |
+| Architecture | ✅ Done (Phase 5) | ViewModel → UseCase → Repository (interface) |
+| Navigation | ✅ Done (Phase 6, superseded by Phase 9) | `navigation-compose` NavHost; session-gated |
+| Session | ✅ Done (Phase 7) | Reactive `ConnectivityObserver` with `NetworkCallback` + `StateFlow` token |
+| Pagination | ✅ Done (Phase 8) | Paging 3: `RemoteMediator` + `paging-compose` + `Flow<PagingData<BlogPost>>` |
+| UI | ✅ Done (Phase 9) | 100% Jetpack Compose — no Fragments, no layout XML |
+| Testing | Pending (Phase 10) | Scaffold only — see H9 in `COMPOSE_REFACTOR.md` |
 
 ---
 
@@ -185,20 +187,13 @@
 
 ---
 
-## Phase 9: Jetpack Compose (Incremental)
+## Phase 9: Jetpack Compose (Complete)
 
-**Goal**: Add Compose support and migrate screens from simplest to most complex.
+**Goal**: Migrate all XML Views to Jetpack Compose. ✅ Complete — no Fragments, no layout XML, no navigation XML remain. Navigation handled by `navigation-compose` via `AuthNavGraph` + `MainNavGraph`, hosted by `MainActivity`.
 
-### Migration order
-1. `LauncherFragment` (just buttons)
-2. `LoginFragment` / `RegisterFragment` (forms)
-3. `AccountFragment`, `ChangePasswordFragment`, `UpdateAccountFragment`
-4. `CreateBlogFragment`, `ViewBlogFragment`, `UpdateBlogFragment`
-5. `BlogFragment` (LazyColumn + Paging — last, most complex)
+Historical migration playbook (Stitch screen IDs, patterns used): `COMPOSE_MIGRATION.md`.
 
-### Verification
-- Each migrated screen renders correctly with consistent theme
-- Navigation works between Compose and remaining XML screens
+Forward-looking hardening and modularization work: `COMPOSE_REFACTOR.md`.
 
 ---
 

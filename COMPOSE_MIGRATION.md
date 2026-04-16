@@ -1,4 +1,12 @@
-# Phase 9: Jetpack Compose Migration Guide
+# Phase 9: Jetpack Compose Migration Guide (ARCHIVED)
+
+> **This document is historical.** Phase 9 is complete — the app is 100% Jetpack Compose with no Fragments or layout XML. Kept for the Stitch screen-ID mapping and migration patterns.
+>
+> **For active work:** see [`COMPOSE_REFACTOR.md`](COMPOSE_REFACTOR.md) (architecture) and [`WORKTREE_REFACTOR_GUIDE.md`](WORKTREE_REFACTOR_GUIDE.md) (execution).
+
+---
+
+## Original scope
 
 > Migrate all XML Views to Jetpack Compose using Stitch UI designs as the visual source of truth.
 > Incremental approach: ComposeView in Fragments first, then full Compose Navigation cutover.
