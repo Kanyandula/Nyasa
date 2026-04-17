@@ -47,8 +47,6 @@ import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.SunsetOrange
 
 @Composable
 fun LoginScreen(
@@ -250,6 +248,7 @@ fun LoginScreen(
 
 @Composable
 private fun SunsetBanner(modifier: Modifier = Modifier) {
+    val colors = NyasaTheme.colors
     Canvas(
         modifier = modifier.aspectRatio(16f / 7f)
     ) {
@@ -260,10 +259,10 @@ private fun SunsetBanner(modifier: Modifier = Modifier) {
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(
-                    Color(0xFF87CEEB),
-                    Color(0xFFFDB777),
-                    Color(0xFFF4A460),
-                    Color(0xFFE8883C)
+                    colors.sunsetSkyTop,
+                    colors.sunsetGradientStart,
+                    colors.sunsetSkyBottom,
+                    colors.sunsetGradientEnd
                 )
             )
         )
@@ -272,8 +271,8 @@ private fun SunsetBanner(modifier: Modifier = Modifier) {
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0xFFFFF3E0),
-                    Color(0xFFFFCC80).copy(alpha = 0.5f),
+                    colors.sunsetTextHighlight,
+                    colors.sunsetTextGlow.copy(alpha = 0.5f),
                     Color.Transparent
                 ),
                 center = Offset(w * 0.5f, h * 0.4f),
@@ -286,7 +285,7 @@ private fun SunsetBanner(modifier: Modifier = Modifier) {
         // Sun disc
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFFFF8E1), Color(0xFFFFE0B2)),
+                colors = listOf(colors.sunsetTextHighlight, colors.sunsetTextGlow),
                 center = Offset(w * 0.5f, h * 0.4f),
                 radius = w * 0.06f
             ),
@@ -298,9 +297,9 @@ private fun SunsetBanner(modifier: Modifier = Modifier) {
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(
-                    SunsetOrange.copy(alpha = 0.5f),
-                    Primary.copy(alpha = 0.4f),
-                    Primary.copy(alpha = 0.6f)
+                    colors.sunsetGradientEnd.copy(alpha = 0.5f),
+                    colors.sunsetSkyTop.copy(alpha = 0.4f),
+                    colors.sunsetSkyTop.copy(alpha = 0.6f)
                 ),
                 startY = h * 0.65f,
                 endY = h
