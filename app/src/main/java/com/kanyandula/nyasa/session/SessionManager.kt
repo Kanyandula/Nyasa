@@ -33,6 +33,10 @@ constructor(
         setValue(newValue)
     }
 
+    fun invalidate() {
+        _cachedToken.value = null
+    }
+
     @Suppress("TooGenericExceptionCaught")
     fun logout() {
         Log.d(TAG, "logout: ")

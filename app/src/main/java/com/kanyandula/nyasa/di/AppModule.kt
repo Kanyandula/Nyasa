@@ -5,10 +5,14 @@ import android.content.SharedPreferences
 import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import coil3.ImageLoader
+import coil3.disk.DiskCache
+import coil3.memory.MemoryCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.kanyandula.nyasa.BuildConfig
-import com.kanyandula.nyasa.api.AuthenticationInterceptor
-import com.kanyandula.nyasa.api.TokenInterceptor
+import com.kanyandula.nyasa.api.AuthInterceptor
+import com.kanyandula.nyasa.api.RetryInterceptor
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.AppDatabase.Companion.DATABASE_NAME
@@ -23,6 +27,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.Path.Companion.toOkioPath
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
@@ -54,12 +59,11 @@ object AppModule {
     @Singleton
     @Provides
     fun provideOkHttpClient(
-        tokenInterceptor: TokenInterceptor,
-        authenticationInterceptor: AuthenticationInterceptor
+        authInterceptor: AuthInterceptor,
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
-            .addInterceptor(tokenInterceptor)
-            .addInterceptor(authenticationInterceptor)
+            .addInterceptor(authInterceptor)
+            .addInterceptor(RetryInterceptor())
 
         if (BuildConfig.DEBUG) {
             val loggingInterceptor = HttpLoggingInterceptor()
@@ -68,6 +72,32 @@ object AppModule {
         }
 
         return builder.build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideImageLoader(
+        application: Application,
+        okHttpClient: OkHttpClient,
+    ): ImageLoader {
+        return ImageLoader.Builder(application)
+            .components {
+                add(OkHttpNetworkFetcherFactory(callFactory = { okHttpClient }))
+            }
+            .memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(application, 0.25)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(
+                        application.cacheDir.resolve("img").toOkioPath()
+                    )
+                    .maxSizeBytes(100L * 1024 * 1024)
+                    .build()
+            }
+            .build()
     }
 
     @Singleton
