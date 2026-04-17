@@ -8,6 +8,12 @@ import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 
+internal val lenientJson = Json {
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+    isLenient = true
+}
+
 suspend inline fun <T> safeApiCall(
     crossinline call: suspend () -> Response<T>
 ): Resource<T> {
@@ -49,7 +55,7 @@ suspend inline fun <T> safeApiCall(
 fun <T> parseDrfFieldErrors(response: Response<T>): Map<String, String> {
     return try {
         val errorBody = response.errorBody()?.string() ?: return emptyMap()
-        val json = Json.parseToJsonElement(errorBody).jsonObject
+        val json = lenientJson.parseToJsonElement(errorBody).jsonObject
         json.entries.associate { (key, value) ->
             key to when (value) {
                 is JsonArray -> value.firstOrNull()?.jsonPrimitive?.content ?: ""

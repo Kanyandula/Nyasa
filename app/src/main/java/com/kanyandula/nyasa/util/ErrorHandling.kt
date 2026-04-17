@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.util
 
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -21,7 +20,7 @@ fun AppError.toUserMessage(): String = when (this) {
 fun isPaginationDone(errorBody: String?): Boolean {
     if (errorBody.isNullOrBlank()) return false
     return try {
-        val json = Json.parseToJsonElement(errorBody)
+        val json = lenientJson.parseToJsonElement(errorBody)
         val detail = json.jsonObject["detail"]?.jsonPrimitive?.content
         detail == PAGINATION_DONE_ERROR
     } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") e: Exception) {

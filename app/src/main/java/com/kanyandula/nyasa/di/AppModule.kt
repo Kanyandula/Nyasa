@@ -102,8 +102,15 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideRetrofitBuilder(okHttpClient: OkHttpClient): Retrofit.Builder {
-        val json = Json { ignoreUnknownKeys = true }
+    fun provideJson(): Json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        isLenient = true
+    }
+
+    @Singleton
+    @Provides
+    fun provideRetrofitBuilder(okHttpClient: OkHttpClient, json: Json): Retrofit.Builder {
         return Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
             .client(okHttpClient)

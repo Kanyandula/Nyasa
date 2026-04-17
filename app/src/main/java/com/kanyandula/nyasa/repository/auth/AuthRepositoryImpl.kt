@@ -66,14 +66,15 @@ constructor(
                     AccountProperties(body.pk, body.email, "")
                 )
 
-                val insertResult = authTokenDao.insert(AuthToken(body.pk, body.token))
+                val token = AuthToken(body.pk, body.token)
+                val insertResult = authTokenDao.insert(token)
                 if (insertResult < 0) {
                     emit(Resource.Error(AppError.Unknown(null)))
                     return@flow
                 }
 
                 saveAuthenticatedUserToPrefs(email)
-                emit(Resource.Success(AuthToken(body.pk, body.token)))
+                emit(Resource.Success(token))
             }
             is Resource.Error -> emit(result)
             is Resource.Loading -> Unit
@@ -130,14 +131,15 @@ constructor(
                     return@flow
                 }
 
-                val result2 = authTokenDao.insert(AuthToken(body.pk, body.token))
+                val token = AuthToken(body.pk, body.token)
+                val result2 = authTokenDao.insert(token)
                 if (result2 < 0) {
                     emit(Resource.Error(AppError.Unknown(null)))
                     return@flow
                 }
 
                 saveAuthenticatedUserToPrefs(email)
-                emit(Resource.Success(AuthToken(body.pk, body.token)))
+                emit(Resource.Success(token))
             }
             is Resource.Error -> emit(result)
             is Resource.Loading -> Unit

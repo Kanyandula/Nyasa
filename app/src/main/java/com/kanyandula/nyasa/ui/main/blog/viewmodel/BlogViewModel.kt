@@ -25,11 +25,13 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
 import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.util.toUserMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -252,7 +254,7 @@ constructor(
             if (blogPost != null) {
                 displayBlogPost(blogPost)
             } else {
-                sendEvent(UiEvent.ShowErrorDialog("Blog post not found"))
+                sendEvent(UiEvent.ShowErrorDialog(AppError.NotFound.toUserMessage()))
             }
         }
     }

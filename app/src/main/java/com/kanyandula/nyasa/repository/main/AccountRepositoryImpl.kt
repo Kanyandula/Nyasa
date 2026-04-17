@@ -47,12 +47,7 @@ constructor(
                         result.data.email,
                         result.data.username
                     )
-                    val updatedAccount = AccountProperties(
-                        result.data.pk,
-                        result.data.email,
-                        result.data.username
-                    )
-                    emit(Resource.Success(updatedAccount))
+                    emit(Resource.Success(result.data))
                 }
                 is Resource.Error -> emit(result)
                 is Resource.Loading -> Unit
