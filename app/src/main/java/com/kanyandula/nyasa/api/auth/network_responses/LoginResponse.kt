@@ -1,28 +1,24 @@
 package com.kanyandula.nyasa.api.auth.network_responses
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 class LoginResponse(
 
-    @SerializedName("response")
-    @Expose
+    @SerialName("response")
     var response: String,
 
-    @SerializedName("error_message")
-    @Expose
+    @SerialName("error_message")
     var errorMessage: String,
 
-    @SerializedName("token")
-    @Expose
+    @SerialName("token")
     var token: String,
 
-    @SerializedName("pk")
-    @Expose
+    @SerialName("pk")
     var pk: Int,
 
-    @SerializedName("email")
-    @Expose
+    @SerialName("email")
     var email: String
 ) {
     override fun toString(): String {

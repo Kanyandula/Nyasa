@@ -1,15 +1,14 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 class LikeResponse(
 
-    @SerializedName("liked")
-    @Expose
+    @SerialName("liked")
     var liked: Boolean,
 
-    @SerializedName("like_count")
-    @Expose
+    @SerialName("like_count")
     var like_count: Int
 )
