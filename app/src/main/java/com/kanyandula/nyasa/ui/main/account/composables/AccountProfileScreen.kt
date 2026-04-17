@@ -23,23 +23,34 @@ import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.ui.theme.ThemePreference
+import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
+import com.kanyandula.nyasa.ui.theme.themeDataStore
+import kotlinx.coroutines.launch
 
 @Composable
 fun AccountProfileScreen(
@@ -117,6 +128,9 @@ fun AccountProfileScreen(
                     .padding(bottom = 8.dp)
             )
 
+            AppearanceSelector()
+            Spacer(modifier = Modifier.height(NyasaTheme.spacing.m))
+
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shape = MaterialTheme.shapes.medium
@@ -181,6 +195,49 @@ fun AccountProfileScreen(
         }
 
         LoadingOverlay(isLoading = isLoading)
+    }
+}
+
+@Composable
+private fun AppearanceSelector() {
+    val context = LocalContext.current
+    val dataStore = context.themeDataStore
+    val currentTheme by ThemePreferenceManager
+        .themeFlow(dataStore)
+        .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)) {
+        Text(
+            text = "Appearance",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(NyasaTheme.spacing.s))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            ThemePreference.entries.forEachIndexed { index, preference ->
+                SegmentedButton(
+                    selected = currentTheme == preference,
+                    onClick = {
+                        scope.launch {
+                            ThemePreferenceManager.setTheme(dataStore, preference)
+                        }
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = ThemePreference.entries.size
+                    )
+                ) {
+                    Text(
+                        text = when (preference) {
+                            ThemePreference.SYSTEM -> "System"
+                            ThemePreference.LIGHT -> "Light"
+                            ThemePreference.DARK -> "Dark"
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
