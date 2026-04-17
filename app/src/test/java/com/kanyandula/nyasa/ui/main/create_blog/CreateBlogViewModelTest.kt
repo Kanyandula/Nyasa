@@ -9,6 +9,7 @@ import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.fakes.FakeCreateBlogRepository
 import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
@@ -70,7 +71,7 @@ class CreateBlogViewModelTest {
 
     @Test
     fun `createNewBlogPost error emits error event`() = runTest {
-        fakeRepository.createResult = Resource.Error("Failed to create")
+        fakeRepository.createResult = Resource.Error(AppError.Unknown(RuntimeException("Failed to create")))
 
         viewModel.events.test {
             viewModel.createNewBlogPost("Title", "Body", null)

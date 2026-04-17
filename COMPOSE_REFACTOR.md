@@ -2,10 +2,10 @@
 
 Living reference for post-Phase-9 hardening, modularization, and feature expansion. Companion to `REFACTORING_PLAN.md`.
 
-- **Status:** Compose migration **complete** (Phase 9 landed). Focus now: modularization, observability, HTML renderer, adaptive layout, tests.
+- **Status:** Compose migration **complete** (Phase 9). **H1 complete** (2026-04-17). Focus now: HTML renderer, design tokens, comments, modularization.
 - **Target branch:** `Deploy_0.01`
 - **Backend:** `https://nyasablog.com/api/` (unchanged)
-- **Min/Target SDK:** 24 / 35 · **Kotlin:** 2.0.21 · **Java:** 17 · **Hilt:** 2.53.1 · **Room:** 2.6.1 · **Retrofit:** 2.11.0 (Gson — H1 swaps to kotlinx-serialization) · **Paging:** 3.3.6 · **Coil:** 3.0.4
+- **Min/Target SDK:** 24 / 35 · **Kotlin:** 2.0.21 · **Java:** 17 · **Hilt:** 2.53.1 · **Room:** 2.6.1 · **Retrofit:** 2.11.0 + kotlinx-serialization-json 1.7.3 · **Paging:** 3.3.6 · **Coil:** 3.0.4
 
 ## Current State (verified 2026-04-15)
 
@@ -343,11 +343,12 @@ Phase 10 stack:
 
 ## 17. Implementation Order
 
-### Shipped (Phases 1–9)
+### Shipped (Phases 1–9 + H1)
 - Compose UI across all features · Paging 3 + RemoteMediator · SafeArgs → Compose nav · reactive `ConnectivityObserver` · StateFlow ViewModels · use-case layer · Hilt DI · Room caching · Auth/Feed/Detail/Create/Account/Bookmarks all functional.
+- **H1 (2026-04-17):** `AppError` sealed interface · `safeApiCall` rewrite with typed error mapping · `AuthInterceptor` (token + 401 → `invalidate()`) · `RetryInterceptor` (GETs only, exponential backoff) · singleton `ImageLoader` sharing OkHttp · Gson → kotlinx-serialization across all DTOs · `GenericApiResponse` removed · 21 unit tests.
 
 ### Next milestones
-1. **H1 — Error & network hardening**: introduce `AppError`, rewrite `safeApiCall`, OkHttp retry interceptor (GETs only), 401 → `SessionManager.invalidate()` wiring, singleton `ImageLoader` sharing OkHttp. **Includes Gson → kotlinx-serialization swap** — gate on a DTO parse test against the live API before merge; silently breaks DTOs if a field is missed.
+1. ~~**H1 — Error & network hardening**~~ ✅ Shipped.
 2. **H2 — HTML renderer**: `PostBodyRenderer` (Jsoup + Compose + per-block WebView fallback), 20-post Paparazzi golden suite. Highest-risk item — do first.
 3. **H3 — Design-system tokens**: pull Stitch exports into `designsystem` package; replace raw colors with semantic tokens; formalize `NyasaTypography` + `NyasaSpacing`; dark-mode audit.
 4. **H4 — Comments persistence**: add `CommentEntity` to Room; write-through optimistic insert/delete; `OptimisticAction` helper in `ui/components`.
@@ -483,4 +484,4 @@ Follow the hardening skill patterns.
 
 ---
 
-_Last updated: 2026-04-15. Update this file as decisions are made; it is the source of truth for the Compose refactor._
+_Last updated: 2026-04-17. Update this file as decisions are made; it is the source of truth for the Compose refactor._

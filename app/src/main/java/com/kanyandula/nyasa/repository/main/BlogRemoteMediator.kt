@@ -12,8 +12,7 @@ import com.kanyandula.nyasa.models.BlogRemoteKey
 import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
-import com.kanyandula.nyasa.util.ErrorHandling
-import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
+import com.kanyandula.nyasa.util.isPaginationDone
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalPagingApi::class)
@@ -63,7 +62,7 @@ class BlogRemoteMediator(
                 return if (loadType == LoadType.REFRESH) {
                     MediatorResult.Success(endOfPaginationReached = false)
                 } else {
-                    MediatorResult.Error(Exception(UNABLE_TODO_OPERATION_WO_INTERNET))
+                    MediatorResult.Error(Exception("No internet connection"))
                 }
             }
 
@@ -126,7 +125,7 @@ class BlogRemoteMediator(
         response: retrofit2.Response<*>
     ): MediatorResult {
         val errorBody = response.errorBody()?.string()
-        if (ErrorHandling.isPaginationDone(errorBody)) {
+        if (isPaginationDone(errorBody)) {
             remoteKeyDao.insertOrReplace(
                 BlogRemoteKey(
                     cachedQueryKey,

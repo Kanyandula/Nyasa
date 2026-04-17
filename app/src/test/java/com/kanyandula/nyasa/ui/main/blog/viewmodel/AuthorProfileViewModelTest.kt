@@ -6,6 +6,7 @@ import com.kanyandula.nyasa.domain.usecase.profile.GetProfileUseCase
 import com.kanyandula.nyasa.fakes.FakeProfileRepository
 import com.kanyandula.nyasa.models.UserProfile
 import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,7 +56,7 @@ class AuthorProfileViewModelTest {
 
     @Test
     fun `loadProfile error emits error event`() = runTest {
-        fakeRepository.profileResult = Resource.Error("Profile not found")
+        fakeRepository.profileResult = Resource.Error(AppError.Unknown(RuntimeException("Profile not found")))
 
         viewModel.events.test {
             viewModel.loadProfile("unknown")

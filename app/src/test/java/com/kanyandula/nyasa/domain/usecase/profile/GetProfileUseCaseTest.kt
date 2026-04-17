@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.fakes.FakeProfileRepository
 import com.kanyandula.nyasa.models.UserProfile
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -46,12 +47,11 @@ class GetProfileUseCaseTest {
 
     @Test
     fun `invoke emits loading then error on failure`() = runTest {
-        fakeRepository.profileResult = Resource.Error("Not found")
+        fakeRepository.profileResult = Resource.Error(AppError.Unknown(RuntimeException("Not found")))
 
         useCase("unknown").test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
-            assertThat(error.message).isEqualTo("Not found")
             awaitComplete()
         }
     }

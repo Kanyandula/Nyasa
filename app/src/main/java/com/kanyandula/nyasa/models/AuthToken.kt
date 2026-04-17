@@ -6,8 +6,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 /**
@@ -39,7 +37,5 @@ data class AuthToken(
     var account_pk: Int? = -1,
 
     @ColumnInfo(name = "token")
-    @SerializedName("token")
-    @Expose
     var token: String? = null
 ) : Parcelable

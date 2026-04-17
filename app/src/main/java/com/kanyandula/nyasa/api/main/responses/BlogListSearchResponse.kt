@@ -1,20 +1,19 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Class for modeling the response when querying https://open-api.xyz/
 
  */
+@Serializable
 class BlogListSearchResponse(
 
-    @SerializedName("results")
-    @Expose
+    @SerialName("results")
     var results: List<BlogSearchResponse> = emptyList(),
 
-    @SerializedName("detail")
-    @Expose
+    @SerialName("detail")
     var detail: String = ""
 ) {
 

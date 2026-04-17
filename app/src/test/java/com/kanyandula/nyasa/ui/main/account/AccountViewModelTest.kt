@@ -12,6 +12,7 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountUiEvent
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_PASSWORD_UPDATE_SUCCESS
@@ -66,7 +67,7 @@ class AccountViewModelTest {
 
     @Test
     fun `getAccountProperties error emits error event`() = runTest {
-        fakeRepository.accountPropertiesResult = Resource.Error("Failed to fetch")
+        fakeRepository.accountPropertiesResult = Resource.Error(AppError.Unknown(RuntimeException("Failed to fetch")))
 
         viewModel.events.test {
             viewModel.getAccountProperties()
@@ -126,7 +127,7 @@ class AccountViewModelTest {
 
     @Test
     fun `changePassword error emits error event`() = runTest {
-        fakeRepository.updatePasswordResult = Resource.Error("Wrong password")
+        fakeRepository.updatePasswordResult = Resource.Error(AppError.Unknown(RuntimeException("Wrong password")))
 
         viewModel.events.test {
             viewModel.changePassword("wrong", "new", "new")

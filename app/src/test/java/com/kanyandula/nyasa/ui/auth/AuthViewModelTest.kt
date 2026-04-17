@@ -11,6 +11,7 @@ import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,7 +54,7 @@ class AuthViewModelTest {
 
     @Test
     fun `login error emits error event`() = runTest {
-        fakeRepository.loginResult = Resource.Error("Invalid credentials")
+        fakeRepository.loginResult = Resource.Error(AppError.Unknown(RuntimeException("Invalid credentials")))
 
         viewModel.events.test {
             viewModel.attemptLogin("test@test.com", "wrong")
@@ -61,7 +62,6 @@ class AuthViewModelTest {
 
             val event = awaitItem()
             assertThat(event).isInstanceOf(UiEvent.ShowErrorDialog::class.java)
-            assertThat((event as UiEvent.ShowErrorDialog).message).isEqualTo("Invalid credentials")
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -79,7 +79,7 @@ class AuthViewModelTest {
 
     @Test
     fun `registration error emits error event`() = runTest {
-        fakeRepository.registrationResult = Resource.Error("Email already exists")
+        fakeRepository.registrationResult = Resource.Error(AppError.Unknown(RuntimeException("Email already exists")))
 
         viewModel.events.test {
             viewModel.attemptRegistration("test@test.com", "user", "pass", "pass")

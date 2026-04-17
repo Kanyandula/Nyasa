@@ -8,14 +8,8 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
-import com.kanyandula.nyasa.repository.apiErrorMessage
 import com.kanyandula.nyasa.session.ConnectivityObserver
-import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
-import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_ACCOUNT_PROPERTIES
-import com.kanyandula.nyasa.util.ErrorHandling.ERROR_SAVE_AUTH_TOKEN
-import com.kanyandula.nyasa.util.ErrorHandling.GENERIC_AUTH_ERROR
-import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.InputValidation
 import com.kanyandula.nyasa.util.PreferenceKeys
 import com.kanyandula.nyasa.util.Resource
@@ -24,7 +18,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 class AuthRepositoryImpl
@@ -38,7 +31,10 @@ constructor(
     private val sharedPrefsEditor: SharedPreferences.Editor
 ) : AuthRepository {
 
-    override fun attemptLogin(email: String, password: String): Flow<Resource<AuthToken>> = flow {
+    override fun attemptLogin(
+        email: String,
+        password: String
+    ): Flow<Resource<AuthToken>> = flow {
         emit(Resource.Loading())
 
         val loginFieldError = InputValidation.validateLoginFields(email, password)
@@ -48,39 +44,40 @@ constructor(
         }
 
         if (!connectivityObserver.isConnected.value) {
-            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
+            emit(Resource.Error(AppError.Offline))
             return@flow
         }
 
-        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
-            safeApiCall { nyasaBlogApiAuthService.login(email, password) }
-        }
+        when (val result = safeApiCall { nyasaBlogApiAuthService.login(email, password) }) {
+            is Resource.Success -> {
+                val body = result.data
+                Log.d(TAG, "login success: $body")
 
-        when (response) {
-            is ApiSuccessResponse -> {
-                Log.d(TAG, "handleApiSuccessResponse: $response")
-
-                if (response.body.response == GENERIC_AUTH_ERROR) {
-                    emit(Resource.Error(response.body.errorMessage))
+                if (body.response == GENERIC_AUTH_ERROR) {
+                    emit(
+                        Resource.Error(
+                            AppError.Validation(mapOf("auth" to body.errorMessage))
+                        )
+                    )
                     return@flow
                 }
 
                 accountPropertiesDao.insertOrIgnore(
-                    AccountProperties(response.body.pk, response.body.email, "")
+                    AccountProperties(body.pk, body.email, "")
                 )
 
-                val result = authTokenDao.insert(
-                    AuthToken(response.body.pk, response.body.token)
-                )
-                if (result < 0) {
-                    emit(Resource.Error(ERROR_SAVE_AUTH_TOKEN))
+                val token = AuthToken(body.pk, body.token)
+                val insertResult = authTokenDao.insert(token)
+                if (insertResult < 0) {
+                    emit(Resource.Error(AppError.Unknown(null)))
                     return@flow
                 }
 
                 saveAuthenticatedUserToPrefs(email)
-                emit(Resource.Success(AuthToken(response.body.pk, response.body.token)))
+                emit(Resource.Success(token))
             }
-            else -> emit(Resource.Error(apiErrorMessage(response)))
+            is Resource.Error -> emit(result)
+            is Resource.Loading -> Unit
         }
     }.flowOn(Dispatchers.IO)
 
@@ -104,43 +101,48 @@ constructor(
         }
 
         if (!connectivityObserver.isConnected.value) {
-            emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
+            emit(Resource.Error(AppError.Offline))
             return@flow
         }
 
-        val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
-            safeApiCall { nyasaBlogApiAuthService.register(email, username, password, confirmPassword) }
-        }
+        when (
+            val result = safeApiCall {
+                nyasaBlogApiAuthService.register(email, username, password, confirmPassword)
+            }
+        ) {
+            is Resource.Success -> {
+                val body = result.data
+                Log.d(TAG, "registration success: $body")
 
-        when (response) {
-            is ApiSuccessResponse -> {
-                Log.d(TAG, "handleApiSuccessResponse: $response")
-
-                if (response.body.response == GENERIC_AUTH_ERROR) {
-                    emit(Resource.Error(response.body.errorMessage))
+                if (body.response == GENERIC_AUTH_ERROR) {
+                    emit(
+                        Resource.Error(
+                            AppError.Validation(mapOf("auth" to body.errorMessage))
+                        )
+                    )
                     return@flow
                 }
 
                 val result1 = accountPropertiesDao.insertAndReplace(
-                    AccountProperties(response.body.pk, response.body.email, response.body.username)
+                    AccountProperties(body.pk, body.email, body.username)
                 )
                 if (result1 < 0) {
-                    emit(Resource.Error(ERROR_SAVE_ACCOUNT_PROPERTIES))
+                    emit(Resource.Error(AppError.Unknown(null)))
                     return@flow
                 }
 
-                val result2 = authTokenDao.insert(
-                    AuthToken(response.body.pk, response.body.token)
-                )
+                val token = AuthToken(body.pk, body.token)
+                val result2 = authTokenDao.insert(token)
                 if (result2 < 0) {
-                    emit(Resource.Error(ERROR_SAVE_AUTH_TOKEN))
+                    emit(Resource.Error(AppError.Unknown(null)))
                     return@flow
                 }
 
                 saveAuthenticatedUserToPrefs(email)
-                emit(Resource.Success(AuthToken(response.body.pk, response.body.token)))
+                emit(Resource.Success(token))
             }
-            else -> emit(Resource.Error(apiErrorMessage(response)))
+            is Resource.Error -> emit(result)
+            is Resource.Loading -> Unit
         }
     }.flowOn(Dispatchers.IO)
 
@@ -181,5 +183,6 @@ constructor(
 
     companion object {
         private const val TAG = "AppDebug"
+        private const val GENERIC_AUTH_ERROR = "Error"
     }
 }

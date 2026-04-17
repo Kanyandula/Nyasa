@@ -11,6 +11,7 @@ import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import com.kanyandula.nyasa.repository.auth.AuthRepositoryImpl
 import com.kanyandula.nyasa.session.ConnectivityObserver
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.InputValidation
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
@@ -115,7 +116,9 @@ class AuthRepositoryImplTest {
 
         val last = results.last()
         assertThat(last).isInstanceOf(Resource.Error::class.java)
-        assertThat((last as Resource.Error).message).isEqualTo("Invalid credentials")
+        val error = (last as Resource.Error).error
+        assertThat(error).isInstanceOf(AppError.Validation::class.java)
+        assertThat((error as AppError.Validation).fields["auth"]).isEqualTo("Invalid credentials")
     }
 
     @Test
@@ -126,18 +129,22 @@ class AuthRepositoryImplTest {
 
         val last = results.last()
         assertThat(last).isInstanceOf(Resource.Error::class.java)
-        assertThat((last as Resource.Error).message).contains("internet")
+        assertThat((last as Resource.Error).error).isEqualTo(AppError.Offline)
     }
 
     @Test
     fun `login with validation error returns error`() = runTest {
-        every { InputValidation.validateLoginFields(any(), any()) } returns "Password is required."
+        every { InputValidation.validateLoginFields(any(), any()) } returns AppError.Validation(
+            mapOf("password" to "Password is required.")
+        )
 
         val results = repository.attemptLogin("test@test.com", "").toList()
 
         val last = results.last()
         assertThat(last).isInstanceOf(Resource.Error::class.java)
-        assertThat((last as Resource.Error).message).isEqualTo("Password is required.")
+        val error = (last as Resource.Error).error
+        assertThat(error).isInstanceOf(AppError.Validation::class.java)
+        assertThat((error as AppError.Validation).fields["password"]).isEqualTo("Password is required.")
     }
 
     @Test
@@ -172,7 +179,7 @@ class AuthRepositoryImplTest {
     fun `registration with validation error returns error`() = runTest {
         every {
             InputValidation.validateRegistrationFields(any(), any(), any(), any())
-        } returns "Passwords must match."
+        } returns AppError.Validation(mapOf("confirm_password" to "Passwords must match."))
 
         val results = repository.attemptRegistration(
             "test@test.com",
@@ -183,7 +190,9 @@ class AuthRepositoryImplTest {
 
         val last = results.last()
         assertThat(last).isInstanceOf(Resource.Error::class.java)
-        assertThat((last as Resource.Error).message).isEqualTo("Passwords must match.")
+        val error = (last as Resource.Error).error
+        assertThat(error).isInstanceOf(AppError.Validation::class.java)
+        assertThat((error as AppError.Validation).fields["confirm_password"]).isEqualTo("Passwords must match.")
     }
 
     @Test

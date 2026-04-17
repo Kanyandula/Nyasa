@@ -1,69 +1,55 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Suppress("LongParameterList")
+@Serializable
 class BlogCreateUpdateResponse(
 
-    @SerializedName("response")
-    @Expose
+    @SerialName("response")
     var response: String,
 
-    @SerializedName("pk")
-    @Expose
+    @SerialName("pk")
     override var pk: Int,
 
-    @SerializedName("title")
-    @Expose
+    @SerialName("title")
     override var title: String,
 
-    @SerializedName("slug")
-    @Expose
+    @SerialName("slug")
     override var slug: String,
 
-    @SerializedName("body")
-    @Expose
+    @SerialName("body")
     override var body: String,
 
-    @SerializedName("image")
-    @Expose
+    @SerialName("image")
     override var image: String,
 
-    @SerializedName("date_updated")
-    @Expose
+    @SerialName("date_updated")
     override var date_updated: String,
 
-    @SerializedName("username")
-    @Expose
+    @SerialName("username")
     override var username: String,
 
-    @SerializedName("category")
-    @Expose
+    @SerialName("category")
     override var category: CategoryResponse? = null,
 
-    @SerializedName("tags")
-    @Expose
+    @SerialName("tags")
     override var tags: List<String>? = null,
 
-    @SerializedName("reading_time")
-    @Expose
+    @SerialName("reading_time")
     override var reading_time: Int? = null,
 
-    @SerializedName("view_count")
-    @Expose
+    @SerialName("view_count")
     override var view_count: Int? = null,
 
-    @SerializedName("like_count")
-    @Expose
+    @SerialName("like_count")
     override var like_count: Int? = null,
 
-    @SerializedName("comment_count")
-    @Expose
+    @SerialName("comment_count")
     override var comment_count: Int? = null,
 
-    @SerializedName("author_avatar")
-    @Expose
+    @SerialName("author_avatar")
     override var author_avatar: String? = null
 
 ) : BlogResponseFields

@@ -1,21 +1,19 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
 import com.kanyandula.nyasa.models.Category
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 class CategoryResponse(
 
-    @SerializedName("pk")
-    @Expose
+    @SerialName("pk")
     var pk: Int,
 
-    @SerializedName("name")
-    @Expose
+    @SerialName("name")
     var name: String,
 
-    @SerializedName("slug")
-    @Expose
+    @SerialName("slug")
     var slug: String
 )
 

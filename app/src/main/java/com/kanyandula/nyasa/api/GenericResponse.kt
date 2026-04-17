@@ -1,10 +1,10 @@
 package com.kanyandula.nyasa.api
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 class GenericResponse(
-    @SerializedName("response")
-    @Expose
+    @SerialName("response")
     var response: String
 )

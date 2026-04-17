@@ -3,8 +3,8 @@
 Execution runbook for the H1–H9 hardening refactor. Companion to `COMPOSE_REFACTOR.md` (architecture reference).
 
 - **Branch:** `Deploy_0.01`
-- **Status:** Phase 9 complete — all UI is Jetpack Compose. No Fragments, no layout XML.
-- **Scope:** H1–H9 hardening. H10 (growth features) is backend-blocked.
+- **Status:** Phase 9 complete — all UI is Jetpack Compose. No Fragments, no layout XML. **H1 complete** (2026-04-17).
+- **Scope:** H2–H9 hardening. H10 (growth features) is backend-blocked.
 
 > **Phase 9 (Compose migration) is complete.** This guide covers H1–H10 hardening only.
 
@@ -14,7 +14,7 @@ Execution runbook for the H1–H9 hardening refactor. Companion to `COMPOSE_REFA
 
 | Phase | Name | Risk | Est. days |
 |---|---|---|---|
-| H1 | Error & network hardening | Medium | 2–3 |
+| H1 | Error & network hardening | ✅ **Done** | 1 day |
 | H2 | HTML renderer | **CRITICAL** | 4–5 |
 | H3 | Design system tokens | Low | 2 |
 | H4 | Comments persistence | Low | 1–2 |
@@ -167,37 +167,30 @@ grep -r "import com.kanyandula.nyasa.feature" app/src/main/java/com/kanyandula/n
 
 ## Part 3 — Phase-by-phase execution
 
-### H1 — Error & network hardening
+### H1 — Error & network hardening ✅ Complete (2026-04-17)
 
-> **The Gson → kotlinx-serialization swap is part of H1.** Treat as an explicit subtask with a DTO parse test gate before merge. Silently breaks DTOs if a field is missed.
+> Branch `hardening/h1-error` — 11 commits, ~60 files changed.
 
-**What Claude Code generates**
-- `AppError` sealed interface (Offline, Timeout, Unauthorized, Forbidden, NotFound, Validation, Server, Unknown)
-- `safeApiCall` rewrite mapping `HttpException`/`IOException` → `AppError`
-- OkHttp retry interceptor (exponential backoff, GETs only, 3 attempts)
-- `AuthInterceptor` wiring 401 → `SessionManager.invalidate()`
-- Singleton `ImageLoader` sharing OkHttp with Retrofit
-- `kotlinx-serialization-converter` replacing Gson across all DTOs
+**Delivered:**
+- `AppError` sealed interface (Offline, Timeout, Unauthorized, Forbidden, NotFound, Validation, Server, Unknown) in `util/AppError.kt`
+- `safeApiCall` rewrite returning `Resource<T>` with typed `AppError` mapping for all HTTP codes
+- `RetryInterceptor` — exponential backoff (250ms → 1s → 4s), GETs only, 3 attempts
+- `AuthInterceptor` — merged `TokenInterceptor` + `AuthenticationInterceptor`, 401 → `SessionManager.invalidate()`
+- Singleton `ImageLoader` sharing OkHttp with Retrofit, wired via `SingletonImageLoader.Factory` in `NyasaApp`
+- `kotlinx-serialization-converter` replacing Gson across all 13 DTOs + `AccountProperties`
+- `GenericApiResponse` deleted — repositories use `safeApiCall` directly
+- All repositories + ViewModels rewritten for `AppError` pipeline
+- 21 unit tests: `SafeApiCallTest` (10), `RetryInterceptorTest` (7), `AuthInterceptorTest` (4)
 
-**Session prompt**
-```
-Task: introduce AppError sealed interface, rewrite safeApiCall,
-      add OkHttp retry interceptor for GETs only, wire 401 to
-      SessionManager.invalidate(), swap Gson for kotlinx-serialization.
-```
+**Review gates — all passed:**
+1. `./gradlew assembleDebug` — BUILD SUCCESSFUL
+2. No `HttpException`/`IOException` in `ui/` — confirmed by grep
+3. `safeApiCall` maps 401/403/404/400/5xx + `SocketTimeoutException`/`IOException`
+4. `AuthInterceptor` calls `session.invalidate()` on 401
+5. `RetryInterceptor`: `if (request.method != "GET") return chain.proceed(request)`
+6. DTOs parse against live API — **pending manual verification on device**
 
-**Manual verification**
-- 401 → nav pops to Auth (test manually)
-- Every DTO parses correctly against live API — run app and check Logcat
-- Retry interceptor skips POST/PUT/DELETE (read the code)
-
-**Review gate — must all pass:**
-1. `./gradlew assembleDebug` passes
-2. No `HttpException`/`IOException` in `ui/` (grep)
-3. `safeApiCall` maps all HTTP codes to correct `AppError` variants
-4. `AuthInterceptor` 401 path calls `SessionManager.invalidate()` — not just returns
-5. Retry interceptor allow-list excludes POST/PUT/DELETE
-6. All DTOs parse against live API — no Logcat errors
+**Still pending:** Gate 6 (manual DTO parse test on device). Run the app, exercise all screens, check Logcat for serialization errors before final merge.
 
 ---
 
@@ -431,4 +424,4 @@ When Claude Code writes a file in a worktree, AS's filesystem watcher catches it
 
 ---
 
-_Last updated: 2026-04-15. Source of truth for hardening execution. Companion to `COMPOSE_REFACTOR.md` (architecture)._
+_Last updated: 2026-04-17. Source of truth for hardening execution. Companion to `COMPOSE_REFACTOR.md` (architecture)._

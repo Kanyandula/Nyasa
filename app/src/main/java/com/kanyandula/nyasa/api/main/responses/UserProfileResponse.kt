@@ -1,45 +1,37 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.google.gson.annotations.Expose
-import com.google.gson.annotations.SerializedName
 import com.kanyandula.nyasa.models.UserProfile
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 class UserProfileResponse(
 
-    @SerializedName("username")
-    @Expose
+    @SerialName("username")
     var username: String,
 
-    @SerializedName("bio")
-    @Expose
+    @SerialName("bio")
     var bio: String? = null,
 
-    @SerializedName("location")
-    @Expose
+    @SerialName("location")
     var location: String? = null,
 
-    @SerializedName("website")
-    @Expose
+    @SerialName("website")
     var website: String? = null,
 
-    @SerializedName("twitter")
-    @Expose
+    @SerialName("twitter")
     var twitter: String? = null,
 
-    @SerializedName("facebook")
-    @Expose
+    @SerialName("facebook")
     var facebook: String? = null,
 
-    @SerializedName("instagram")
-    @Expose
+    @SerialName("instagram")
     var instagram: String? = null,
 
-    @SerializedName("linkedin")
-    @Expose
+    @SerialName("linkedin")
     var linkedin: String? = null,
 
-    @SerializedName("profile_image")
-    @Expose
+    @SerialName("profile_image")
     var profile_image: String? = null
 )
 
