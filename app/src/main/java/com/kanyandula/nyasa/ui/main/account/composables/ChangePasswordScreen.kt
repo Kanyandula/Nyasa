@@ -79,9 +79,9 @@ fun ChangePasswordScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = 32.dp)
+                    .padding(horizontal = NyasaTheme.spacing.xl)
             ) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.m))
 
                 // Lock icon in circle
                 Box(
@@ -111,7 +111,7 @@ fun ChangePasswordScreen(
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 Text(
                     text = "Ensure your new password is strong and" +
                         " contains at least 8 characters.",
@@ -131,7 +131,7 @@ fun ChangePasswordScreen(
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = currentPassword,
                     onValueChange = { currentPassword = it },
@@ -151,7 +151,7 @@ fun ChangePasswordScreen(
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
@@ -171,7 +171,7 @@ fun ChangePasswordScreen(
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = confirmNewPassword,
                     onValueChange = { confirmNewPassword = it },
@@ -196,7 +196,7 @@ fun ChangePasswordScreen(
                     }
                 )
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.m))
 
                 // Password requirements checklist
                 Row(
@@ -237,7 +237,7 @@ fun ChangePasswordScreen(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xl))
             }
         }
         LoadingOverlay(isLoading = isLoading)
