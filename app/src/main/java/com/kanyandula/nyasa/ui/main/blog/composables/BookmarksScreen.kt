@@ -64,13 +64,13 @@ fun BookmarksScreen(
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.m))
                     Text(
                         text = "No bookmarks yet",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.xs))
                     Text(
                         text = "Save stories you want to read later",
                         style = MaterialTheme.typography.bodyMedium,
@@ -82,8 +82,8 @@ fun BookmarksScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(32.dp)
+                    contentPadding = PaddingValues(horizontal = NyasaTheme.spacing.m, vertical = NyasaTheme.spacing.s),
+                    verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.xl)
                 ) {
                     items(bookmarks, key = { it.pk }) { blogPost ->
                         NyasaBlogCard(

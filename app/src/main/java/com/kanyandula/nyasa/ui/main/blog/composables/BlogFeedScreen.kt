@@ -69,6 +69,7 @@ import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import kotlinx.coroutines.flow.Flow
 
@@ -186,8 +187,8 @@ private fun FeedPagingList(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            contentPadding = PaddingValues(horizontal = NyasaTheme.spacing.m, vertical = NyasaTheme.spacing.s),
+            verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.xl)
         ) {
             items(
                 count = pagingItems.itemCount,
@@ -268,7 +269,7 @@ private fun FeedEmptyState(
             modifier = Modifier.size(48.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(NyasaTheme.spacing.m))
         Text(
             text = if (query.isNotBlank()) {
                 "No stories found for \"$query\""
@@ -279,7 +280,7 @@ private fun FeedEmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         if (query.isNotBlank()) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
             NyasaButton(
                 text = "Clear Search",
                 onClick = {
@@ -339,7 +340,7 @@ private fun EditorPickCard(
                     contentScale = ContentScale.Crop
                 )
             }
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(NyasaTheme.spacing.m)) {
                 Text(
                     text = "EDITOR\u2019S PICK",
                     style = MaterialTheme.typography.labelSmall.copy(
@@ -347,7 +348,7 @@ private fun EditorPickCard(
                     ),
                     color = MaterialTheme.colorScheme.secondary
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 Text(
                     text = blogPost.title,
                     style = MaterialTheme.typography.headlineMedium,
@@ -361,7 +362,7 @@ private fun EditorPickCard(
                         imageUrl = blogPost.author_avatar,
                         size = 32.dp
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(NyasaTheme.spacing.s))
                     Text(
                         text = blogPost.username,
                         style = MaterialTheme.typography.labelLarge,
@@ -378,7 +379,7 @@ private fun EditorPickCard(
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(Modifier.width(NyasaTheme.spacing.xs))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
@@ -453,9 +454,9 @@ private fun CategoryChipsRow(
     )
 
     LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(vertical = 8.dp)
+        contentPadding = PaddingValues(horizontal = NyasaTheme.spacing.m),
+        horizontalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.s),
+        modifier = Modifier.padding(vertical = NyasaTheme.spacing.s)
     ) {
         item {
             FilterChip(
@@ -493,7 +494,7 @@ private fun EndOfFeedMessage(onRefresh: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp),
+            .padding(vertical = NyasaTheme.spacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
@@ -502,21 +503,21 @@ private fun EndOfFeedMessage(onRefresh: () -> Unit) {
             modifier = Modifier.size(48.dp),
             tint = MaterialTheme.colorScheme.primary
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(NyasaTheme.spacing.m))
         Text(
             text = "You\u2019ve reached the roots.",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(NyasaTheme.spacing.s))
         Text(
             text = "No more stories for today. Take a moment" +
                 " to reflect or start your own journey.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 32.dp)
+            modifier = Modifier.padding(horizontal = NyasaTheme.spacing.xl)
         )
         Spacer(Modifier.height(20.dp))
         NyasaButton(

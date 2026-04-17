@@ -165,7 +165,7 @@ fun BlogDetailScreen(
 
                     Column(
                         modifier = Modifier.padding(
-                            horizontal = 24.dp,
+                            horizontal = NyasaTheme.spacing.l,
                             vertical = 20.dp
                         )
                     ) {
@@ -174,7 +174,7 @@ fun BlogDetailScreen(
                             style = MaterialTheme.typography.headlineLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.m))
 
                         AuthorRow(
                             username = blogPost.username,
@@ -189,7 +189,7 @@ fun BlogDetailScreen(
                             authorAvatarUrl = blogPost.author_avatar
                         )
 
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                         BlogBody(body = blogPost.body)
 
@@ -197,7 +197,7 @@ fun BlogDetailScreen(
                             BlogUtils.parseTags(blogPost.tags)
                         }
                         if (parsedTags.isNotEmpty()) {
-                            Spacer(Modifier.height(24.dp))
+                            Spacer(Modifier.height(NyasaTheme.spacing.l))
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme
                                     .surfaceContainerHigh
@@ -205,9 +205,9 @@ fun BlogDetailScreen(
                             Spacer(Modifier.height(12.dp))
                             FlowRow(
                                 horizontalArrangement = Arrangement
-                                    .spacedBy(8.dp),
+                                    .spacedBy(NyasaTheme.spacing.s),
                                 verticalArrangement = Arrangement
-                                    .spacedBy(4.dp)
+                                    .spacedBy(NyasaTheme.spacing.xs)
                             ) {
                                 parsedTags.forEach { tag ->
                                     Text(
@@ -222,7 +222,7 @@ fun BlogDetailScreen(
                         }
 
                         if (state.isAuthorOfBlogPost) {
-                            Spacer(Modifier.height(32.dp))
+                            Spacer(Modifier.height(NyasaTheme.spacing.xl))
                             NyasaButton(
                                 text = "Edit",
                                 onClick = { onAction(BlogDetailAction.EditClicked) },
@@ -238,12 +238,12 @@ fun BlogDetailScreen(
                             )
                         }
 
-                        Spacer(Modifier.height(32.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.xl))
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme
                                 .surfaceContainerHigh
                         )
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.m))
 
                         CommentsSection(
                             comments = state.comments,
@@ -466,7 +466,7 @@ private fun AuthorRow(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable(onClick = onAuthorClick)
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.s)) {
                 Text(
                     text = date,
                     style = MaterialTheme.typography.bodySmall,
@@ -493,7 +493,7 @@ private fun AuthorRow(
                 modifier = Modifier.size(16.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(NyasaTheme.spacing.xs))
             Text(
                 text = "$likeCount",
                 style = MaterialTheme.typography.labelMedium,
@@ -529,7 +529,7 @@ private fun CommentsSection(
             modifier = Modifier.weight(1f),
             singleLine = true
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(NyasaTheme.spacing.s))
         IconButton(
             onClick = {
                 if (commentText.isNotBlank()) {
@@ -556,7 +556,7 @@ private fun CommentsSection(
                 null
             }
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(NyasaTheme.spacing.s))
     }
 
     if (comments.isEmpty()) {
@@ -612,7 +612,7 @@ private fun CommentItem(
                     }
                 }
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xs))
             Text(
                 text = comment.body,
                 style = MaterialTheme.typography.bodyMedium,
