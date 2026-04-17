@@ -36,9 +36,9 @@ suspend inline fun <T> safeApiCall(
                 )
             )
         }
-    } catch (e: SocketTimeoutException) {
+    } catch (@Suppress("SwallowedException") e: SocketTimeoutException) {
         Resource.Error(AppError.Timeout)
-    } catch (e: IOException) {
+    } catch (@Suppress("SwallowedException") e: IOException) {
         Resource.Error(AppError.Offline)
     } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
         Resource.Error(AppError.Unknown(e))
@@ -52,7 +52,7 @@ fun <T> parseDrfFieldErrors(response: Response<T>): Map<String, String> {
         json.entries.associate { (key, value) ->
             key to value.jsonPrimitive.content
         }
-    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+    } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") e: Exception) {
         emptyMap()
     }
 }

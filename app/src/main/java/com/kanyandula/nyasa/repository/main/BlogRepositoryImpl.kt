@@ -15,8 +15,8 @@ import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.getOrderedBlogPagingSource
 import com.kanyandula.nyasa.repository.networkApiFlow
 import com.kanyandula.nyasa.session.ConnectivityObserver
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
-import com.kanyandula.nyasa.util.ErrorHandling.ERROR_UNKNOWN
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_HAS_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_NO_PERMISSION_TO_EDIT
@@ -70,7 +70,7 @@ constructor(
             when (body.response) {
                 RESPONSE_NO_PERMISSION_TO_EDIT -> Resource.Success(false)
                 RESPONSE_HAS_PERMISSION_TO_EDIT -> Resource.Success(true)
-                else -> Resource.Error(ERROR_UNKNOWN)
+                else -> Resource.Error(AppError.Unknown(null))
             }
         }
     )
@@ -85,7 +85,7 @@ constructor(
                 blogPostDao.deleteBlogPost(blogPost)
                 Resource.Success(SUCCESS_BLOG_DELETED)
             } else {
-                Resource.Error(ERROR_UNKNOWN)
+                Resource.Error(AppError.Unknown(null))
             }
         }
     )

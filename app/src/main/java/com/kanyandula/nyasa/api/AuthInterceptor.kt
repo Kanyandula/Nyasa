@@ -6,7 +6,7 @@ import okhttp3.Response
 import javax.inject.Inject
 
 class AuthInterceptor @Inject constructor(
-    private val session: SessionManager,
+    private val session: SessionManager
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val token = session.cachedToken.value?.token

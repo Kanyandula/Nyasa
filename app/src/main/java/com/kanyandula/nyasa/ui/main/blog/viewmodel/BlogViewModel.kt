@@ -27,7 +27,6 @@ import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
 import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
 import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.BlogUtils
-import com.kanyandula.nyasa.util.ErrorHandling
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
@@ -253,7 +252,7 @@ constructor(
             if (blogPost != null) {
                 displayBlogPost(blogPost)
             } else {
-                sendEvent(UiEvent.ShowErrorDialog(ErrorHandling.ERROR_BLOG_POST_NOT_FOUND))
+                sendEvent(UiEvent.ShowErrorDialog("Blog post not found"))
             }
         }
     }

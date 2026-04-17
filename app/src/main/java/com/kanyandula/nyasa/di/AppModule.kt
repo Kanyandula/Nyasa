@@ -59,7 +59,7 @@ object AppModule {
     @Singleton
     @Provides
     fun provideOkHttpClient(
-        authInterceptor: AuthInterceptor,
+        authInterceptor: AuthInterceptor
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
@@ -78,7 +78,7 @@ object AppModule {
     @Provides
     fun provideImageLoader(
         application: Application,
-        okHttpClient: OkHttpClient,
+        okHttpClient: OkHttpClient
     ): ImageLoader {
         return ImageLoader.Builder(application)
             .components {

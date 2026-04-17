@@ -43,7 +43,6 @@ import com.kanyandula.nyasa.ui.main.create_blog.composables.CreateBlogScreen
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.createImagePickerIntent
 import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
-import com.kanyandula.nyasa.util.ErrorHandling.ERROR_MUST_SELECT_IMAGE
 
 internal fun handleBlogFeedAction(
     vm: BlogViewModel,
@@ -243,7 +242,7 @@ internal fun CreateBlogRoute(
             viewModel.setTags(tags)
             val imageUri = viewModel.viewState.value.blogFields.newImageUri
             if (imageUri == null) {
-                Toast.makeText(context, ERROR_MUST_SELECT_IMAGE, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "You must select an image.", Toast.LENGTH_SHORT).show()
                 return@CreateBlogScreen
             }
             viewModel.createNewBlogPost(title, body, imageUri)

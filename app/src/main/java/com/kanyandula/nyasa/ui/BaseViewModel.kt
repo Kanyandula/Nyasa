@@ -1,9 +1,9 @@
 package com.kanyandula.nyasa.ui
 
 import androidx.lifecycle.ViewModel
-import com.kanyandula.nyasa.util.ErrorHandling
-import com.kanyandula.nyasa.util.ErrorHandling.ERROR_CHECK_NETWORK_CONNECTION
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
+import com.kanyandula.nyasa.util.toUserMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,12 +34,12 @@ abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
         _events.tryEmit(event)
     }
 
-    protected fun handleError(message: String) {
+    protected fun handleError(error: AppError) {
         setLoading(false)
-        if (ErrorHandling.isNetworkError(message)) {
-            sendEvent(UiEvent.ShowToast(ERROR_CHECK_NETWORK_CONNECTION))
+        if (error is AppError.Offline) {
+            sendEvent(UiEvent.ShowToast(error.toUserMessage()))
         } else {
-            sendEvent(UiEvent.ShowErrorDialog(message))
+            sendEvent(UiEvent.ShowErrorDialog(error.toUserMessage()))
         }
     }
 
@@ -47,7 +47,7 @@ abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
         resource: Resource<T>,
         onLoading: (T?) -> Unit = {},
         onSuccess: (T) -> Unit,
-        onError: (String) -> Unit = { handleError(it) }
+        onError: (AppError) -> Unit = { handleError(it) }
     ) {
         when (resource) {
             is Resource.Loading -> {
@@ -58,7 +58,7 @@ abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
                 setLoading(false)
                 onSuccess(resource.data)
             }
-            is Resource.Error -> onError(resource.message)
+            is Resource.Error -> onError(resource.error)
         }
     }
 

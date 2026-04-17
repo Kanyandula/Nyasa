@@ -4,20 +4,16 @@ import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.domain.repository.AccountRepository
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.persistance.AccountPropertiesDao
-import com.kanyandula.nyasa.repository.apiErrorMessage
 import com.kanyandula.nyasa.repository.networkApiFlow
 import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.session.SessionManager
-import com.kanyandula.nyasa.util.ApiSuccessResponse
-import com.kanyandula.nyasa.util.Constants.NETWORK_TIMEOUT
-import com.kanyandula.nyasa.util.ErrorHandling.UNABLE_TODO_OPERATION_WO_INTERNET
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.safeApiCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 class AccountRepositoryImpl
@@ -32,7 +28,7 @@ constructor(
     override fun getAccountProperties(): Flow<Resource<AccountProperties>> = flow {
         val authToken = sessionManager.cachedToken.value
         if (authToken == null) {
-            emit(Resource.Error("Not authenticated"))
+            emit(Resource.Error(AppError.Unauthorized))
             return@flow
         }
 
@@ -44,31 +40,28 @@ constructor(
         }
 
         if (connectivityObserver.isConnected.value) {
-            val response = withTimeoutOrNull(NETWORK_TIMEOUT) {
-                safeApiCall { nyasaBlogApiMainService.getAccountProperties() }
-            }
-
-            when (response) {
-                is ApiSuccessResponse -> {
+            when (val result = safeApiCall { nyasaBlogApiMainService.getAccountProperties() }) {
+                is Resource.Success -> {
                     accountPropertiesDao.updateAccountProperties(
-                        response.body.pk,
-                        response.body.email,
-                        response.body.username
+                        result.data.pk,
+                        result.data.email,
+                        result.data.username
                     )
                     val updatedAccount = AccountProperties(
-                        response.body.pk,
-                        response.body.email,
-                        response.body.username
+                        result.data.pk,
+                        result.data.email,
+                        result.data.username
                     )
                     emit(Resource.Success(updatedAccount))
                 }
-                else -> emit(Resource.Error(apiErrorMessage(response)))
+                is Resource.Error -> emit(result)
+                is Resource.Loading -> Unit
             }
         } else {
             if (cachedAccount != null) {
                 emit(Resource.Success(cachedAccount))
             } else {
-                emit(Resource.Error(UNABLE_TODO_OPERATION_WO_INTERNET))
+                emit(Resource.Error(AppError.Offline))
             }
         }
     }.flowOn(Dispatchers.IO)

@@ -1,5 +1,9 @@
 package com.kanyandula.nyasa.util
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+
 const val PAGINATION_DONE_ERROR = "Invalid page."
 
 fun AppError.toUserMessage(): String = when (this) {
@@ -14,6 +18,13 @@ fun AppError.toUserMessage(): String = when (this) {
     is AppError.Unknown -> "Something went wrong. Please try again."
 }
 
-fun isPaginationDone(detail: String?): Boolean {
-    return detail == PAGINATION_DONE_ERROR
+fun isPaginationDone(errorBody: String?): Boolean {
+    if (errorBody.isNullOrBlank()) return false
+    return try {
+        val json = Json.parseToJsonElement(errorBody)
+        val detail = json.jsonObject["detail"]?.jsonPrimitive?.content
+        detail == PAGINATION_DONE_ERROR
+    } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") e: Exception) {
+        errorBody == PAGINATION_DONE_ERROR
+    }
 }
