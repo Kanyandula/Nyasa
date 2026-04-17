@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kanyandula.nyasa.ui.auth.WebAppInterface
 import com.kanyandula.nyasa.ui.components.NyasaButton
+import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.Constants
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -71,7 +72,7 @@ fun ForgotPasswordScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, top = 16.dp),
+                    .padding(start = NyasaTheme.spacing.m, top = NyasaTheme.spacing.m),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onNavigateBack) {
@@ -95,10 +96,10 @@ fun ForgotPasswordScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 32.dp),
+                                .padding(horizontal = NyasaTheme.spacing.xl),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
                             // Lock reset icon in circle
                             Box(
@@ -118,7 +119,7 @@ fun ForgotPasswordScreen(
                                 )
                             }
 
-                            Spacer(Modifier.height(24.dp))
+                            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                             Text(
                                 text = "Forgot Password?",
@@ -137,7 +138,7 @@ fun ForgotPasswordScreen(
                             )
                         }
 
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                         // WebView for Django password reset form
                         AndroidView(
@@ -186,7 +187,7 @@ fun ForgotPasswordScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
-                                .padding(horizontal = 16.dp)
+                                .padding(horizontal = NyasaTheme.spacing.m)
                         )
                     }
                 }
@@ -200,7 +201,7 @@ private fun PasswordResetSuccessContent(onNavigateBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(NyasaTheme.spacing.xl),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -220,7 +221,7 @@ private fun PasswordResetSuccessContent(onNavigateBack: () -> Unit) {
                 modifier = Modifier.size(36.dp)
             )
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(NyasaTheme.spacing.l))
         Text(
             text = "Password Reset Email Sent",
             style = MaterialTheme.typography.headlineSmall,
@@ -234,7 +235,7 @@ private fun PasswordResetSuccessContent(onNavigateBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(NyasaTheme.spacing.xl))
         NyasaButton(
             text = "Return to Login",
             onClick = onNavigateBack

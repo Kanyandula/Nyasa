@@ -49,10 +49,10 @@ fun WelcomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = NyasaTheme.spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xxl))
 
             Text(
                 text = "NyasaBlog",
@@ -61,15 +61,15 @@ fun WelcomeScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             SunsetHeroIllustration(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = NyasaTheme.spacing.s)
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xl))
 
             Text(
                 text = "Welcome to\nNyasaBlog",
@@ -116,7 +116,7 @@ fun WelcomeScreen(
                 )
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xl))
         }
     }
 }

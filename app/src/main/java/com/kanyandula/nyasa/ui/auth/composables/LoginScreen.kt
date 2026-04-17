@@ -69,9 +69,9 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = NyasaTheme.spacing.xl)
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             // Top bar: back arrow + branding
             Row(
@@ -105,7 +105,7 @@ fun LoginScreen(
                 Box(modifier = Modifier.size(48.dp))
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             // Sunset banner strip
             SunsetBanner(
@@ -121,7 +121,7 @@ fun LoginScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.s))
             Text(
                 text = "Please enter your details to sign in.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -138,7 +138,7 @@ fun LoginScreen(
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.s))
             NyasaTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -174,7 +174,7 @@ fun LoginScreen(
                     )
                 )
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.s))
             NyasaTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -210,13 +210,13 @@ fun LoginScreen(
                     text = "Google",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)
                 )
                 Text(
                     text = "Apple",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)
                 )
             }
 
@@ -241,7 +241,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xl))
         }
     }
 }

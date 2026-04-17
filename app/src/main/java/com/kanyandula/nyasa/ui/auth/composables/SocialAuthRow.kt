@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
 @Composable
@@ -30,7 +29,7 @@ fun SocialAuthRow(
             text = dividerText,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
@@ -43,6 +42,6 @@ fun SocialAuthRow(
 @Composable
 private fun SocialAuthRowPreview() {
     NyasaTheme {
-        SocialAuthRow(modifier = Modifier.padding(16.dp))
+        SocialAuthRow(modifier = Modifier.padding(NyasaTheme.spacing.m))
     }
 }
