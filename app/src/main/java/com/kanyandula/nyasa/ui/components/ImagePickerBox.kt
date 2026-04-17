@@ -55,7 +55,7 @@ fun ImagePickerBox(
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 Text(
                     text = "Select Photo",
                     style = MaterialTheme.typography.titleSmall,

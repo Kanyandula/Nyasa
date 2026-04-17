@@ -110,7 +110,7 @@ private fun PrimaryButton(
                         color = OnPrimary
                     )
                     if (trailingIcon != null) {
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(NyasaTheme.spacing.s))
                         Icon(
                             imageVector = trailingIcon,
                             contentDescription = null,
@@ -152,7 +152,7 @@ private fun SecondaryButton(
         } else {
             Text(text = text, style = MaterialTheme.typography.titleSmall)
             if (trailingIcon != null) {
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(NyasaTheme.spacing.s))
                 Icon(
                     imageVector = trailingIcon,
                     contentDescription = null,
@@ -201,7 +201,7 @@ private fun NyasaButtonPreview() {
     NyasaTheme {
         Column(
             modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.m)
         ) {
             NyasaButton(
                 text = "Login",

@@ -94,7 +94,7 @@ fun NyasaBlogCard(
                     }
                 }
             }
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(NyasaTheme.spacing.m)) {
                 // Category text fallback when no image
                 if (category != null && imageUrl == null) {
                     Text(
@@ -114,7 +114,7 @@ fun NyasaBlogCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 if (excerpt != null) {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.xs))
                     Text(
                         text = excerpt,
                         style = MaterialTheme.typography.bodyMedium,
@@ -135,7 +135,7 @@ fun NyasaBlogCard(
                             imageUrl = authorAvatarUrl,
                             size = 24.dp
                         )
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(NyasaTheme.spacing.s))
                         Text(
                             text = authorName,
                             style = MaterialTheme.typography.labelLarge,
@@ -161,7 +161,7 @@ fun NyasaBlogCard(
                                 modifier = Modifier.size(18.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(NyasaTheme.spacing.xs))
                             Text(
                                 text = "$likeCount",
                                 style = MaterialTheme.typography.labelSmall,
@@ -176,7 +176,7 @@ fun NyasaBlogCard(
                                 modifier = Modifier.size(18.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(NyasaTheme.spacing.xs))
                             Text(
                                 text = "$commentCount",
                                 style = MaterialTheme.typography.labelSmall,
@@ -219,7 +219,7 @@ private fun NyasaBlogCardPreview() {
                 likeCount = 48,
                 commentCount = 15,
                 onBookmarkClick = {},
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(NyasaTheme.spacing.m)
             )
         }
     }
