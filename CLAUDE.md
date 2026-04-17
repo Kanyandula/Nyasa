@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 NyasaBlog is a native Android app (Kotlin) that interacts with the REST API at `nyasablog.com`. It is a blogging platform for Malawian content creators. The app supports authentication, blog CRUD with image uploads, account management, and offline caching.
 
-**Status:** Phases 1–9 of the 10-phase modernization are complete (see `REFACTORING_PLAN.md`). UI is 100% Jetpack Compose — no Fragments, no layout XML, no navigation XML remain. Forward-looking hardening work (H1–H10) lives in `COMPOSE_REFACTOR.md` with the execution runbook in `WORKTREE_REFACTOR_GUIDE.md`.
+**Status:** Phases 1–9 of the 10-phase modernization are complete (see `REFACTORING_PLAN.md`). H1 (error hardening) shipped 2026-04-17. UI is 100% Jetpack Compose — no Fragments, no layout XML, no navigation XML remain. Forward-looking hardening work (H2–H10) lives in `COMPOSE_REFACTOR.md` with the execution runbook in `WORKTREE_REFACTOR_GUIDE.md`.
 
 ## Build & Quality Commands
 
@@ -37,7 +37,8 @@ Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Reposito
 
 **Key abstractions**:
 - `BaseViewModel<ViewState>` — provides `StateFlow<ViewState>`, `StateFlow<Boolean>` for loading, and `SharedFlow<UiEvent>` for one-shot events
-- `Resource<T>` — sealed class (`Loading`, `Success`, `Error`) emitted by repositories
+- `Resource<T>` — sealed class (`Loading`, `Success`, `Error(AppError)`) emitted by repositories
+- `AppError` — sealed interface (Offline, Timeout, Unauthorized, Forbidden, NotFound, Validation, Server, Unknown) mapped at the network boundary
 - `UiEvent` — interface for one-shot UI events (`ShowToast`, `ShowErrorDialog`, `ShowSuccessDialog`); screen-specific events extend it (e.g. `BlogNavigationEvent`, `AuthUiEvent`, `AccountUiEvent`)
 - Use cases — single-responsibility classes with `operator fun invoke()`, one per repository operation
 - Repository interfaces in `domain/repository/`, implementations in `repository/` as `*Impl`
@@ -62,7 +63,7 @@ Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Reposito
   - `ui/navigation/` — `AuthNavGraph.kt`, `MainNavGraph.kt` (navigation-compose)
   - `ui/components/` — shared composables (`NyasaTopBar`, `NyasaBottomBar`, `ImagePickerBox`, `NyasaCategoryDropdown`)
   - `ui/theme/` — Compose theme
-- `util/` — Constants, error handling, `safeApiCall`, `GenericApiResponse`, `Resource`
+- `util/` — Constants, `AppError`, `safeApiCall`, `Resource`, error handling
 
 **Blog state**: Per-screen state classes — `BlogListUiState`, `ViewBlogUiState`, `UpdateBlogUiState`. `BlogViewModel` is shared across blog composables via `hiltViewModel()` scoped to the nav graph, exposing separate `StateFlow` for each screen.
 
@@ -70,8 +71,9 @@ Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Reposito
 
 - **API base URL**: `https://nyasablog.com/api/` (defined in `util/Constants.kt`)
 - **Auth**: Token-based via django-auth-token. Token stored in `EncryptedSharedPreferences` (AES256)
-- **Retrofit services** use `suspend fun` returning `Response<T>`. Calls wrapped with `safeApiCall()` in `util/SafeApiCall.kt`
-- **`GenericApiResponse`**: Sealed class (`ApiSuccessResponse`, `ApiErrorResponse`, `ApiEmptyResponse`) used to normalize API responses
+- **Retrofit services** use `suspend fun` returning `Response<T>`. Calls wrapped with `safeApiCall()` in `util/SafeApiCall.kt` which returns `Resource<T>` with typed `AppError` mapping
+- **Error handling**: `AppError` sealed interface mapped at the network boundary. `safeApiCall` maps HTTP codes and exceptions to `AppError` variants. `AuthInterceptor` handles 401 → `SessionManager.invalidate()`. `RetryInterceptor` retries GETs only (exponential backoff, 3 attempts)
+- **Serialization**: kotlinx-serialization-json 1.7.3 with `retrofit2-kotlinx-serialization-converter`. All DTOs use `@Serializable` + `@SerialName`
 - **Room DB**: entities — `AuthToken` (FK to `AccountProperties`), `AccountProperties`, `BlogPost`. DAOs return `Flow`. Paging 3 via `BlogRemoteMediator` + `RemoteKeys`
 - **Navigation**: single `NavHost` with nested graphs — `AuthNavGraph`, `MainNavGraph`. Session-gated at the root. Hosted by `MainActivity`
 - **Image uploads**: Multipart via `UploadStreamRequestBody`, with CanHub ImagePicker for selection/cropping and Compressor for size reduction
@@ -82,6 +84,6 @@ Composables (collectAsStateWithLifecycle) → ViewModel → UseCase → Reposito
 - compileSdk/targetSdk: 35, minSdk: 24
 - Kotlin 2.0.21 with KSP (not KAPT); Compose compiler via `org.jetbrains.kotlin.plugin.compose`
 - Java 17 compatibility
-- Hilt 2.53.1, Room 2.6.1, Retrofit 2.11.0, Navigation-Compose 2.7.7, Paging 3.3.6, Coil 3 (`io.coil-kt.coil3`)
+- Hilt 2.53.1, Room 2.6.1, Retrofit 2.11.0 + kotlinx-serialization-json 1.7.3, Navigation-Compose 2.7.7, Paging 3.3.6, Coil 3 (`io.coil-kt.coil3`)
 - Detekt max line length: 120, max method length: 60, max cyclomatic complexity: 20
 - Main branch: `Deploy_0.01`
