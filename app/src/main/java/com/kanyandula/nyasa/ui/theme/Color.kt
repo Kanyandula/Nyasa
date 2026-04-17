@@ -1,5 +1,7 @@
 package com.kanyandula.nyasa.ui.theme
 
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 // Primary
@@ -63,3 +65,75 @@ val OutlineVariant = Color(0xFFC0C7CF)
 
 // Accent
 val SunsetOrange = Color(0xFFE8883C)
+
+val NyasaLightColorScheme = lightColorScheme(
+    primary = Primary,
+    onPrimary = OnPrimary,
+    primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
+    secondary = Secondary,
+    onSecondary = OnSecondary,
+    secondaryContainer = SecondaryContainer,
+    onSecondaryContainer = OnSecondaryContainer,
+    tertiary = Tertiary,
+    onTertiary = OnTertiary,
+    tertiaryContainer = TertiaryContainer,
+    onTertiaryContainer = OnTertiaryContainer,
+    error = Error,
+    onError = OnError,
+    errorContainer = ErrorContainer,
+    onErrorContainer = OnErrorContainer,
+    background = Surface,
+    onBackground = OnSurface,
+    surface = Surface,
+    onSurface = OnSurface,
+    surfaceVariant = SurfaceVariant,
+    onSurfaceVariant = OnSurfaceVariant,
+    surfaceTint = SurfaceTint,
+    inverseSurface = InverseSurface,
+    inverseOnSurface = InverseOnSurface,
+    inversePrimary = InversePrimary,
+    outline = Outline,
+    outlineVariant = OutlineVariant,
+    surfaceBright = SurfaceBright,
+    surfaceDim = SurfaceDim,
+    surfaceContainer = SurfaceContainer,
+    surfaceContainerHigh = SurfaceContainerHigh,
+    surfaceContainerHighest = SurfaceContainerHighest,
+    surfaceContainerLow = SurfaceContainerLow,
+    surfaceContainerLowest = SurfaceContainerLowest
+)
+
+val NyasaDarkColorScheme = darkColorScheme(
+    primary = Color(0xFF8ECAE6),
+    onPrimary = Color(0xFF003549),
+    primaryContainer = Color(0xFF004D6B),
+    onPrimaryContainer = Color(0xFFC0E8FF),
+    secondary = Color(0xFFFFB871),
+    onSecondary = Color(0xFF4E2600),
+    secondaryContainer = Color(0xFF6F3800),
+    onSecondaryContainer = Color(0xFFFFDCC2),
+    tertiary = Color(0xFFE2C28C),
+    onTertiary = Color(0xFF3F2E04),
+    tertiaryContainer = Color(0xFF584419),
+    onTertiaryContainer = Color(0xFFFFDEA6),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    surface = Color(0xFF121212),
+    onSurface = Color(0xFFE6E1E5),
+    surfaceVariant = Color(0xFF49454F),
+    onSurfaceVariant = Color(0xFFCAC4D0),
+    surfaceContainerLowest = Color(0xFF0D0D0D),
+    surfaceContainerLow = Color(0xFF1D1B20),
+    surfaceContainer = Color(0xFF211F26),
+    surfaceContainerHigh = Color(0xFF2B2930),
+    surfaceContainerHighest = Color(0xFF36343B),
+    outline = Color(0xFF938F99),
+    outlineVariant = Color(0xFF49454F),
+    inverseSurface = Color(0xFFE6E1E5),
+    inverseOnSurface = Color(0xFF313033),
+    inversePrimary = Color(0xFF005275),
+    surfaceTint = Color(0xFF8ECAE6)
+)
