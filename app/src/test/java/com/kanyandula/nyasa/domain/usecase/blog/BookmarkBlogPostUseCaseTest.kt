@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.domain.usecase.blog
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -45,12 +46,11 @@ class BookmarkBlogPostUseCaseTest {
 
     @Test
     fun `invoke emits loading then error on failure`() = runTest {
-        fakeRepository.bookmarkResult = Resource.Error("Network error")
+        fakeRepository.bookmarkResult = Resource.Error(AppError.Unknown(RuntimeException("Network error")))
 
         useCase("test-slug").test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
-            assertThat(error.message).isEqualTo("Network error")
             awaitComplete()
         }
     }

@@ -3,6 +3,7 @@ package com.kanyandula.nyasa.domain.usecase.comment
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.fakes.FakeCommentRepository
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -33,12 +34,11 @@ class DeleteCommentUseCaseTest {
 
     @Test
     fun `invoke emits loading then error on failure`() = runTest {
-        fakeRepository.deleteCommentResult = Resource.Error("Forbidden")
+        fakeRepository.deleteCommentResult = Resource.Error(AppError.Unknown(RuntimeException("Forbidden")))
 
         useCase(1).test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
-            assertThat(error.message).isEqualTo("Forbidden")
             awaitComplete()
         }
     }

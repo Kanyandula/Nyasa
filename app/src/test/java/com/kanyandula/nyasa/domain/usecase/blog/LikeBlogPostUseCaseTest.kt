@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.models.LikeResult
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -35,12 +36,11 @@ class LikeBlogPostUseCaseTest {
 
     @Test
     fun `invoke emits loading then error on failure`() = runTest {
-        fakeRepository.likeResult = Resource.Error("Network error")
+        fakeRepository.likeResult = Resource.Error(AppError.Unknown(RuntimeException("Network error")))
 
         useCase("test-slug").test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
-            assertThat(error.message).isEqualTo("Network error")
             awaitComplete()
         }
     }

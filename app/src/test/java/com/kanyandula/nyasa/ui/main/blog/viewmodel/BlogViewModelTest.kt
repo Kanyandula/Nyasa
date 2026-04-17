@@ -21,6 +21,7 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
@@ -288,7 +289,7 @@ class BlogViewModelTest {
     fun `deleteBlogPost error emits error event`() = runTest {
         val blogPost = createTestBlogPost()
         fakeRepository.blogPostBySlug = blogPost
-        fakeRepository.deleteResult = Resource.Error("Delete failed")
+        fakeRepository.deleteResult = Resource.Error(AppError.Unknown(RuntimeException("Delete failed")))
 
         viewModel.loadBlogBySlug("test-blog")
         advanceUntilIdle()
@@ -335,7 +336,7 @@ class BlogViewModelTest {
 
     @Test
     fun `updateBlogPost error emits error event`() = runTest {
-        fakeRepository.updateResult = Resource.Error("Update failed")
+        fakeRepository.updateResult = Resource.Error(AppError.Unknown(RuntimeException("Update failed")))
 
         viewModel.events.test {
             viewModel.updateBlogPost("test-blog", "Title", "Body", null)

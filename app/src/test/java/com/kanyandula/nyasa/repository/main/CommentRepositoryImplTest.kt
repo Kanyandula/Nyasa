@@ -5,6 +5,7 @@ import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.CommentResponse
 import com.kanyandula.nyasa.session.ConnectivityObserver
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import io.mockk.coEvery
@@ -62,7 +63,7 @@ class CommentRepositoryImplTest {
 
         val last = results.last()
         assertThat(last).isInstanceOf(Resource.Error::class.java)
-        assertThat((last as Resource.Error).message).contains("internet")
+        assertThat((last as Resource.Error).error).isEqualTo(AppError.Offline)
     }
 
     @Test

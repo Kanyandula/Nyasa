@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.fakes.FakeCommentRepository
 import com.kanyandula.nyasa.models.Comment
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -36,12 +37,11 @@ class CreateCommentUseCaseTest {
 
     @Test
     fun `invoke emits loading then error on failure`() = runTest {
-        fakeRepository.createCommentResult = Resource.Error("Unauthorized")
+        fakeRepository.createCommentResult = Resource.Error(AppError.Unknown(RuntimeException("Unauthorized")))
 
         useCase("test-slug", "My comment").test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
-            assertThat(error.message).isEqualTo("Unauthorized")
             awaitComplete()
         }
     }

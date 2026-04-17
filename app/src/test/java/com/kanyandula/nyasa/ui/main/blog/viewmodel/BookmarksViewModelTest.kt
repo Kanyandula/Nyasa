@@ -7,6 +7,7 @@ import com.kanyandula.nyasa.domain.usecase.blog.GetBookmarksUseCase
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -79,7 +80,7 @@ class BookmarksViewModelTest {
     fun `loadBookmarks error emits error event`() = runTest {
         advanceUntilIdle()
 
-        fakeRepository.bookmarksResult = Resource.Error("Network error")
+        fakeRepository.bookmarksResult = Resource.Error(AppError.Unknown(RuntimeException("Network error")))
 
         viewModel.events.test {
             viewModel.loadBookmarks()
@@ -119,7 +120,7 @@ class BookmarksViewModelTest {
     fun `removeBookmark error emits error event`() = runTest {
         advanceUntilIdle()
 
-        fakeRepository.bookmarkResult = Resource.Error("Failed to remove bookmark")
+        fakeRepository.bookmarkResult = Resource.Error(AppError.Unknown(RuntimeException("Failed to remove bookmark")))
 
         viewModel.events.test {
             viewModel.removeBookmark("post-1")
@@ -135,7 +136,7 @@ class BookmarksViewModelTest {
     fun `removeBookmark error does not modify list`() = runTest {
         advanceUntilIdle()
 
-        fakeRepository.bookmarkResult = Resource.Error("Failed")
+        fakeRepository.bookmarkResult = Resource.Error(AppError.Unknown(RuntimeException("Failed")))
 
         viewModel.removeBookmark("post-1")
         advanceUntilIdle()

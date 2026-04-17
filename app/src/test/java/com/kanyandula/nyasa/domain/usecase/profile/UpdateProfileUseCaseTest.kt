@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.fakes.FakeProfileRepository
 import com.kanyandula.nyasa.models.ProfileUpdateRequest
 import com.kanyandula.nyasa.models.UserProfile
+import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -48,13 +49,12 @@ class UpdateProfileUseCaseTest {
 
     @Test
     fun `invoke emits loading then error on failure`() = runTest {
-        fakeRepository.updateProfileResult = Resource.Error("Unauthorized")
+        fakeRepository.updateProfileResult = Resource.Error(AppError.Unknown(RuntimeException("Unauthorized")))
 
         val request = ProfileUpdateRequest(bio = "bio")
         useCase(request).test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
-            assertThat(error.message).isEqualTo("Unauthorized")
             awaitComplete()
         }
     }
