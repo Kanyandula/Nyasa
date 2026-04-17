@@ -1,6 +1,7 @@
 package com.kanyandula.nyasa.util
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.Response
@@ -50,7 +51,10 @@ fun <T> parseDrfFieldErrors(response: Response<T>): Map<String, String> {
         val errorBody = response.errorBody()?.string() ?: return emptyMap()
         val json = Json.parseToJsonElement(errorBody).jsonObject
         json.entries.associate { (key, value) ->
-            key to value.jsonPrimitive.content
+            key to when (value) {
+                is JsonArray -> value.firstOrNull()?.jsonPrimitive?.content ?: ""
+                else -> value.jsonPrimitive.content
+            }
         }
     } catch (@Suppress("TooGenericExceptionCaught", "SwallowedException") e: Exception) {
         emptyMap()

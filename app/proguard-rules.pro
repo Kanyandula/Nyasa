@@ -34,13 +34,15 @@
 -if interface * { @retrofit2.http.* public *** ...(...); }
 -keep,allowoptimization,allowshrinking,allowobfuscation class <3>
 
-# --- GSON ---
--keepattributes Signature
--keepattributes *Annotation*
+# --- kotlinx-serialization ---
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
+-keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class com.kanyandula.nyasa.**$$serializer { *; }
+-keepclassmembers class com.kanyandula.nyasa.** { *** Companion; }
+-keepclasseswithmembers class com.kanyandula.nyasa.** { kotlinx.serialization.KSerializer serializer(...); }
 -dontwarn sun.misc.**
--keep class com.google.gson.stream.** { *; }
--keep class com.kanyandula.nyasa.models.** { <fields>; }
--keep class com.kanyandula.nyasa.api.** { <fields>; }
 
 # --- OkHttp ---
 -dontwarn okhttp3.**

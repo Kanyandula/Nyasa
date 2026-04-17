@@ -51,7 +51,7 @@ constructor(
         when (val result = safeApiCall { nyasaBlogApiAuthService.login(email, password) }) {
             is Resource.Success -> {
                 val body = result.data
-                Log.d(TAG, "handleApiSuccessResponse: $body")
+                Log.d(TAG, "login success: $body")
 
                 if (body.response == GENERIC_AUTH_ERROR) {
                     emit(
@@ -111,7 +111,7 @@ constructor(
         ) {
             is Resource.Success -> {
                 val body = result.data
-                Log.d(TAG, "handleApiSuccessResponse: $body")
+                Log.d(TAG, "registration success: $body")
 
                 if (body.response == GENERIC_AUTH_ERROR) {
                     emit(
