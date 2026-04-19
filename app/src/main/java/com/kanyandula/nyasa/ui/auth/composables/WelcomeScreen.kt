@@ -123,6 +123,13 @@ fun WelcomeScreen(
 
 @Composable
 private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
+    val skyTop = NyasaTheme.colors.sunsetSkyTop
+    val gradientStart = NyasaTheme.colors.sunsetGradientStart
+    val skyBottom = NyasaTheme.colors.sunsetSkyBottom
+    val gradientEnd = NyasaTheme.colors.sunsetGradientEnd
+    val textHighlight = NyasaTheme.colors.sunsetTextHighlight
+    val textGlow = NyasaTheme.colors.sunsetTextGlow
+
     Box(
         modifier = modifier
             .aspectRatio(4f / 3f)
@@ -136,10 +143,10 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF87CEEB),
-                        Color(0xFFFDB777),
-                        Color(0xFFF4A460),
-                        Color(0xFFE8883C)
+                        skyTop,
+                        gradientStart,
+                        skyBottom,
+                        gradientEnd
                     )
                 )
             )
@@ -148,8 +155,8 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFFFFF3E0),
-                        Color(0xFFFFCC80).copy(alpha = 0.6f),
+                        textHighlight,
+                        textGlow.copy(alpha = 0.6f),
                         Color.Transparent
                     ),
                     center = Offset(w * 0.5f, h * 0.45f),
@@ -163,8 +170,8 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFFFFF8E1),
-                        Color(0xFFFFE0B2)
+                        textHighlight,
+                        textGlow
                     ),
                     center = Offset(w * 0.5f, h * 0.45f),
                     radius = w * 0.1f
