@@ -43,6 +43,7 @@ import com.kanyandula.nyasa.ui.main.create_blog.composables.CreateBlogScreen
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.createImagePickerIntent
 import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
+import com.kanyandula.nyasa.ui.theme.ThemePreference
 
 internal fun handleBlogFeedAction(
     vm: BlogViewModel,
@@ -259,6 +260,8 @@ internal fun CreateBlogRoute(
 @Composable
 internal fun AccountProfileRoute(
     viewModel: AccountViewModel,
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit,
     onEditProfile: () -> Unit,
     onChangePassword: () -> Unit,
     onBookmarks: () -> Unit
@@ -280,6 +283,8 @@ internal fun AccountProfileRoute(
     AccountProfileScreen(
         state = state,
         isLoading = isLoading,
+        currentTheme = currentTheme,
+        onThemeChanged = onThemeChanged,
         onAction = { action ->
             when (action) {
                 is AccountProfileAction.EditProfile -> onEditProfile()

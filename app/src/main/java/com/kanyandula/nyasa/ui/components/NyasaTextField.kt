@@ -29,8 +29,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.PrimaryContainer
 
 private val PasswordMask = PasswordVisualTransformation()
 
@@ -107,11 +105,11 @@ fun NyasaTextField(
             keyboardActions = KeyboardActions(onAny = { onImeAction() }),
             shape = MaterialTheme.shapes.small,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Primary,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                focusedLabelColor = Primary,
-                cursorColor = Primary,
-                focusedLeadingIconColor = PrimaryContainer
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
         if (isError && errorMessage != null) {

@@ -96,7 +96,7 @@ fun BlogDetailScreen(
                                 },
                                 contentDescription = "Like",
                                 tint = if (isLiked) {
-                                    MaterialTheme.colorScheme.error
+                                    NyasaTheme.colors.likeActive
                                 } else {
                                     MaterialTheme.colorScheme.onSurfaceVariant
                                 }
@@ -143,7 +143,7 @@ fun BlogDetailScreen(
                                 modifier = Modifier
                                     .padding(12.dp)
                                     .align(Alignment.TopStart),
-                                color = MaterialTheme.colorScheme.primary
+                                color = NyasaTheme.colors.categoryChip
                                     .copy(alpha = 0.85f),
                                 shape = RoundedCornerShape(4.dp)
                             ) {
@@ -476,12 +476,12 @@ private fun AuthorRow(
                     Text(
                         text = "\u00B7",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = NyasaTheme.colors.readTimeText
                     )
                     Text(
                         text = "$readingTime min read",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = NyasaTheme.colors.readTimeText
                     )
                 }
             }

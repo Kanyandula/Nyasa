@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(padding)
                     ) {
                         authGraph(navController, sessionManager)
-                        mainGraph(navController)
+                        mainGraph(navController, themeDataStore)
                     }
                 }
             }

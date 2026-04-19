@@ -17,8 +17,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.kanyandula.nyasa.models.Category
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.PrimaryContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,10 +45,10 @@ fun NyasaCategoryDropdown(
                 .menuAnchor(MenuAnchorType.PrimaryNotEditable),
             shape = MaterialTheme.shapes.small,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Primary,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                focusedLabelColor = Primary,
-                focusedLeadingIconColor = PrimaryContainer
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
         ExposedDropdownMenu(

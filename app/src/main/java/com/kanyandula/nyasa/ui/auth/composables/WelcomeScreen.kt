@@ -32,8 +32,6 @@ import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.SunsetOrange
 
 @Composable
 fun WelcomeScreen(
@@ -129,6 +127,8 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
     val gradientEnd = NyasaTheme.colors.sunsetGradientEnd
     val textHighlight = NyasaTheme.colors.sunsetTextHighlight
     val textGlow = NyasaTheme.colors.sunsetTextGlow
+    val waterReflection = NyasaTheme.colors.sunsetGradientEnd
+    val patternColor = MaterialTheme.colorScheme.primary
 
     Box(
         modifier = modifier
@@ -184,9 +184,9 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        SunsetOrange.copy(alpha = 0.5f),
-                        Primary.copy(alpha = 0.3f),
-                        Primary.copy(alpha = 0.5f)
+                        waterReflection.copy(alpha = 0.5f),
+                        patternColor.copy(alpha = 0.3f),
+                        patternColor.copy(alpha = 0.5f)
                     ),
                     startY = h * 0.65f,
                     endY = h
@@ -198,13 +198,13 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             // Chitenje dot pattern overlay
             val dotRadius = 2f
             val spacing = 20f
-            val patternColor = Primary.copy(alpha = 0.04f)
+            val dotColor = patternColor.copy(alpha = 0.04f)
             var y = 0f
             while (y < h) {
                 var x = 0f
                 while (x < w) {
                     drawCircle(
-                        color = patternColor,
+                        color = dotColor,
                         radius = dotRadius,
                         center = Offset(x, y)
                     )

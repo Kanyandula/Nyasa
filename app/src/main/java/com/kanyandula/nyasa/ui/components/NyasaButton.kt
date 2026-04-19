@@ -33,17 +33,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.OnPrimary
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.PrimaryContainer
-import com.kanyandula.nyasa.ui.theme.Secondary
 
 enum class ButtonStyle { Primary, Secondary, Destructive }
 
 private val PillShape = RoundedCornerShape(50)
-
-private val SignatureGradientColors = listOf(Primary, PrimaryContainer)
-private val SignatureGradientColorsDisabled = SignatureGradientColors.map { it.copy(alpha = 0.4f) }
 
 @Composable
 fun NyasaButton(
@@ -72,9 +65,13 @@ private fun PrimaryButton(
     trailingIcon: ImageVector? = null
 ) {
     val isActive = enabled && !loading
-    val brush = remember(isActive) {
+    val primary = MaterialTheme.colorScheme.primary
+    val primaryContainer = MaterialTheme.colorScheme.primaryContainer
+    val brush = remember(isActive, primary, primaryContainer) {
+        val colors = listOf(primary, primaryContainer)
+        val gradientColors = if (isActive) colors else colors.map { it.copy(alpha = 0.4f) }
         Brush.linearGradient(
-            colors = if (isActive) SignatureGradientColors else SignatureGradientColorsDisabled,
+            colors = gradientColors,
             start = Offset.Zero,
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
@@ -99,7 +96,7 @@ private fun PrimaryButton(
             if (loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    color = OnPrimary,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp
                 )
             } else {
@@ -107,14 +104,14 @@ private fun PrimaryButton(
                     Text(
                         text = text,
                         style = MaterialTheme.typography.titleSmall,
-                        color = OnPrimary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     if (trailingIcon != null) {
                         Spacer(Modifier.width(NyasaTheme.spacing.s))
                         Icon(
                             imageVector = trailingIcon,
                             contentDescription = null,
-                            tint = OnPrimary,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -140,13 +137,18 @@ private fun SecondaryButton(
             .height(52.dp),
         enabled = enabled && !loading,
         shape = PillShape,
-        border = BorderStroke(1.5.dp, Secondary.copy(alpha = 0.4f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Secondary)
+        border = BorderStroke(
+            1.5.dp,
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
+        ),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.secondary
+        )
     ) {
         if (loading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
-                color = Secondary,
+                color = MaterialTheme.colorScheme.secondary,
                 strokeWidth = 2.dp
             )
         } else {

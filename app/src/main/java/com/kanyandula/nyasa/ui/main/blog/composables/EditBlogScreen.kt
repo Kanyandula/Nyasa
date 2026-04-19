@@ -49,7 +49,6 @@ import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +82,7 @@ fun EditBlogScreen(
                             enabled = !isLoading,
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Primary
+                                containerColor = MaterialTheme.colorScheme.primary
                             ),
                             contentPadding = PaddingValues(
                                 horizontal = 20.dp,

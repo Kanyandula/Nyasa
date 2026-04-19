@@ -3,6 +3,9 @@ package com.kanyandula.nyasa.ui.navigation
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -25,9 +28,15 @@ import com.kanyandula.nyasa.ui.main.blog.composables.FeedMode
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.handleBlogFeedAction
+import com.kanyandula.nyasa.ui.theme.ThemePreference
+import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
+import kotlinx.coroutines.launch
 
 @Suppress("LongMethod")
-fun NavGraphBuilder.mainGraph(navController: NavController) {
+fun NavGraphBuilder.mainGraph(
+    navController: NavController,
+    themeDataStore: DataStore<Preferences>
+) {
     navigation(startDestination = Routes.BLOG_GRAPH, route = Routes.MAIN_GRAPH) {
         navigation(startDestination = Routes.BLOG_FEED, route = Routes.BLOG_GRAPH) {
             composable(Routes.BLOG_FEED) { entry ->
@@ -150,8 +159,23 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                     navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
                 }
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
+                val currentTheme by ThemePreferenceManager
+                    .themeFlow(themeDataStore)
+                    .collectAsStateWithLifecycle(
+                        initialValue = ThemePreference.SYSTEM
+                    )
+                val scope = rememberCoroutineScope()
                 AccountProfileRoute(
                     viewModel = vm,
+                    currentTheme = currentTheme,
+                    onThemeChanged = { preference ->
+                        scope.launch {
+                            ThemePreferenceManager.setTheme(
+                                themeDataStore,
+                                preference
+                            )
+                        }
+                    },
                     onEditProfile = { navController.navigate(Routes.ACCOUNT_EDIT) },
                     onChangePassword = {
                         navController.navigate(Routes.ACCOUNT_CHANGE_PASSWORD)

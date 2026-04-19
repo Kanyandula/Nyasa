@@ -42,7 +42,6 @@ import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.ProfileFormData
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +87,7 @@ fun EditAccountScreen(
                             enabled = !isLoading,
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Primary
+                                containerColor = MaterialTheme.colorScheme.primary
                             ),
                             contentPadding = PaddingValues(
                                 horizontal = 20.dp,

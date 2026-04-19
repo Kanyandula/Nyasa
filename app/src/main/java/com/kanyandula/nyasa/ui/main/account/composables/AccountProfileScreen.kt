@@ -30,32 +30,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.ThemePreference
-import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
-import com.kanyandula.nyasa.ui.theme.themeDataStore
-import kotlinx.coroutines.launch
 
 @Composable
 fun AccountProfileScreen(
     state: AccountViewState,
     isLoading: Boolean,
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit,
     onAction: (AccountProfileAction) -> Unit
 ) {
     val account = state.accountProperties
@@ -128,7 +123,10 @@ fun AccountProfileScreen(
                     .padding(bottom = NyasaTheme.spacing.s)
             )
 
-            AppearanceSelector()
+            AppearanceSelector(
+                currentTheme = currentTheme,
+                onThemeChanged = onThemeChanged
+            )
             Spacer(modifier = Modifier.height(NyasaTheme.spacing.m))
 
             Surface(
@@ -199,14 +197,10 @@ fun AccountProfileScreen(
 }
 
 @Composable
-private fun AppearanceSelector() {
-    val context = LocalContext.current
-    val dataStore = context.themeDataStore
-    val currentTheme by ThemePreferenceManager
-        .themeFlow(dataStore)
-        .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
-    val scope = rememberCoroutineScope()
-
+private fun AppearanceSelector(
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit
+) {
     Column(modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)) {
         Text(
             text = "Appearance",
@@ -218,11 +212,7 @@ private fun AppearanceSelector() {
             ThemePreference.entries.forEachIndexed { index, preference ->
                 SegmentedButton(
                     selected = currentTheme == preference,
-                    onClick = {
-                        scope.launch {
-                            ThemePreferenceManager.setTheme(dataStore, preference)
-                        }
-                    },
+                    onClick = { onThemeChanged(preference) },
                     shape = SegmentedButtonDefaults.itemShape(
                         index = index,
                         count = ThemePreference.entries.size
@@ -358,6 +348,8 @@ private fun AccountProfileScreenPreview() {
                 )
             ),
             isLoading = false,
+            currentTheme = ThemePreference.SYSTEM,
+            onThemeChanged = {},
             onAction = {}
         )
     }

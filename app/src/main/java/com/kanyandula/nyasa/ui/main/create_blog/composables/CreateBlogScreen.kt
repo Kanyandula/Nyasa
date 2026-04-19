@@ -64,7 +64,6 @@ import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 import com.kanyandula.nyasa.util.BlogUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -159,10 +158,10 @@ fun CreateBlogScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
                     shape = MaterialTheme.shapes.small,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedLabelColor = Primary,
-                        cursorColor = Primary
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 FormattingToolbar(
@@ -237,7 +236,9 @@ private fun PublishBar(
                     enabled = !isLoading,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Text(
@@ -392,7 +393,7 @@ private fun TagsChipPicker(
                 },
                 label = { Text("#$tag") },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Primary,
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
