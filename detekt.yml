@@ -20,6 +20,7 @@ complexity:
     thresholdInFiles: 25
     thresholdInClasses: 20
     thresholdInInterfaces: 15
+    thresholdInObjects: 15
   LargeClass:
     active: true
     threshold: 600
