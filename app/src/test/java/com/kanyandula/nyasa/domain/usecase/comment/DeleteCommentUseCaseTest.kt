@@ -24,7 +24,7 @@ class DeleteCommentUseCaseTest {
     fun `invoke emits loading then success on delete`() = runTest {
         fakeRepository.deleteCommentResult = Resource.Success("Deleted")
 
-        useCase(1).test {
+        useCase(1, "test-slug").test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val success = awaitItem() as Resource.Success
             assertThat(success.data).isEqualTo("Deleted")
@@ -36,7 +36,7 @@ class DeleteCommentUseCaseTest {
     fun `invoke emits loading then error on failure`() = runTest {
         fakeRepository.deleteCommentResult = Resource.Error(AppError.Unknown(RuntimeException("Forbidden")))
 
-        useCase(1).test {
+        useCase(1, "test-slug").test {
             assertThat(awaitItem()).isInstanceOf(Resource.Loading::class.java)
             val error = awaitItem() as Resource.Error
             awaitComplete()
