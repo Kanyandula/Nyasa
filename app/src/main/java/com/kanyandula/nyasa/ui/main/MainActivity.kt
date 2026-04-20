@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -28,6 +29,7 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val AUTH_TOKEN_BUNDLE_KEY = "auth_token"
@@ -41,6 +43,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themeDataStore: DataStore<Preferences>
 
+    @Suppress("LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         restoreSession(savedInstanceState)
@@ -58,6 +61,7 @@ class MainActivity : ComponentActivity() {
 
             NyasaTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
+                val themeScope = rememberCoroutineScope()
                 val token by sessionManager.cachedToken.collectAsStateWithLifecycle()
 
                 val startDestination = remember {
@@ -101,7 +105,18 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(padding)
                     ) {
                         authGraph(navController, sessionManager)
-                        mainGraph(navController, themeDataStore)
+                        mainGraph(
+                            navController = navController,
+                            currentTheme = themePreference,
+                            onThemeChanged = { preference ->
+                                themeScope.launch {
+                                    ThemePreferenceManager.setTheme(
+                                        themeDataStore,
+                                        preference
+                                    )
+                                }
+                            }
+                        )
                     }
                 }
             }
