@@ -126,7 +126,7 @@ internal fun BlogDetailRoute(
                 is BlogDetailAction.BookmarkClicked -> viewModel.bookmarkBlog(slug)
                 is BlogDetailAction.AuthorClicked -> onAuthorClick(action.username)
                 is BlogDetailAction.AddComment -> viewModel.addComment(slug, action.body)
-                is BlogDetailAction.DeleteComment -> viewModel.deleteComment(action.commentPk)
+                is BlogDetailAction.DeleteComment -> viewModel.deleteComment(action.commentPk, action.slug)
             }
         }
     )

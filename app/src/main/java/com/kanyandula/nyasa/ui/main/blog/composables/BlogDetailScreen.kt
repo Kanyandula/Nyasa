@@ -249,7 +249,11 @@ fun BlogDetailScreen(
                             comments = state.comments,
                             currentUsername = state.currentUsername,
                             onAddComment = { onAction(BlogDetailAction.AddComment(it)) },
-                            onDeleteComment = { onAction(BlogDetailAction.DeleteComment(it)) }
+                            onDeleteComment = {
+                                onAction(
+                                    BlogDetailAction.DeleteComment(it, blogPost.slug)
+                                )
+                            }
                         )
                     }
                 }

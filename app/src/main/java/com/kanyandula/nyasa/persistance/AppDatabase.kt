@@ -11,7 +11,13 @@ import com.kanyandula.nyasa.models.BlogRemoteKey
 import com.kanyandula.nyasa.models.CommentEntity
 
 @Database(
-    entities = [AuthToken::class, AccountProperties::class, BlogPost::class, BlogRemoteKey::class, CommentEntity::class],
+    entities = [
+        AuthToken::class,
+        AccountProperties::class,
+        BlogPost::class,
+        BlogRemoteKey::class,
+        CommentEntity::class
+    ],
     version = 7
 )
 abstract class AppDatabase : RoomDatabase() {
