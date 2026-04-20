@@ -19,3 +19,4 @@ rootProject.name = "Nyasa"
 include ':app'
 include ':core:common'
 include ':core:designsystem'
+include ':core:network'

@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.kanyandula.nyasa.models.Tag
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -15,10 +14,4 @@ class TagResponse(
 
     @SerialName("slug")
     var slug: String
-)
-
-fun TagResponse.toTag(): Tag = Tag(
-    pk = pk,
-    name = name,
-    slug = slug
 )

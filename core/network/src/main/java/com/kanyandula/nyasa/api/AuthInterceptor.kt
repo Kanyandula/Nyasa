@@ -1,15 +1,14 @@
 package com.kanyandula.nyasa.api
 
-import com.kanyandula.nyasa.session.SessionManager
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
 
 class AuthInterceptor @Inject constructor(
-    private val session: SessionManager
+    private val tokenProvider: TokenProvider
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = session.cachedToken.value?.token
+        val token = tokenProvider.token
         val originalRequest = chain.request()
         val request = originalRequest.newBuilder()
             .apply {
@@ -20,7 +19,7 @@ class AuthInterceptor @Inject constructor(
             .build()
         val response = chain.proceed(request)
         if (response.code == 401 && originalRequest.url.host == API_HOST) {
-            session.invalidate()
+            tokenProvider.invalidate()
         }
         return response
     }

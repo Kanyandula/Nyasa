@@ -1,6 +1,5 @@
 package com.kanyandula.nyasa.api.main.responses
 
-import com.kanyandula.nyasa.models.UserProfile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -33,16 +32,4 @@ class UserProfileResponse(
 
     @SerialName("profile_image")
     var profile_image: String? = null
-)
-
-fun UserProfileResponse.toUserProfile(): UserProfile = UserProfile(
-    username = username,
-    bio = bio,
-    location = location,
-    website = website,
-    twitter = twitter,
-    facebook = facebook,
-    instagram = instagram,
-    linkedin = linkedin,
-    profileImage = profile_image
 )

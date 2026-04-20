@@ -1,6 +1,7 @@
 package com.kanyandula.nyasa.session
 
 import android.util.Log
+import com.kanyandula.nyasa.api.TokenProvider
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import kotlinx.coroutines.CancellationException
@@ -19,7 +20,7 @@ class SessionManager
 @Inject
 constructor(
     private val authTokenDao: AuthTokenDao
-) {
+) : TokenProvider {
 
     private val TAG: String = "AppDebug"
 
@@ -29,11 +30,14 @@ constructor(
 
     val cachedToken: StateFlow<AuthToken?> = _cachedToken.asStateFlow()
 
+    override val token: String?
+        get() = _cachedToken.value?.token
+
     fun login(newValue: AuthToken) {
         setValue(newValue)
     }
 
-    fun invalidate() {
+    override fun invalidate() {
         _cachedToken.value = null
     }
 
