@@ -7,8 +7,6 @@ import com.kanyandula.nyasa.domain.repository.CategoryRepository
 import com.kanyandula.nyasa.domain.repository.CommentRepository
 import com.kanyandula.nyasa.domain.repository.CreateBlogRepository
 import com.kanyandula.nyasa.domain.repository.ProfileRepository
-import com.kanyandula.nyasa.persistance.AppDatabase
-import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.repository.main.AccountRepositoryImpl
 import com.kanyandula.nyasa.repository.main.BlogRepositoryImpl
 import com.kanyandula.nyasa.repository.main.CategoryRepositoryImpl
@@ -59,12 +57,6 @@ abstract class MainModule {
             return retrofitBuilder
                 .build()
                 .create(NyasaBlogApiMainService::class.java)
-        }
-
-        @Singleton
-        @Provides
-        fun provideBlogPostDao(db: AppDatabase): BlogPostDao {
-            return db.getBlogPostDao()
         }
     }
 }

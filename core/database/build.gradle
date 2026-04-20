@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace 'com.kanyandula.nyasa.core.network'
+    namespace 'com.kanyandula.nyasa.core.database'
     compileSdk 35
     defaultConfig { minSdk 24 }
     compileOptions {
@@ -16,26 +16,34 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = '17' }
-    buildFeatures { buildConfig true }
     lint {
         abortOnError false
         warningsAsErrors false
+    }
+
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas".toString())
     }
 }
 
 dependencies {
     implementation project(':core:common')
-    implementation project(':core:database')
 
     // Hilt
     implementation "com.google.dagger:hilt-android:$hilt_version"
     ksp "com.google.dagger:hilt-compiler:$hilt_version"
 
-    // Network
-    implementation "com.squareup.retrofit2:retrofit:2.11.0"
+    // Room
+    implementation "androidx.room:room-runtime:2.6.1"
+    implementation "androidx.room:room-ktx:2.6.1"
+    implementation "androidx.room:room-paging:2.6.1"
+    ksp "androidx.room:room-compiler:2.6.1"
+
+    // Paging (for PagingSource in DAOs)
+    implementation "androidx.paging:paging-runtime-ktx:3.3.6"
+
+    // Serialization (AccountProperties uses @Serializable)
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3"
-    implementation "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.12.0"
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'

@@ -117,6 +117,7 @@ dependencies {
     implementation project(':core:common')
     implementation project(':core:designsystem')
     implementation project(':core:network')
+    implementation project(':core:database')
 
     // AndroidX Core
     implementation 'androidx.core:core-ktx:1.13.1'
