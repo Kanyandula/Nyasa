@@ -1,3 +1,0 @@
-int array com_google_android_gms_fonts_certs 0x0
-int array com_google_android_gms_fonts_certs_dev 0x0
-int array com_google_android_gms_fonts_certs_prod 0x0
