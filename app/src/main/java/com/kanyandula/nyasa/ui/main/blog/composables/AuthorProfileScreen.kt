@@ -65,16 +65,18 @@ fun AuthorProfileScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    if (!profile.bio.isNullOrBlank()) {
+                    val bio = profile.bio
+                    if (!bio.isNullOrBlank()) {
                         Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Text(
-                            text = profile.bio,
+                            text = bio,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
-                    if (!profile.location.isNullOrBlank()) {
+                    val location = profile.location
+                    if (!location.isNullOrBlank()) {
                         Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -85,14 +87,15 @@ fun AuthorProfileScreen(
                             )
                             Spacer(Modifier.width(NyasaTheme.spacing.xs))
                             Text(
-                                text = profile.location,
+                                text = location,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    if (!profile.website.isNullOrBlank()) {
+                    val website = profile.website
+                    if (!website.isNullOrBlank()) {
                         Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -103,7 +106,7 @@ fun AuthorProfileScreen(
                             )
                             Spacer(Modifier.width(NyasaTheme.spacing.xs))
                             Text(
-                                text = profile.website,
+                                text = website,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
