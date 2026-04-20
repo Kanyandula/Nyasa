@@ -20,6 +20,7 @@ import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.AppDatabase.Companion.DATABASE_NAME
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import com.kanyandula.nyasa.persistance.CommentDao
+import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.ui.theme.themeDataStore
 import com.kanyandula.nyasa.util.Constants
 import com.kanyandula.nyasa.util.PreferenceKeys
@@ -151,6 +152,11 @@ object AppModule {
     @Singleton
     @Provides
     fun provideCommentDao(db: AppDatabase): CommentDao = db.getCommentDao()
+
+    @Singleton
+    @Provides
+    fun provideConnectivityObserver(application: Application): ConnectivityObserver =
+        ConnectivityObserver(application)
 
     @Singleton
     @Provides

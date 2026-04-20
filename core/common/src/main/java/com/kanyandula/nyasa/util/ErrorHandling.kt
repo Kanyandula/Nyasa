@@ -1,7 +1,14 @@
 package com.kanyandula.nyasa.util
 
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+
+val lenientJson = Json {
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+    isLenient = true
+}
 
 const val PAGINATION_DONE_ERROR = "Invalid page."
 

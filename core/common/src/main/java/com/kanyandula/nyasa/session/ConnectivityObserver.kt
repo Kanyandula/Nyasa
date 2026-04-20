@@ -10,13 +10,7 @@ import androidx.core.content.getSystemService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import javax.inject.Singleton
-
-@Singleton
-class ConnectivityObserver
-@Inject
-constructor(application: Application) {
+class ConnectivityObserver(application: Application) {
 
     private val connectivityManager = requireNotNull(application.getSystemService<ConnectivityManager>()) {
         "ConnectivityManager system service not available"

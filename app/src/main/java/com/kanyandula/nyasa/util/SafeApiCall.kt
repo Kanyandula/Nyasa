@@ -1,18 +1,11 @@
 package com.kanyandula.nyasa.util
 
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
-
-internal val lenientJson = Json {
-    ignoreUnknownKeys = true
-    coerceInputValues = true
-    isLenient = true
-}
 
 suspend inline fun <T> safeApiCall(
     crossinline call: suspend () -> Response<T>
