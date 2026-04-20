@@ -8,6 +8,6 @@ import javax.inject.Inject
 class DeleteCommentUseCase
 @Inject
 constructor(private val commentRepository: CommentRepository) {
-    operator fun invoke(pk: Int): Flow<Resource<String>> =
-        commentRepository.deleteComment(pk)
+    operator fun invoke(pk: Int, slug: String): Flow<Resource<String>> =
+        commentRepository.deleteComment(pk, slug)
 }
