@@ -83,6 +83,7 @@ constructor(
     private var likeJob: Job? = null
     private var bookmarkJob: Job? = null
     private var commentsJob: Job? = null
+    private var commentsFlowJob: Job? = null
     private var addCommentJob: Job? = null
     private var deleteCommentJob: Job? = null
 
@@ -396,12 +397,13 @@ constructor(
 
     fun loadComments(slug: String) {
         commentsJob?.cancel()
+        commentsFlowJob?.cancel()
         commentsJob = viewModelScope.launch {
             getCommentsUseCase(slug).collect { resource ->
                 handleResource(resource, onSuccess = {})
             }
         }
-        viewModelScope.launch {
+        commentsFlowJob = viewModelScope.launch {
             getCommentsFlowUseCase(slug).collect { comments ->
                 updateViewBlogState { copy(comments = comments) }
             }
