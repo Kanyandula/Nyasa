@@ -42,7 +42,6 @@ import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.ProfileFormData
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +87,7 @@ fun EditAccountScreen(
                             enabled = !isLoading,
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Primary
+                                containerColor = MaterialTheme.colorScheme.primary
                             ),
                             contentPadding = PaddingValues(
                                 horizontal = 20.dp,
@@ -109,10 +108,10 @@ fun EditAccountScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = NyasaTheme.spacing.l, vertical = NyasaTheme.spacing.m),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
 
                 ProfileAvatar(imageUrl = profileImage, size = 96.dp)
 
@@ -123,7 +122,7 @@ fun EditAccountScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xs))
                 Text(
                     text = "@${username.ifEmpty { "username" }}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -141,7 +140,7 @@ fun EditAccountScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = username,
                     onValueChange = { username = it },
@@ -149,7 +148,7 @@ fun EditAccountScreen(
                     leadingIcon = Icons.Filled.AlternateEmail,
                     imeAction = ImeAction.Next
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xs))
                 Text(
                     text = "YOUR UNIQUE HANDLE ON NYASABLOG",
                     style = MaterialTheme.typography.labelSmall.copy(
@@ -170,7 +169,7 @@ fun EditAccountScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -179,7 +178,7 @@ fun EditAccountScreen(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xs))
                 Text(
                     text = "USED FOR ACCOUNT SECURITY AND UPDATES",
                     style = MaterialTheme.typography.labelSmall.copy(
@@ -200,7 +199,7 @@ fun EditAccountScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = bio,
                     onValueChange = { bio = it },
@@ -211,7 +210,7 @@ fun EditAccountScreen(
                     onImeAction = { save() }
                 )
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xl))
 
                 // Delete Account
                 TextButton(onClick = onDeleteAccount) {
@@ -228,7 +227,7 @@ fun EditAccountScreen(
                     )
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.m))
             }
         }
         LoadingOverlay(isLoading = isLoading)

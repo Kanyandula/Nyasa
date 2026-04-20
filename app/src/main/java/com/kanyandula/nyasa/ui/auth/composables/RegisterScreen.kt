@@ -71,9 +71,9 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = NyasaTheme.spacing.xl)
         ) {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xxl))
 
             // Branding
             Text(
@@ -83,7 +83,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xs))
             Text(
                 text = "JOIN THE STORY",
                 style = MaterialTheme.typography.labelSmall.copy(
@@ -101,7 +101,7 @@ fun RegisterScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.s))
             Text(
                 text = "Start your journey into the digital landscapes of Malawi.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -118,7 +118,7 @@ fun RegisterScreen(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             NyasaTextField(
                 value = username,
@@ -127,7 +127,7 @@ fun RegisterScreen(
                 leadingIcon = Icons.Filled.Person,
                 imeAction = ImeAction.Next
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             NyasaTextField(
                 value = password,
@@ -137,7 +137,7 @@ fun RegisterScreen(
                 isPassword = true,
                 imeAction = ImeAction.Next
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             NyasaTextField(
                 value = confirmPassword,
@@ -155,7 +155,7 @@ fun RegisterScreen(
                 }
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             // Terms checkbox
             Row(
@@ -192,7 +192,7 @@ fun RegisterScreen(
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             NyasaButton(
                 text = "Register",
@@ -202,7 +202,7 @@ fun RegisterScreen(
                 trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             SocialAuthRow(dividerText = "OR JOIN WITH")
 
@@ -218,17 +218,17 @@ fun RegisterScreen(
                     text = "Google",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)
                 )
                 Text(
                     text = "Facebook",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -249,7 +249,7 @@ fun RegisterScreen(
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xl))
         }
     }
 }

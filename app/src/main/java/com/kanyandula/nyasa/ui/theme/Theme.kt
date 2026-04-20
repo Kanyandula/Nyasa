@@ -1,53 +1,38 @@
 package com.kanyandula.nyasa.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 
-private val NyasaLightColorScheme = lightColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainer,
-    onPrimaryContainer = OnPrimaryContainer,
-    secondary = Secondary,
-    onSecondary = OnSecondary,
-    secondaryContainer = SecondaryContainer,
-    onSecondaryContainer = OnSecondaryContainer,
-    tertiary = Tertiary,
-    onTertiary = OnTertiary,
-    tertiaryContainer = TertiaryContainer,
-    onTertiaryContainer = OnTertiaryContainer,
-    error = Error,
-    onError = OnError,
-    errorContainer = ErrorContainer,
-    onErrorContainer = OnErrorContainer,
-    background = Surface,
-    onBackground = OnSurface,
-    surface = Surface,
-    onSurface = OnSurface,
-    surfaceVariant = SurfaceVariant,
-    onSurfaceVariant = OnSurfaceVariant,
-    surfaceTint = SurfaceTint,
-    inverseSurface = InverseSurface,
-    inverseOnSurface = InverseOnSurface,
-    inversePrimary = InversePrimary,
-    outline = Outline,
-    outlineVariant = OutlineVariant,
-    surfaceBright = SurfaceBright,
-    surfaceDim = SurfaceDim,
-    surfaceContainer = SurfaceContainer,
-    surfaceContainerHigh = SurfaceContainerHigh,
-    surfaceContainerHighest = SurfaceContainerHighest,
-    surfaceContainerLow = SurfaceContainerLow,
-    surfaceContainerLowest = SurfaceContainerLowest
-)
+object NyasaTheme {
+    val spacing: NyasaSpacing
+        @Composable @ReadOnlyComposable
+        get() = LocalNyasaSpacing.current
+
+    val colors: NyasaColors
+        @Composable @ReadOnlyComposable
+        get() = LocalNyasaColors.current
+}
 
 @Composable
-fun NyasaTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = NyasaLightColorScheme,
-        typography = NyasaTypography,
-        shapes = NyasaShapes,
-        content = content
-    )
+fun NyasaTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (darkTheme) NyasaDarkColorScheme else NyasaLightColorScheme
+    val nyasaColors = if (darkTheme) darkNyasaColors else lightNyasaColors
+
+    CompositionLocalProvider(
+        LocalNyasaSpacing provides NyasaSpacing(),
+        LocalNyasaColors provides nyasaColors
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = NyasaTypography,
+            shapes = NyasaShapes,
+            content = content
+        )
+    }
 }

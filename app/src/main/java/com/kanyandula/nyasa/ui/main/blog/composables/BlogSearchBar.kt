@@ -19,7 +19,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 
 @Composable
 fun BlogSearchBar(
@@ -56,7 +55,7 @@ fun BlogSearchBar(
         keyboardActions = KeyboardActions(onSearch = { onSearch(query) }),
         shape = MaterialTheme.shapes.small,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Primary,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
         )
     )

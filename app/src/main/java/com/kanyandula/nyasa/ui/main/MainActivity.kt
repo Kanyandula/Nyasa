@@ -3,12 +3,16 @@ package com.kanyandula.nyasa.ui.main
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -22,7 +26,10 @@ import com.kanyandula.nyasa.ui.navigation.isInGraph
 import com.kanyandula.nyasa.ui.navigation.isValid
 import com.kanyandula.nyasa.ui.navigation.mainGraph
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.ui.theme.ThemePreference
+import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val AUTH_TOKEN_BUNDLE_KEY = "auth_token"
@@ -33,13 +40,28 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var sessionManager: SessionManager
 
+    @Inject
+    lateinit var themeDataStore: DataStore<Preferences>
+
+    @Suppress("LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         restoreSession(savedInstanceState)
 
         setContent {
-            NyasaTheme {
+            val themePreference by ThemePreferenceManager
+                .themeFlow(themeDataStore)
+                .collectAsStateWithLifecycle(initialValue = ThemePreference.SYSTEM)
+
+            val darkTheme = when (themePreference) {
+                ThemePreference.SYSTEM -> isSystemInDarkTheme()
+                ThemePreference.LIGHT -> false
+                ThemePreference.DARK -> true
+            }
+
+            NyasaTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
+                val themeScope = rememberCoroutineScope()
                 val token by sessionManager.cachedToken.collectAsStateWithLifecycle()
 
                 val startDestination = remember {
@@ -83,7 +105,18 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(padding)
                     ) {
                         authGraph(navController, sessionManager)
-                        mainGraph(navController)
+                        mainGraph(
+                            navController = navController,
+                            currentTheme = themePreference,
+                            onThemeChanged = { preference ->
+                                themeScope.launch {
+                                    ThemePreferenceManager.setTheme(
+                                        themeDataStore,
+                                        preference
+                                    )
+                                }
+                            }
+                        )
                     }
                 }
             }

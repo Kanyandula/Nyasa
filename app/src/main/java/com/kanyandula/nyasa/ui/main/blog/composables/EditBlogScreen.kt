@@ -49,7 +49,6 @@ import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +82,7 @@ fun EditBlogScreen(
                             enabled = !isLoading,
                             shape = RoundedCornerShape(50),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Primary
+                                containerColor = MaterialTheme.colorScheme.primary
                             ),
                             contentPadding = PaddingValues(
                                 horizontal = 20.dp,
@@ -107,14 +106,14 @@ fun EditBlogScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = NyasaTheme.spacing.l, vertical = NyasaTheme.spacing.m)
             ) {
                 ImagePickerBox(
                     imageModel = imageModel,
                     onPickImage = { onAction(EditBlogAction.PickImage) },
                     showPlaceholderText = false
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xs))
                 Text(
                     text = "TAP TO CHANGE",
                     style = MaterialTheme.typography.labelSmall.copy(
@@ -133,7 +132,7 @@ fun EditBlogScreen(
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -152,7 +151,7 @@ fun EditBlogScreen(
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 NyasaTextField(
                     value = body,
                     onValueChange = { body = it },
@@ -177,7 +176,7 @@ fun EditBlogScreen(
                             color = MaterialTheme.colorScheme
                                 .onSurfaceVariant
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.s))
                         if (categories.isNotEmpty()) {
                             NyasaCategoryDropdown(
                                 categories = categories,
@@ -197,7 +196,7 @@ fun EditBlogScreen(
                             color = MaterialTheme.colorScheme
                                 .onSurfaceVariant
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement
@@ -236,7 +235,7 @@ fun EditBlogScreen(
                     singleLine = true,
                     imeAction = ImeAction.Done
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.m))
             }
         }
         LoadingOverlay(isLoading = isLoading)
@@ -252,7 +251,7 @@ private fun EditBottomToolbar() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = NyasaTheme.spacing.s, vertical = NyasaTheme.spacing.xs),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             ToolbarItem(Icons.Filled.Image, "Media")

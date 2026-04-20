@@ -23,6 +23,9 @@ import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,11 +43,14 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.ui.theme.ThemePreference
 
 @Composable
 fun AccountProfileScreen(
     state: AccountViewState,
     isLoading: Boolean,
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit,
     onAction: (AccountProfileAction) -> Unit
 ) {
     val account = state.accountProperties
@@ -56,45 +62,45 @@ fun AccountProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .padding(horizontal = NyasaTheme.spacing.l, vertical = NyasaTheme.spacing.l),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             ProfileAvatar(imageUrl = profileImage, size = 96.dp)
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             Text(
                 text = username.ifEmpty { "Creator Name" },
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xs))
             Text(
                 text = "@${username.ifEmpty { "username" }}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             // Account info card
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shape = MaterialTheme.shapes.medium
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(NyasaTheme.spacing.m)) {
                     AccountInfoRow(
                         label = "EMAIL ADDRESS",
                         value = email.ifEmpty { "email@example.com" },
                         icon = Icons.Filled.Email
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.m))
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.surfaceContainerLow
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.m))
                     AccountInfoRow(
                         label = "ACCOUNT TYPE",
                         value = "Premium Storyteller",
@@ -103,7 +109,7 @@ fun AccountProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             // Account Settings section
             Text(
@@ -114,8 +120,14 @@ fun AccountProfileScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = NyasaTheme.spacing.s)
             )
+
+            AppearanceSelector(
+                currentTheme = currentTheme,
+                onThemeChanged = onThemeChanged
+            )
+            Spacer(modifier = Modifier.height(NyasaTheme.spacing.m))
 
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -138,7 +150,7 @@ fun AccountProfileScreen(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             TextButton(onClick = { onAction(AccountProfileAction.Logout) }) {
                 Icon(
@@ -147,7 +159,7 @@ fun AccountProfileScreen(
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(20.dp)
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(NyasaTheme.spacing.s))
                 Text(
                     text = "Logout",
                     style = MaterialTheme.typography.titleSmall,
@@ -155,7 +167,7 @@ fun AccountProfileScreen(
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             // Stats row
             Row(
@@ -177,10 +189,45 @@ fun AccountProfileScreen(
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
         }
 
         LoadingOverlay(isLoading = isLoading)
+    }
+}
+
+@Composable
+private fun AppearanceSelector(
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit
+) {
+    Column(modifier = Modifier.padding(horizontal = NyasaTheme.spacing.m)) {
+        Text(
+            text = "Appearance",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(NyasaTheme.spacing.s))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            ThemePreference.entries.forEachIndexed { index, preference ->
+                SegmentedButton(
+                    selected = currentTheme == preference,
+                    onClick = { onThemeChanged(preference) },
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = ThemePreference.entries.size
+                    )
+                ) {
+                    Text(
+                        text = when (preference) {
+                            ThemePreference.SYSTEM -> "System"
+                            ThemePreference.LIGHT -> "Light"
+                            ThemePreference.DARK -> "Dark"
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -228,7 +275,7 @@ private fun StatCard(
         shape = MaterialTheme.shapes.medium
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(NyasaTheme.spacing.m),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -238,7 +285,7 @@ private fun StatCard(
                 ),
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xs))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall.copy(
@@ -261,7 +308,7 @@ private fun AccountMenuItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = NyasaTheme.spacing.m, vertical = NyasaTheme.spacing.m),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -270,7 +317,7 @@ private fun AccountMenuItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(NyasaTheme.spacing.m))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
@@ -301,6 +348,8 @@ private fun AccountProfileScreenPreview() {
                 )
             ),
             isLoading = false,
+            currentTheme = ThemePreference.SYSTEM,
+            onThemeChanged = {},
             onAction = {}
         )
     }

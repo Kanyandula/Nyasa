@@ -25,9 +25,14 @@ import com.kanyandula.nyasa.ui.main.blog.composables.FeedMode
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.handleBlogFeedAction
+import com.kanyandula.nyasa.ui.theme.ThemePreference
 
 @Suppress("LongMethod")
-fun NavGraphBuilder.mainGraph(navController: NavController) {
+fun NavGraphBuilder.mainGraph(
+    navController: NavController,
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit
+) {
     navigation(startDestination = Routes.BLOG_GRAPH, route = Routes.MAIN_GRAPH) {
         navigation(startDestination = Routes.BLOG_FEED, route = Routes.BLOG_GRAPH) {
             composable(Routes.BLOG_FEED) { entry ->
@@ -152,6 +157,8 @@ fun NavGraphBuilder.mainGraph(navController: NavController) {
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
                 AccountProfileRoute(
                     viewModel = vm,
+                    currentTheme = currentTheme,
+                    onThemeChanged = onThemeChanged,
                     onEditProfile = { navController.navigate(Routes.ACCOUNT_EDIT) },
                     onChangePassword = {
                         navController.navigate(Routes.ACCOUNT_CHANGE_PASSWORD)

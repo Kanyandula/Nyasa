@@ -32,7 +32,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.SunsetOrange
 
 enum class BottomNavItem(
     val label: String,
@@ -116,7 +115,10 @@ fun NyasaBottomBarContent(
                                 modifier = Modifier
                                     .offset(y = 14.dp)
                                     .size(6.dp)
-                                    .background(SunsetOrange, CircleShape)
+                                    .background(
+                                        NyasaTheme.colors.sunsetGradientEnd,
+                                        CircleShape
+                                    )
                             )
                         }
                     }

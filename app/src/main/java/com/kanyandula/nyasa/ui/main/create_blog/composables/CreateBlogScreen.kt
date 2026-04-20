@@ -64,7 +64,6 @@ import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
 import com.kanyandula.nyasa.util.BlogUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,19 +119,19 @@ fun CreateBlogScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = NyasaTheme.spacing.l, vertical = NyasaTheme.spacing.m)
             ) {
                 ImagePickerBox(
                     imageModel = imageModel,
                     onPickImage = onPickImage
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 Text(
                     text = "High resolution (16:9) recommended",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                 SectionLabel("STORY TITLE")
                 NyasaTextField(
@@ -146,7 +145,7 @@ fun CreateBlogScreen(
                     maxLines = 3,
                     imeAction = ImeAction.Next
                 )
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                 SectionLabel("YOUR STORY")
                 OutlinedTextField(
@@ -159,16 +158,16 @@ fun CreateBlogScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
                     shape = MaterialTheme.shapes.small,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedLabelColor = Primary,
-                        cursorColor = Primary
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 FormattingToolbar(
                     onFormat = { transform -> body = transform(body) }
                 )
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                 if (categories.isNotEmpty()) {
                     SectionLabel("CATEGORY")
@@ -177,7 +176,7 @@ fun CreateBlogScreen(
                         selectedCategory = selectedCategory,
                         onCategorySelected = onCategorySelected
                     )
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.l))
                 }
 
                 SectionLabel("TAGS")
@@ -185,7 +184,7 @@ fun CreateBlogScreen(
                     tagsString = tags,
                     onTagsChanged = { tags = it }
                 )
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.xl))
             }
         }
         LoadingOverlay(isLoading = isLoading)
@@ -199,7 +198,7 @@ private fun SectionLabel(text: String) {
         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp),
         color = MaterialTheme.colorScheme.secondary
     )
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(NyasaTheme.spacing.s))
 }
 
 @Composable
@@ -217,7 +216,7 @@ private fun PublishBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = NyasaTheme.spacing.l, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
@@ -237,7 +236,9 @@ private fun PublishBar(
                     enabled = !isLoading,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Text(
@@ -257,7 +258,7 @@ private fun FormattingToolbar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = NyasaTheme.spacing.xs),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         FormatButton(Icons.Filled.FormatBold, "Bold") {
@@ -374,8 +375,8 @@ private fun TagsChipPicker(
 
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.s),
+        verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.s)
     ) {
         allChips.forEach { tag ->
             val isSelected = tag.lowercase() in selectedLowercase
@@ -392,7 +393,7 @@ private fun TagsChipPicker(
                 },
                 label = { Text("#$tag") },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Primary,
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 )
             )

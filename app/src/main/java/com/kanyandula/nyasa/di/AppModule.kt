@@ -2,6 +2,8 @@ package com.kanyandula.nyasa.di
 
 import android.app.Application
 import android.content.SharedPreferences
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -17,6 +19,7 @@ import com.kanyandula.nyasa.persistance.AccountPropertiesDao
 import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.AppDatabase.Companion.DATABASE_NAME
 import com.kanyandula.nyasa.persistance.AuthTokenDao
+import com.kanyandula.nyasa.ui.theme.themeDataStore
 import com.kanyandula.nyasa.util.Constants
 import com.kanyandula.nyasa.util.PreferenceKeys
 import dagger.Module
@@ -142,4 +145,9 @@ object AppModule {
     fun provideAccountPropertiesDao(db: AppDatabase): AccountPropertiesDao {
         return db.getAccountPropertiesDao()
     }
+
+    @Singleton
+    @Provides
+    fun provideThemeDataStore(application: Application): DataStore<Preferences> =
+        application.themeDataStore
 }

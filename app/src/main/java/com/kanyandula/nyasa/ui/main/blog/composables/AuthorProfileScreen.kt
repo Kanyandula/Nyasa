@@ -53,11 +53,11 @@ fun AuthorProfileScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(padding)
-                        .padding(horizontal = 24.dp, vertical = 24.dp),
+                        .padding(horizontal = NyasaTheme.spacing.l, vertical = NyasaTheme.spacing.l),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     ProfileAvatar(imageUrl = profile.profileImage, size = 96.dp)
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(NyasaTheme.spacing.m))
 
                     Text(
                         text = profile.username,
@@ -66,7 +66,7 @@ fun AuthorProfileScreen(
                     )
 
                     if (!profile.bio.isNullOrBlank()) {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Text(
                             text = profile.bio,
                             style = MaterialTheme.typography.bodyMedium,
@@ -75,7 +75,7 @@ fun AuthorProfileScreen(
                     }
 
                     if (!profile.location.isNullOrBlank()) {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Filled.LocationOn,
@@ -83,7 +83,7 @@ fun AuthorProfileScreen(
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(NyasaTheme.spacing.xs))
                             Text(
                                 text = profile.location,
                                 style = MaterialTheme.typography.bodySmall,
@@ -93,7 +93,7 @@ fun AuthorProfileScreen(
                     }
 
                     if (!profile.website.isNullOrBlank()) {
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.s))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Filled.Language,
@@ -101,7 +101,7 @@ fun AuthorProfileScreen(
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(NyasaTheme.spacing.xs))
                             Text(
                                 text = profile.website,
                                 style = MaterialTheme.typography.bodySmall,
@@ -116,7 +116,7 @@ fun AuthorProfileScreen(
                         profile.linkedin?.let { "LinkedIn: $it" }
                     )
                     if (socialLinks.isNotEmpty()) {
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(NyasaTheme.spacing.m))
                         socialLinks.forEach { link ->
                             Text(
                                 text = link,
@@ -124,7 +124,7 @@ fun AuthorProfileScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            Spacer(Modifier.height(4.dp))
+                            Spacer(Modifier.height(NyasaTheme.spacing.xs))
                         }
                     }
                 }

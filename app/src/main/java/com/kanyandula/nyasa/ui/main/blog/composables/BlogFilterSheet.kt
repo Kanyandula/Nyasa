@@ -56,13 +56,13 @@ fun BlogFilterSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState()
     ) {
-        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+        Column(modifier = Modifier.padding(horizontal = NyasaTheme.spacing.l, vertical = NyasaTheme.spacing.m)) {
             Text(
                 text = "Filter stories",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xs))
             Text(
                 text = "Customize your reading experience",
                 style = MaterialTheme.typography.bodyMedium,
@@ -75,12 +75,12 @@ fun BlogFilterSheet(
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(NyasaTheme.spacing.s))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.s)
                 ) {
                     FilterChip(
                         selected = pickedCategory == null,
@@ -121,7 +121,7 @@ fun BlogFilterSheet(
                     onClick = { selectedFilter = BLOG_FILTER_USERNAME }
                 )
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
 
             Text(
                 text = "Order",
@@ -140,7 +140,7 @@ fun BlogFilterSheet(
                     onClick = { selectedOrder = BLOG_ORDER_DESC }
                 )
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             NyasaButton(
                 text = "Apply filters",
@@ -149,13 +149,13 @@ fun BlogFilterSheet(
                     onApply(selectedFilter, selectedOrder)
                 }
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.s))
             NyasaButton(
                 text = "Cancel",
                 onClick = onDismiss,
                 style = ButtonStyle.Secondary
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.m))
         }
     }
 }
@@ -174,7 +174,7 @@ private fun FilterRadioOption(
                 onClick = onClick,
                 role = Role.RadioButton
             )
-            .padding(vertical = 8.dp),
+            .padding(vertical = NyasaTheme.spacing.s),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(selected = selected, onClick = null)

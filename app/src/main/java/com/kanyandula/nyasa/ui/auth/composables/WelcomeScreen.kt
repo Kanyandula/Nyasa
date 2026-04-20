@@ -32,8 +32,6 @@ import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.SunsetOrange
 
 @Composable
 fun WelcomeScreen(
@@ -49,10 +47,10 @@ fun WelcomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = NyasaTheme.spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xxl))
 
             Text(
                 text = "NyasaBlog",
@@ -61,15 +59,15 @@ fun WelcomeScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.l))
 
             SunsetHeroIllustration(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = NyasaTheme.spacing.s)
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xl))
 
             Text(
                 text = "Welcome to\nNyasaBlog",
@@ -116,13 +114,22 @@ fun WelcomeScreen(
                 )
             }
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(NyasaTheme.spacing.xl))
         }
     }
 }
 
 @Composable
 private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
+    val skyTop = NyasaTheme.colors.sunsetSkyTop
+    val gradientStart = NyasaTheme.colors.sunsetGradientStart
+    val skyBottom = NyasaTheme.colors.sunsetSkyBottom
+    val gradientEnd = NyasaTheme.colors.sunsetGradientEnd
+    val textHighlight = NyasaTheme.colors.sunsetTextHighlight
+    val textGlow = NyasaTheme.colors.sunsetTextGlow
+    val waterReflection = NyasaTheme.colors.sunsetGradientEnd
+    val patternColor = MaterialTheme.colorScheme.primary
+
     Box(
         modifier = modifier
             .aspectRatio(4f / 3f)
@@ -136,10 +143,10 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF87CEEB),
-                        Color(0xFFFDB777),
-                        Color(0xFFF4A460),
-                        Color(0xFFE8883C)
+                        skyTop,
+                        gradientStart,
+                        skyBottom,
+                        gradientEnd
                     )
                 )
             )
@@ -148,8 +155,8 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFFFFF3E0),
-                        Color(0xFFFFCC80).copy(alpha = 0.6f),
+                        textHighlight,
+                        textGlow.copy(alpha = 0.6f),
                         Color.Transparent
                     ),
                     center = Offset(w * 0.5f, h * 0.45f),
@@ -163,8 +170,8 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFFFFF8E1),
-                        Color(0xFFFFE0B2)
+                        textHighlight,
+                        textGlow
                     ),
                     center = Offset(w * 0.5f, h * 0.45f),
                     radius = w * 0.1f
@@ -177,9 +184,9 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        SunsetOrange.copy(alpha = 0.5f),
-                        Primary.copy(alpha = 0.3f),
-                        Primary.copy(alpha = 0.5f)
+                        waterReflection.copy(alpha = 0.5f),
+                        patternColor.copy(alpha = 0.3f),
+                        patternColor.copy(alpha = 0.5f)
                     ),
                     startY = h * 0.65f,
                     endY = h
@@ -191,13 +198,13 @@ private fun SunsetHeroIllustration(modifier: Modifier = Modifier) {
             // Chitenje dot pattern overlay
             val dotRadius = 2f
             val spacing = 20f
-            val patternColor = Primary.copy(alpha = 0.04f)
+            val dotColor = patternColor.copy(alpha = 0.04f)
             var y = 0f
             while (y < h) {
                 var x = 0f
                 while (x < w) {
                     drawCircle(
-                        color = patternColor,
+                        color = dotColor,
                         radius = dotRadius,
                         center = Offset(x, y)
                     )

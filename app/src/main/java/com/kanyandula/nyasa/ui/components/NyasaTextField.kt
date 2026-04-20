@@ -28,10 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
-import com.kanyandula.nyasa.ui.theme.Primary
-import com.kanyandula.nyasa.ui.theme.PrimaryContainer
 
 private val PasswordMask = PasswordVisualTransformation()
 
@@ -108,11 +105,11 @@ fun NyasaTextField(
             keyboardActions = KeyboardActions(onAny = { onImeAction() }),
             shape = MaterialTheme.shapes.small,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Primary,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                focusedLabelColor = Primary,
-                cursorColor = Primary,
-                focusedLeadingIconColor = PrimaryContainer
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primaryContainer
             )
         )
         if (isError && errorMessage != null) {
@@ -120,14 +117,14 @@ fun NyasaTextField(
                 text = errorMessage,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                modifier = Modifier.padding(start = NyasaTheme.spacing.m, top = NyasaTheme.spacing.xs)
             )
         } else if (helperText != null) {
             Text(
                 text = helperText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                modifier = Modifier.padding(start = NyasaTheme.spacing.m, top = NyasaTheme.spacing.xs)
             )
         }
     }
@@ -138,8 +135,8 @@ fun NyasaTextField(
 private fun NyasaTextFieldPreview() {
     NyasaTheme {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(NyasaTheme.spacing.m),
+            verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.s)
         ) {
             NyasaTextField(
                 value = "user@example.com",
