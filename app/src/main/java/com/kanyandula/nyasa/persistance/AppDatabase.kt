@@ -8,10 +8,17 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.models.BlogRemoteKey
+import com.kanyandula.nyasa.models.CommentEntity
 
 @Database(
-    entities = [AuthToken::class, AccountProperties::class, BlogPost::class, BlogRemoteKey::class],
-    version = 6
+    entities = [
+        AuthToken::class,
+        AccountProperties::class,
+        BlogPost::class,
+        BlogRemoteKey::class,
+        CommentEntity::class
+    ],
+    version = 7
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -22,6 +29,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun getBlogPostDao(): BlogPostDao
 
     abstract fun getBlogRemoteKeyDao(): BlogRemoteKeyDao
+
+    abstract fun getCommentDao(): CommentDao
 
     companion object {
         const val DATABASE_NAME: String = "app_db"
@@ -40,6 +49,24 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_5_6 = Migration(5, 6) {
             it.execSQL(
                 "ALTER TABLE blog_post ADD COLUMN author_avatar TEXT DEFAULT NULL"
+            )
+        }
+
+        val MIGRATION_6_7 = Migration(6, 7) {
+            it.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS comments (
+                    pk INTEGER NOT NULL PRIMARY KEY,
+                    post_slug TEXT NOT NULL,
+                    body TEXT NOT NULL,
+                    username TEXT NOT NULL,
+                    date_created INTEGER NOT NULL,
+                    FOREIGN KEY (post_slug) REFERENCES blog_post(slug) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+            it.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_comments_post_slug ON comments(post_slug)"
             )
         }
 

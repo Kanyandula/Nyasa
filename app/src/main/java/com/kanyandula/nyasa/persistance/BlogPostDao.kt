@@ -38,4 +38,12 @@ interface BlogPostDao {
 
     @Query("SELECT * FROM blog_post WHERE slug = :slug LIMIT 1")
     suspend fun getBlogPostBySlug(slug: String): BlogPost?
+
+    @Query(
+        """
+        UPDATE blog_post SET comment_count = COALESCE(comment_count, 0) + :delta
+        WHERE slug = :slug
+        """
+    )
+    suspend fun updateCommentCount(slug: String, delta: Int)
 }

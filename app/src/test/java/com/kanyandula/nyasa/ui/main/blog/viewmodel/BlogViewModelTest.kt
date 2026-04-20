@@ -13,6 +13,7 @@ import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsFlowUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsUseCase
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
@@ -79,6 +80,7 @@ class BlogViewModelTest {
             likeBlogPostUseCase = LikeBlogPostUseCase(fakeRepository),
             bookmarkBlogPostUseCase = BookmarkBlogPostUseCase(fakeRepository),
             getCommentsUseCase = GetCommentsUseCase(fakeCommentRepository),
+            getCommentsFlowUseCase = GetCommentsFlowUseCase(fakeCommentRepository),
             createCommentUseCase = CreateCommentUseCase(fakeCommentRepository),
             deleteCommentUseCase = DeleteCommentUseCase(fakeCommentRepository),
             getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),

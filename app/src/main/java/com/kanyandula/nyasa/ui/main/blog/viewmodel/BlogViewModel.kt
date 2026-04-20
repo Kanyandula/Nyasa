@@ -16,11 +16,13 @@ import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
+import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsFlowUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsUseCase
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.components.optimisticAction
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
@@ -30,6 +32,7 @@ import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
+import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import com.kanyandula.nyasa.util.toUserMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -57,6 +61,7 @@ constructor(
     private val likeBlogPostUseCase: LikeBlogPostUseCase,
     private val bookmarkBlogPostUseCase: BookmarkBlogPostUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
+    private val getCommentsFlowUseCase: GetCommentsFlowUseCase,
     private val createCommentUseCase: CreateCommentUseCase,
     private val deleteCommentUseCase: DeleteCommentUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
@@ -78,6 +83,7 @@ constructor(
     private var likeJob: Job? = null
     private var bookmarkJob: Job? = null
     private var commentsJob: Job? = null
+    private var commentsFlowJob: Job? = null
     private var addCommentJob: Job? = null
     private var deleteCommentJob: Job? = null
 
@@ -328,43 +334,78 @@ constructor(
     fun likeBlog(slug: String) {
         likeJob?.cancel()
         likeJob = viewModelScope.launch {
-            likeBlogPostUseCase(slug).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { result ->
-                        updateViewBlogState {
-                            copy(isLiked = result.liked, likeCount = result.likeCount)
-                        }
+            val state = _viewBlogState.value
+            optimisticAction(
+                currentState = state,
+                predict = { s ->
+                    s.copy(
+                        isLiked = !s.isLiked,
+                        likeCount = s.likeCount + if (s.isLiked) -1 else 1
+                    )
+                },
+                action = {
+                    val result = likeBlogPostUseCase(slug)
+                        .first { it !is Resource.Loading }
+                    when (result) {
+                        is Resource.Success -> Resource.Success(
+                            state.copy(
+                                isLiked = result.data.liked,
+                                likeCount = result.data.likeCount
+                            )
+                        )
+                        is Resource.Error -> result
+                        is Resource.Loading ->
+                            Resource.Error(AppError.Unknown(null))
                     }
-                )
-            }
+                },
+                rollback = { s -> s },
+                emit = { newState -> updateViewBlogState { newState } },
+                onError = { error ->
+                    sendEvent(UiEvent.ShowToast(error.toUserMessage()))
+                }
+            )
         }
     }
 
     fun bookmarkBlog(slug: String) {
         bookmarkJob?.cancel()
         bookmarkJob = viewModelScope.launch {
-            bookmarkBlogPostUseCase(slug).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { bookmarked ->
-                        updateViewBlogState { copy(isBookmarked = bookmarked) }
+            val state = _viewBlogState.value
+            optimisticAction(
+                currentState = state,
+                predict = { s -> s.copy(isBookmarked = !s.isBookmarked) },
+                action = {
+                    val result = bookmarkBlogPostUseCase(slug)
+                        .first { it !is Resource.Loading }
+                    when (result) {
+                        is Resource.Success -> Resource.Success(
+                            state.copy(isBookmarked = result.data)
+                        )
+                        is Resource.Error -> result
+                        is Resource.Loading ->
+                            Resource.Error(AppError.Unknown(null))
                     }
-                )
-            }
+                },
+                rollback = { s -> s },
+                emit = { newState -> updateViewBlogState { newState } },
+                onError = { error ->
+                    sendEvent(UiEvent.ShowToast(error.toUserMessage()))
+                }
+            )
         }
     }
 
     fun loadComments(slug: String) {
         commentsJob?.cancel()
+        commentsFlowJob?.cancel()
         commentsJob = viewModelScope.launch {
             getCommentsUseCase(slug).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { comments ->
-                        updateViewBlogState { copy(comments = comments) }
-                    }
-                )
+                handleResource(resource, onSuccess = {})
+            }
+        }
+        commentsFlowJob = viewModelScope.launch {
+            getCommentsFlowUseCase(slug).collect { comments ->
+                updateViewBlogState { copy(comments = comments) }
             }
         }
     }
@@ -373,30 +414,16 @@ constructor(
         addCommentJob?.cancel()
         addCommentJob = viewModelScope.launch {
             createCommentUseCase(slug, body).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { comment ->
-                        updateViewBlogState {
-                            copy(comments = comments + comment)
-                        }
-                    }
-                )
+                handleResource(resource, onSuccess = {})
             }
         }
     }
 
-    fun deleteComment(pk: Int) {
+    fun deleteComment(pk: Int, slug: String) {
         deleteCommentJob?.cancel()
         deleteCommentJob = viewModelScope.launch {
-            deleteCommentUseCase(pk).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = {
-                        updateViewBlogState {
-                            copy(comments = comments.filter { it.pk != pk })
-                        }
-                    }
-                )
+            deleteCommentUseCase(pk, slug).collect { resource ->
+                handleResource(resource, onSuccess = {})
             }
         }
     }

@@ -8,5 +8,5 @@ sealed interface BlogDetailAction {
     data object BookmarkClicked : BlogDetailAction
     data class AuthorClicked(val username: String) : BlogDetailAction
     data class AddComment(val body: String) : BlogDetailAction
-    data class DeleteComment(val commentPk: Int) : BlogDetailAction
+    data class DeleteComment(val commentPk: Int, val slug: String) : BlogDetailAction
 }

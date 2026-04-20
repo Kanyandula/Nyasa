@@ -4,15 +4,19 @@ import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.CommentResponse
+import com.kanyandula.nyasa.persistance.BlogPostDao
+import com.kanyandula.nyasa.persistance.CommentDao
 import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -27,15 +31,25 @@ class CommentRepositoryImplTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var apiService: NyasaBlogApiMainService
+    private lateinit var commentDao: CommentDao
+    private lateinit var blogPostDao: BlogPostDao
     private lateinit var connectivityObserver: ConnectivityObserver
     private lateinit var repository: CommentRepositoryImpl
 
     @Before
     fun setup() {
         apiService = mockk()
+        commentDao = mockk()
+        blogPostDao = mockk()
         connectivityObserver = mockk()
         every { connectivityObserver.isConnected } returns MutableStateFlow(true)
-        repository = CommentRepositoryImpl(apiService, connectivityObserver)
+        every { commentDao.getBySlug(any()) } returns flowOf(emptyList())
+        coJustRun { commentDao.clearBySlug(any()) }
+        coJustRun { commentDao.insertAll(any()) }
+        coJustRun { commentDao.insert(any()) }
+        coJustRun { commentDao.deleteByPk(any()) }
+        coJustRun { blogPostDao.updateCommentCount(any(), any()) }
+        repository = CommentRepositoryImpl(apiService, commentDao, blogPostDao, connectivityObserver)
     }
 
     @Test
@@ -92,7 +106,7 @@ class CommentRepositoryImplTest {
         coEvery { apiService.deleteComment(1) } returns
             Response.success(GenericResponse("Comment deleted"))
 
-        val results = repository.deleteComment(1).toList()
+        val results = repository.deleteComment(1, "test-slug").toList()
 
         val success = results.last() as Resource.Success
         assertThat(success.data).isEqualTo("Comment deleted")
@@ -102,7 +116,7 @@ class CommentRepositoryImplTest {
     fun `deleteComment offline returns error`() = runTest {
         every { connectivityObserver.isConnected } returns MutableStateFlow(false)
 
-        val results = repository.deleteComment(1).toList()
+        val results = repository.deleteComment(1, "test-slug").toList()
 
         assertThat(results.last()).isInstanceOf(Resource.Error::class.java)
     }
