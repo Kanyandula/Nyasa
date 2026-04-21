@@ -120,6 +120,7 @@ dependencies {
     implementation project(':core:database')
     implementation project(':core:domain')
     implementation project(':core:session')
+    implementation project(':core:data')
 
     // AndroidX Core
     implementation 'androidx.core:core-ktx:1.13.1'
