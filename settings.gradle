@@ -17,3 +17,10 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Nyasa"
 include ':app'
+include ':core:common'
+include ':core:designsystem'
+include ':core:network'
+include ':core:database'
+include ':core:domain'
+include ':core:session'
+include ':core:data'

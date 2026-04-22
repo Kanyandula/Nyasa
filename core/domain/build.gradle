@@ -1,0 +1,33 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.kanyandula.nyasa.core.domain'
+    compileSdk 35
+    defaultConfig { minSdk 24 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    lint {
+        abortOnError false
+        warningsAsErrors false
+    }
+}
+
+dependencies {
+    implementation project(':core:common')
+    implementation project(':core:database')
+
+    // Coroutines (for Flow)
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Paging (use cases expose PagingData)
+    implementation "androidx.paging:paging-runtime-ktx:3.3.6"
+
+    // Hilt (for @Inject on use cases)
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+}

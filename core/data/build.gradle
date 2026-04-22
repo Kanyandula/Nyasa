@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+    id 'dagger.hilt.android.plugin'
+}
+
+android {
+    namespace 'com.kanyandula.nyasa.core.data'
+    compileSdk 35
+    defaultConfig { minSdk 24 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    lint {
+        abortOnError false
+        warningsAsErrors false
+    }
+}
+
+dependencies {
+    implementation project(':core:common')
+    implementation project(':core:network')
+    implementation project(':core:database')
+    implementation project(':core:domain')
+    implementation project(':core:session')
+
+    // Hilt
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    ksp "com.google.dagger:hilt-compiler:$hilt_version"
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Paging (for RemoteMediator)
+    implementation "androidx.paging:paging-runtime-ktx:3.3.6"
+
+    // Retrofit (for Response<T> in repo impls)
+    implementation "com.squareup.retrofit2:retrofit:2.11.0"
+
+    // Room (for withTransaction in RemoteMediator)
+    implementation "androidx.room:room-runtime:2.6.1"
+    implementation "androidx.room:room-ktx:2.6.1"
+
+    // Image Compression (for RequestBodyExt)
+    implementation "id.zelory:compressor:3.0.1"
+
+    // Encrypted SharedPreferences (for AuthRepositoryImpl)
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+}
