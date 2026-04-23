@@ -11,13 +11,13 @@ import androidx.compose.ui.text.TextStyle
 internal fun TextBlock(
     content: AnnotatedString,
     style: TextStyle,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Text(
         text = content,
         style = style,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier,
+        modifier = modifier
     )
 }
 

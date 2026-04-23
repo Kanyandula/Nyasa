@@ -13,7 +13,7 @@ import coil3.compose.AsyncImage
 internal fun ImageBlock(
     src: String,
     alt: String?,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     AsyncImage(
         model = src,
@@ -21,6 +21,6 @@ internal fun ImageBlock(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp)),
-        contentScale = ContentScale.FillWidth,
+        contentScale = ContentScale.FillWidth
     )
 }

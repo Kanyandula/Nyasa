@@ -15,26 +15,26 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 @Composable
 internal fun UnorderedListBlock(
     items: List<BlockNode.ListItem>,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         items.forEach { item ->
             Row(
                 modifier = Modifier.padding(
                     bottom = NyasaTheme.spacing.xs
-                ),
+                )
             ) {
                 Text(
                     text = "\u2022",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.width(20.dp),
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Center
                 )
                 Text(
                     text = item.content,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -44,20 +44,20 @@ internal fun UnorderedListBlock(
 @Composable
 internal fun OrderedListBlock(
     items: List<BlockNode.ListItem>,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         items.forEachIndexed { index, item ->
             Row(
                 modifier = Modifier.padding(
                     bottom = NyasaTheme.spacing.xs
-                ),
+                )
             ) {
                 Text(
                     text = "${index + 1}.",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.width(24.dp),
-                    textAlign = TextAlign.End,
+                    textAlign = TextAlign.End
                 )
                 Text(
                     text = item.content,
@@ -65,7 +65,7 @@ internal fun OrderedListBlock(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = NyasaTheme.spacing.xs),
+                        .padding(start = NyasaTheme.spacing.xs)
                 )
             }
         }

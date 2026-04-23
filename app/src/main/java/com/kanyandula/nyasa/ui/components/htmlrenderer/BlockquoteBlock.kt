@@ -15,7 +15,7 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 @Composable
 internal fun BlockquoteBlock(
     children: List<BlockNode>,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val borderColor = MaterialTheme.colorScheme.primary
     val bgColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -27,19 +27,19 @@ internal fun BlockquoteBlock(
                     color = borderColor,
                     start = Offset(0f, 0f),
                     end = Offset(0f, size.height),
-                    strokeWidth = 4.dp.toPx(),
+                    strokeWidth = 4.dp.toPx()
                 )
             }
             .background(
                 color = bgColor,
-                shape = MaterialTheme.shapes.small,
+                shape = MaterialTheme.shapes.small
             )
             .padding(
                 start = NyasaTheme.spacing.m,
                 top = NyasaTheme.spacing.s,
                 end = NyasaTheme.spacing.m,
-                bottom = NyasaTheme.spacing.s,
-            ),
+                bottom = NyasaTheme.spacing.s
+            )
     ) {
         Column {
             children.forEach { node ->

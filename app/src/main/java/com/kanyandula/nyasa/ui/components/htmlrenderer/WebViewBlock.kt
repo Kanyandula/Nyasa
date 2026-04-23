@@ -20,7 +20,7 @@ private val FALLBACK_HEIGHT = 300.dp
 @Composable
 internal fun WebViewBlock(
     html: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val bgColor = MaterialTheme.colorScheme.surface.toArgb()
     val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
@@ -68,7 +68,11 @@ internal fun WebViewBlock(
             if (webView.tag != wrappedHtml) {
                 webView.tag = wrappedHtml
                 webView.loadDataWithBaseURL(
-                    null, wrappedHtml, "text/html", "UTF-8", null
+                    null,
+                    wrappedHtml,
+                    "text/html",
+                    "UTF-8",
+                    null
                 )
             }
         },
@@ -78,7 +82,7 @@ internal fun WebViewBlock(
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(height),
+            .height(height)
     )
 }
 

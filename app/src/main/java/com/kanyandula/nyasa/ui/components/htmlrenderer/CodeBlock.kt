@@ -16,23 +16,23 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 @Composable
 internal fun CodeBlockComposable(
     code: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Text(
         text = code.trimEnd(),
         style = MaterialTheme.typography.bodyMedium.copy(
             fontFamily = FontFamily.Monospace,
             fontSize = 14.sp,
-            lineHeight = 20.sp,
+            lineHeight = 20.sp
         ),
         color = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
             .fillMaxWidth()
             .background(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = MaterialTheme.shapes.small,
+                shape = MaterialTheme.shapes.small
             )
             .horizontalScroll(rememberScrollState())
-            .padding(NyasaTheme.spacing.m),
+            .padding(NyasaTheme.spacing.m)
     )
 }
