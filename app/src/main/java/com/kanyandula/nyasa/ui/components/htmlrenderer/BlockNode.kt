@@ -2,6 +2,10 @@ package com.kanyandula.nyasa.ui.components.htmlrenderer
 
 import androidx.compose.ui.text.AnnotatedString
 
+data class ListItem(
+    val content: AnnotatedString
+)
+
 sealed interface BlockNode {
 
     data class Heading(
@@ -30,10 +34,6 @@ sealed interface BlockNode {
         val items: List<ListItem>
     ) : BlockNode
 
-    data class ListItem(
-        val content: AnnotatedString
-    )
-
     data class Image(
         val src: String,
         val alt: String?
@@ -43,7 +43,5 @@ sealed interface BlockNode {
         val html: String
     ) : BlockNode
 
-    data class HorizontalRule(
-        val id: String = ""
-    ) : BlockNode
+    data object HorizontalRule : BlockNode
 }

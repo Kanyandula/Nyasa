@@ -100,7 +100,7 @@ object HtmlParser {
                 val items = element.children()
                     .filter { it.tagName() == "li" }
                     .map { li ->
-                        BlockNode.ListItem(
+                        ListItem(
                             InlineRenderer.render(
                                 li,
                                 linkColor,
@@ -119,7 +119,7 @@ object HtmlParser {
                 val items = element.children()
                     .filter { it.tagName() == "li" }
                     .map { li ->
-                        BlockNode.ListItem(
+                        ListItem(
                             InlineRenderer.render(
                                 li,
                                 linkColor,
@@ -136,7 +136,7 @@ object HtmlParser {
 
             "img" -> parseImage(element)
 
-            "hr" -> BlockNode.HorizontalRule()
+            "hr" -> BlockNode.HorizontalRule
 
             "iframe", "table" -> {
                 BlockNode.WebViewFallback(

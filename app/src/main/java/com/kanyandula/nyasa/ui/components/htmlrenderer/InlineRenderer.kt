@@ -29,7 +29,7 @@ object InlineRenderer {
     ) {
         for (node in element.childNodes()) {
             when (node) {
-                is TextNode -> append(node.wholeText)
+                is TextNode -> append(node.text())
                 is Element -> renderElement(node, linkColor, codeBackground)
             }
         }

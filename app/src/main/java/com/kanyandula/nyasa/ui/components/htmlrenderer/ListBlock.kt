@@ -14,7 +14,7 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
 @Composable
 internal fun UnorderedListBlock(
-    items: List<BlockNode.ListItem>,
+    items: List<ListItem>,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -43,7 +43,7 @@ internal fun UnorderedListBlock(
 
 @Composable
 internal fun OrderedListBlock(
-    items: List<BlockNode.ListItem>,
+    items: List<ListItem>,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
