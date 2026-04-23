@@ -183,6 +183,9 @@ dependencies {
     // Image Compression
     implementation "id.zelory:compressor:3.0.1"
 
+    // HTML parsing
+    implementation 'org.jsoup:jsoup:1.18.3'
+
     // Encrypted SharedPreferences
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
 
