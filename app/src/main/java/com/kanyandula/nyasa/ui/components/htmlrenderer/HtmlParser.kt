@@ -97,41 +97,13 @@ object HtmlParser {
             }
 
             "ul" -> {
-                val items = element.children()
-                    .filter { it.tagName() == "li" }
-                    .map { li ->
-                        ListItem(
-                            InlineRenderer.render(
-                                li,
-                                linkColor,
-                                codeBackground
-                            )
-                        )
-                    }
-                if (items.isNotEmpty()) {
-                    BlockNode.UnorderedList(items)
-                } else {
-                    null
-                }
+                val items = parseListItems(element, linkColor, codeBackground)
+                if (items.isNotEmpty()) BlockNode.UnorderedList(items) else null
             }
 
             "ol" -> {
-                val items = element.children()
-                    .filter { it.tagName() == "li" }
-                    .map { li ->
-                        ListItem(
-                            InlineRenderer.render(
-                                li,
-                                linkColor,
-                                codeBackground
-                            )
-                        )
-                    }
-                if (items.isNotEmpty()) {
-                    BlockNode.OrderedList(items)
-                } else {
-                    null
-                }
+                val items = parseListItems(element, linkColor, codeBackground)
+                if (items.isNotEmpty()) BlockNode.OrderedList(items) else null
             }
 
             "img" -> parseImage(element)
@@ -179,6 +151,14 @@ object HtmlParser {
             children.first()?.tagName() == "img" &&
             element.ownText().isBlank()
     }
+
+    private fun parseListItems(
+        element: Element,
+        linkColor: Color,
+        codeBackground: Color
+    ): List<ListItem> = element.children()
+        .filter { it.tagName() == "li" }
+        .map { li -> ListItem(InlineRenderer.render(li, linkColor, codeBackground)) }
 
     private fun parseImage(element: Element?): BlockNode.Image? {
         val src = element?.attr("src") ?: return null

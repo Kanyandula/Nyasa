@@ -88,7 +88,6 @@ object InlineRenderer {
                 pop()
             }
             "br" -> append("\n")
-            "span" -> renderChildren(element, linkColor, codeBackground)
             else -> renderChildren(element, linkColor, codeBackground)
         }
     }

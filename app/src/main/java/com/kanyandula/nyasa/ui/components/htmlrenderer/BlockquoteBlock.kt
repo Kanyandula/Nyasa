@@ -25,7 +25,7 @@ internal fun BlockquoteBlock(
             .drawBehind {
                 drawLine(
                     color = borderColor,
-                    start = Offset(0f, 0f),
+                    start = Offset.Zero,
                     end = Offset(0f, size.height),
                     strokeWidth = 4.dp.toPx()
                 )
