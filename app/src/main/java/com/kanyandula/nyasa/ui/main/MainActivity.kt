@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             startDestination = startDestination,
                             modifier = Modifier.padding(padding)
                         ) {
-                            authGraph(navController, sessionManager)
+                            authGraph(navController)
                             mainGraph(
                                 navController = navController,
                                 currentTheme = themePreference,

@@ -8,6 +8,7 @@ import com.kanyandula.nyasa.domain.usecase.auth.RegisterUseCase
 import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeAuthRepository
 import com.kanyandula.nyasa.models.AuthToken
+import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
@@ -15,6 +16,8 @@ import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -29,15 +32,18 @@ class AuthViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var fakeRepository: FakeAuthRepository
+    private lateinit var sessionManager: SessionManager
     private lateinit var viewModel: AuthViewModel
 
     @Before
     fun setup() {
         fakeRepository = FakeAuthRepository()
+        sessionManager = mockk(relaxed = true)
         viewModel = AuthViewModel(
             loginUseCase = LoginUseCase(fakeRepository),
             registerUseCase = RegisterUseCase(fakeRepository),
             checkPreviousAuthUseCase = CheckPreviousAuthUseCase(fakeRepository),
+            sessionManager = sessionManager,
             analyticsTracker = FakeAnalyticsTracker()
         )
     }
@@ -52,6 +58,39 @@ class AuthViewModelTest {
 
         assertThat(viewModel.viewState.value.authToken).isEqualTo(expectedToken)
         assertThat(viewModel.isLoading.value).isFalse()
+    }
+
+    @Test
+    fun `login success activates session via SessionManager`() = runTest {
+        val expectedToken = AuthToken(1, "test-token")
+        fakeRepository.loginResult = Resource.Success(expectedToken)
+
+        viewModel.attemptLogin("test@test.com", "password")
+        advanceUntilIdle()
+
+        verify { sessionManager.login(expectedToken) }
+    }
+
+    @Test
+    fun `registration success activates session via SessionManager`() = runTest {
+        val expectedToken = AuthToken(2, "reg-token")
+        fakeRepository.registrationResult = Resource.Success(expectedToken)
+
+        viewModel.attemptRegistration("test@test.com", "user", "pass", "pass")
+        advanceUntilIdle()
+
+        verify { sessionManager.login(expectedToken) }
+    }
+
+    @Test
+    fun `checkPreviousAuthUser with token activates session`() = runTest {
+        val existingToken = AuthToken(1, "existing-token")
+        fakeRepository.previousAuthResult = Resource.Success(existingToken)
+
+        viewModel.checkPreviousAuthUser()
+        advanceUntilIdle()
+
+        verify { sessionManager.login(existingToken) }
     }
 
     @Test

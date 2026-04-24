@@ -5,6 +5,7 @@ import com.kanyandula.nyasa.domain.usecase.auth.CheckPreviousAuthUseCase
 import com.kanyandula.nyasa.domain.usecase.auth.LoginUseCase
 import com.kanyandula.nyasa.domain.usecase.auth.RegisterUseCase
 import com.kanyandula.nyasa.models.AuthToken
+import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
@@ -23,6 +24,7 @@ constructor(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
     private val checkPreviousAuthUseCase: CheckPreviousAuthUseCase,
+    private val sessionManager: SessionManager,
     private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<AuthViewState>(AuthViewState()) {
 
@@ -34,7 +36,7 @@ constructor(
                 handleResource(
                     resource,
                     onSuccess = { authToken ->
-                        setAuthToken(authToken)
+                        activateSession(authToken)
                         analyticsTracker.trackEvent(AnalyticsEvent.Login)
                     }
                 )
@@ -54,7 +56,7 @@ constructor(
                     handleResource(
                         resource,
                         onSuccess = { authToken ->
-                            setAuthToken(authToken)
+                            activateSession(authToken)
                             analyticsTracker.trackEvent(AnalyticsEvent.Register)
                         }
                     )
@@ -71,7 +73,7 @@ constructor(
                     resource,
                     onSuccess = { authToken ->
                         if (authToken != null) {
-                            setAuthToken(authToken)
+                            activateSession(authToken)
                         } else {
                             sendEvent(AuthUiEvent.CheckPreviousAuthDone)
                         }
@@ -79,6 +81,19 @@ constructor(
                 )
             }
         }
+    }
+
+    /**
+     * Pushes a freshly-issued [authToken] into [SessionManager] (which
+     * `MainActivity` observes to navigate into the main graph) and mirrors
+     * it into [AuthViewState] for any UI consumers. Owning the side effect
+     * here makes it impossible for an auth screen to silently miss it —
+     * the bug that previously kept LOGIN/REGISTER from navigating after
+     * a successful sign-in.
+     */
+    private fun activateSession(authToken: AuthToken) {
+        sessionManager.login(authToken)
+        setAuthToken(authToken)
     }
 
     fun setRegistrationFields(registrationFields: RegistrationFields) {
