@@ -81,7 +81,7 @@ fun NyasaBlogCard(
                                 text = category.uppercase(),
                                 modifier = Modifier.padding(
                                     horizontal = 10.dp,
-                                    vertical = 4.dp
+                                    vertical = NyasaTheme.spacing.xs
                                 ),
                                 style = MaterialTheme.typography
                                     .labelSmall.copy(
