@@ -44,10 +44,10 @@ constructor(
                             sendEvent(UiEvent.ShowSuccessDialog(message))
                             if (message == SUCCESS_BLOG_CREATED) {
                                 clearNewBlogFields()
+                                analyticsTracker.trackEvent(
+                                    AnalyticsEvent.CreatePost(fields.category)
+                                )
                             }
-                            analyticsTracker.trackEvent(
-                                AnalyticsEvent.CreatePost(fields.category)
-                            )
                         }
                     )
                 }
