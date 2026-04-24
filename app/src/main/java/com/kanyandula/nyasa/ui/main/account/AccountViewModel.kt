@@ -9,6 +9,8 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.ProfileUpdateRequest
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountUiEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
@@ -25,7 +27,8 @@ constructor(
     private val getAccountPropertiesUseCase: GetAccountPropertiesUseCase,
     private val saveAccountPropertiesUseCase: SaveAccountPropertiesUseCase,
     private val changePasswordUseCase: ChangePasswordUseCase,
-    private val updateProfileUseCase: UpdateProfileUseCase
+    private val updateProfileUseCase: UpdateProfileUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<AccountViewState>(AccountViewState()) {
 
     fun getAccountProperties() {
@@ -61,6 +64,7 @@ constructor(
                     onSuccess = {
                         sendEvent(UiEvent.ShowToast("Profile updated"))
                         getAccountProperties()
+                        analyticsTracker.trackEvent(AnalyticsEvent.ProfileUpdated)
                     }
                 )
             }
@@ -78,6 +82,7 @@ constructor(
                                 sendEvent(AccountUiEvent.PasswordChanged)
                             }
                             sendEvent(UiEvent.ShowToast(message))
+                            analyticsTracker.trackEvent(AnalyticsEvent.PasswordChanged)
                         }
                     )
                 }
@@ -91,6 +96,7 @@ constructor(
     }
 
     fun logout() {
+        analyticsTracker.trackEvent(AnalyticsEvent.Logout)
         sessionManager.logout()
     }
 }

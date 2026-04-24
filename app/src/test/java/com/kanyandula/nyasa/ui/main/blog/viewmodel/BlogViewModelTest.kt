@@ -15,6 +15,7 @@ import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsFlowUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsUseCase
+import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.fakes.FakeCommentRepository
@@ -86,7 +87,8 @@ class BlogViewModelTest {
             getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),
             sharedPreferences = sharedPreferences,
             editor = editor,
-            savedStateHandle = androidx.lifecycle.SavedStateHandle()
+            savedStateHandle = androidx.lifecycle.SavedStateHandle(),
+            analyticsTracker = FakeAnalyticsTracker()
         )
     }
 

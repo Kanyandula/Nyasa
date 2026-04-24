@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
 import com.kanyandula.nyasa.ui.BaseViewModel
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
@@ -21,7 +23,8 @@ class CreateBlogViewModel
 @Inject
 constructor(
     private val createBlogPostUseCase: CreateBlogPostUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<CreateBlogViewState>(CreateBlogViewState()) {
 
     init {
@@ -42,6 +45,9 @@ constructor(
                             if (message == SUCCESS_BLOG_CREATED) {
                                 clearNewBlogFields()
                             }
+                            analyticsTracker.trackEvent(
+                                AnalyticsEvent.CreatePost(fields.category)
+                            )
                         }
                     )
                 }

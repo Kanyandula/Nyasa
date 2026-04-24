@@ -6,6 +6,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
+import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.fakes.FakeCreateBlogRepository
 import com.kanyandula.nyasa.ui.UiEvent
@@ -36,7 +37,8 @@ class CreateBlogViewModelTest {
         fakeCategoryRepository = FakeCategoryRepository()
         viewModel = CreateBlogViewModel(
             createBlogPostUseCase = CreateBlogPostUseCase(fakeRepository),
-            getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository)
+            getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),
+            analyticsTracker = FakeAnalyticsTracker()
         )
     }
 
