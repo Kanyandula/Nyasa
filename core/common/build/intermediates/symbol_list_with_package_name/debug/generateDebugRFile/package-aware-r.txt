@@ -1,1 +1,0 @@
-com.kanyandula.nyasa.core.common
