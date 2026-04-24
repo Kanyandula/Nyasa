@@ -360,7 +360,7 @@ private fun CommentsSection(
             )
         }
     }
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(NyasaTheme.spacing.m))
     comments.forEach { comment ->
         val canDelete = comment.username == currentUsername
         CommentItem(
