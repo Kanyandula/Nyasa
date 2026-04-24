@@ -38,6 +38,7 @@ import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.util.analytics.LocalAnalyticsTracker
 import com.kanyandula.nyasa.work.UploadKeys
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -160,17 +161,13 @@ private fun UploadCompletionToasts() {
     val context = LocalContext.current
     val reportedUploads = remember { mutableSetOf<UUID>() }
     LaunchedEffect(Unit) {
-        var firstEmission = true
         WorkManager.getInstance(context)
             .getWorkInfosByTagFlow(UploadKeys.WORK_TAG_UPLOAD)
+            .drop(1) // skip the historical snapshot WorkManager emits on subscription
             .collect { infos ->
-                infos.filter { it.state.isFinished }
-                    .forEach { info ->
-                        val seen = !reportedUploads.add(info.id)
-                        if (seen || firstEmission) return@forEach
-                        toastForUploadState(context, info.state)
-                    }
-                firstEmission = false
+                infos.asSequence()
+                    .filter { it.state.isFinished && reportedUploads.add(it.id) }
+                    .forEach { toastForUploadState(context, it.state) }
             }
     }
 }

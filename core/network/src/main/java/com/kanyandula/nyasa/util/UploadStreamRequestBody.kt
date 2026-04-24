@@ -4,28 +4,39 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okio.BufferedSink
-import java.io.InputStream
+import java.io.File
 
+/**
+ * Streams [file] as a multipart body and reports upload progress.
+ * Idempotent: each `writeTo` opens a fresh stream, so OkHttp is free to retry
+ * within a single request (e.g. auth challenges) without sending zero bytes.
+ * Progress is throttled to whole-percent transitions.
+ */
 class UploadStreamRequestBody(
     private val mediaType: String,
-    private val inputStream: InputStream,
-    private val onUploadProgress: (Int) -> Unit
+    private val file: File,
+    private val onUploadProgress: (Int) -> Unit,
 ) : RequestBody() {
 
-    override fun contentLength(): Long = inputStream.available().toLong()
+    override fun contentLength(): Long = file.length()
 
     override fun contentType(): MediaType? = mediaType.toMediaTypeOrNull()
 
     override fun writeTo(sink: BufferedSink) {
-        val contentLength = inputStream.available().toFloat()
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE) // DEFAULT_BUFFER_SIZE constant from kotlin.io.ConstantsKt
-        inputStream.use { inputStream ->
-            var uploaded = 0
+        val total = file.length().toFloat().coerceAtLeast(1f)
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var lastPercent = -1
+        file.inputStream().use { input ->
+            var uploaded = 0L
             var read: Int
-            while (inputStream.read(buffer).also { read = it } != -1) { // Reads the stream until the content ends
+            while (input.read(buffer).also { read = it } != -1) {
                 sink.write(buffer, 0, read)
                 uploaded += read
-                onUploadProgress((100 * uploaded / contentLength).toInt())
+                val percent = (100 * uploaded / total).toInt()
+                if (percent != lastPercent) {
+                    lastPercent = percent
+                    onUploadProgress(percent)
+                }
             }
         }
     }

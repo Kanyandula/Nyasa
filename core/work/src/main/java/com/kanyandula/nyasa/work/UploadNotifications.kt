@@ -7,9 +7,15 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
+import androidx.work.ForegroundInfo
 import com.kanyandula.nyasa.core.work.R
 
 object UploadNotifications {
+
+    private const val ONGOING_NOTIFICATION_ID = 0xBEEF
+
+    fun ongoingForegroundInfo(context: Context, progressPercent: Int = 0): ForegroundInfo =
+        ForegroundInfo(ONGOING_NOTIFICATION_ID, ongoingNotification(context, progressPercent))
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
