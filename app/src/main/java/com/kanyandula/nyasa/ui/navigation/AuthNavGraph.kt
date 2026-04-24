@@ -14,7 +14,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.auth.AuthViewModel
 import com.kanyandula.nyasa.ui.auth.composables.ForgotPasswordScreen
 import com.kanyandula.nyasa.ui.auth.composables.LoginAction
@@ -27,22 +26,14 @@ import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 
 @Suppress("LongMethod")
-fun NavGraphBuilder.authGraph(
-    navController: NavController,
-    sessionManager: SessionManager
-) {
+fun NavGraphBuilder.authGraph(navController: NavController) {
     navigation(startDestination = Routes.WELCOME, route = Routes.AUTH_GRAPH) {
         composable(Routes.WELCOME) { entry ->
             val parentEntry = remember(entry) {
                 navController.getBackStackEntry(Routes.AUTH_GRAPH)
             }
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
-            val state by viewModel.viewState.collectAsStateWithLifecycle()
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-
-            LaunchedEffect(state.authToken) {
-                state.authToken?.let { sessionManager.login(it) }
-            }
 
             val context = LocalContext.current
             LaunchedEffect(Unit) {
