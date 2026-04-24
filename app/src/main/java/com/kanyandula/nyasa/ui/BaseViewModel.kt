@@ -62,7 +62,4 @@ abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
         }
     }
 
-    companion object {
-        const val TAG: String = "AppDebug"
-    }
 }

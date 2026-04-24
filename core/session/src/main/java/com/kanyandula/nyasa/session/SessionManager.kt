@@ -1,7 +1,7 @@
 package com.kanyandula.nyasa.session
 
-import android.util.Log
 import com.kanyandula.nyasa.api.TokenProvider
+import timber.log.Timber
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.persistance.AuthTokenDao
 import kotlinx.coroutines.CancellationException
@@ -22,8 +22,6 @@ constructor(
     private val authTokenDao: AuthTokenDao
 ) : TokenProvider {
 
-    private val TAG: String = "AppDebug"
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _cachedToken = MutableStateFlow<AuthToken?>(null)
@@ -43,7 +41,7 @@ constructor(
 
     @Suppress("TooGenericExceptionCaught")
     fun logout() {
-        Log.d(TAG, "logout: ")
+        Timber.d("logout")
 
         scope.launch(Dispatchers.IO) {
             var errorMessage: String? = null
@@ -52,16 +50,16 @@ constructor(
                     authTokenDao.nullifyToken(it)
                 } ?: throw CancellationException("Token Error. Logging out user.")
             } catch (e: CancellationException) {
-                Log.e(TAG, "logout: ${e.message}")
+                Timber.e(e, "logout")
                 errorMessage = e.message
             } catch (e: Exception) {
-                Log.e(TAG, "logout: ${e.message}")
+                Timber.e(e, "logout")
                 errorMessage = errorMessage + "\n" + e.message
             } finally {
                 errorMessage?.let {
-                    Log.e(TAG, "logout: $errorMessage")
+                    Timber.e("logout: %s", errorMessage)
                 }
-                Log.d(TAG, "logout: finally")
+                Timber.d("logout: finally")
                 setValue(null)
             }
         }
