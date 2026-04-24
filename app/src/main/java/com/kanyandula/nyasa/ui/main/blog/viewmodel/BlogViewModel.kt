@@ -19,6 +19,7 @@ import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsFlowUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.GetCommentsUseCase
 import com.kanyandula.nyasa.models.BlogPost
+import com.kanyandula.nyasa.models.Comment
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
@@ -89,6 +90,7 @@ constructor(
     private var commentsFlowJob: Job? = null
     private var addCommentJob: Job? = null
     private var deleteCommentJob: Job? = null
+    private var tempCommentPk = -1
 
     private data class SearchParams(
         val query: String,
@@ -434,23 +436,67 @@ constructor(
     fun addComment(slug: String, body: String) {
         addCommentJob?.cancel()
         addCommentJob = viewModelScope.launch {
-            createCommentUseCase(slug, body).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = {
-                        analyticsTracker.trackEvent(AnalyticsEvent.CreateComment(slug))
+            val state = _viewBlogState.value
+            val tempPk = tempCommentPk--
+            val tempComment = Comment(
+                pk = tempPk,
+                body = body,
+                username = state.currentUsername,
+                dateCreated = System.currentTimeMillis()
+            )
+            optimisticAction(
+                currentState = state,
+                predict = { s -> s.copy(comments = listOf(tempComment) + s.comments) },
+                action = {
+                    val result = createCommentUseCase(slug, body)
+                        .first { it !is Resource.Loading }
+                    when (result) {
+                        is Resource.Success -> {
+                            analyticsTracker.trackEvent(AnalyticsEvent.CreateComment(slug))
+                            val updated = _viewBlogState.value
+                            Resource.Success(
+                                updated.copy(
+                                    comments = updated.comments.map { c ->
+                                        if (c.pk == tempPk) result.data else c
+                                    }
+                                )
+                            )
+                        }
+                        is Resource.Error -> result
+                        is Resource.Loading -> Resource.Error(AppError.Unknown(null))
                     }
-                )
-            }
+                },
+                rollback = { s -> s },
+                emit = { newState -> updateViewBlogState { newState } },
+                onError = { error ->
+                    sendEvent(UiEvent.ShowToast(error.toUserMessage()))
+                }
+            )
         }
     }
 
     fun deleteComment(pk: Int, slug: String) {
         deleteCommentJob?.cancel()
         deleteCommentJob = viewModelScope.launch {
-            deleteCommentUseCase(pk, slug).collect { resource ->
-                handleResource(resource, onSuccess = {})
-            }
+            val state = _viewBlogState.value
+            optimisticAction(
+                currentState = state,
+                predict = { s -> s.copy(comments = s.comments.filter { it.pk != pk }) },
+                action = {
+                    val result = deleteCommentUseCase(pk, slug)
+                        .first { it !is Resource.Loading }
+                    when (result) {
+                        is Resource.Success -> Resource.Success(_viewBlogState.value)
+                        is Resource.Error -> result
+                        is Resource.Loading -> Resource.Error(AppError.Unknown(null))
+                    }
+                },
+                rollback = { s -> s },
+                emit = { newState -> updateViewBlogState { newState } },
+                onError = { error ->
+                    sendEvent(UiEvent.ShowToast(error.toUserMessage()))
+                }
+            )
         }
     }
 
