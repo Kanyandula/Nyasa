@@ -9,7 +9,7 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseAnalyticsTracker @Inject constructor(
     private val analytics: FirebaseAnalytics,
-    private val crashlytics: FirebaseCrashlytics,
+    private val crashlytics: FirebaseCrashlytics
 ) : AnalyticsTracker {
 
     override fun trackEvent(event: AnalyticsEvent) {

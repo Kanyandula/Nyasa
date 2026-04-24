@@ -20,14 +20,14 @@ abstract class AnalyticsModule {
     @Binds
     @Singleton
     abstract fun bindAnalyticsTracker(
-        impl: FirebaseAnalyticsTracker,
+        impl: FirebaseAnalyticsTracker
     ): AnalyticsTracker
 
     companion object {
         @Provides
         @Singleton
         fun provideFirebaseAnalytics(
-            @ApplicationContext context: Context,
+            @ApplicationContext context: Context
         ): FirebaseAnalytics {
             return FirebaseAnalytics.getInstance(context)
         }

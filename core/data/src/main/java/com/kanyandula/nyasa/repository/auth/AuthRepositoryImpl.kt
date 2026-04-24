@@ -1,7 +1,6 @@
 package com.kanyandula.nyasa.repository.auth
 
 import android.content.SharedPreferences
-import timber.log.Timber
 import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
 import com.kanyandula.nyasa.domain.repository.AuthRepository
 import com.kanyandula.nyasa.models.AccountProperties
@@ -18,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import javax.inject.Inject
 
 class AuthRepositoryImpl

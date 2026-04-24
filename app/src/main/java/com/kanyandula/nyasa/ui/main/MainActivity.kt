@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -20,8 +20,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
-import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
-import com.kanyandula.nyasa.util.analytics.LocalAnalyticsTracker
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.authGraph
@@ -31,6 +29,8 @@ import com.kanyandula.nyasa.ui.navigation.mainGraph
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
+import com.kanyandula.nyasa.util.analytics.LocalAnalyticsTracker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -66,68 +66,68 @@ class MainActivity : ComponentActivity() {
             }
 
             CompositionLocalProvider(LocalAnalyticsTracker provides analyticsTracker) {
-            NyasaTheme(darkTheme = darkTheme) {
-                val navController = rememberNavController()
-                val themeScope = rememberCoroutineScope()
-                val token by sessionManager.cachedToken.collectAsStateWithLifecycle()
+                NyasaTheme(darkTheme = darkTheme) {
+                    val navController = rememberNavController()
+                    val themeScope = rememberCoroutineScope()
+                    val token by sessionManager.cachedToken.collectAsStateWithLifecycle()
 
-                val startDestination = remember {
-                    if (sessionManager.cachedToken.value.isValid()) {
-                        Routes.MAIN_GRAPH
-                    } else {
-                        Routes.AUTH_GRAPH
-                    }
-                }
-
-                LaunchedEffect(token) {
-                    analyticsTracker.setUserId(token?.account_pk?.toString())
-                    val target = if (token.isValid()) {
-                        Routes.MAIN_GRAPH
-                    } else {
-                        Routes.AUTH_GRAPH
-                    }
-                    if (!navController.currentDestination.isInGraph(target)) {
-                        navController.navigate(target) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                            launchSingleTop = true
+                    val startDestination = remember {
+                        if (sessionManager.cachedToken.value.isValid()) {
+                            Routes.MAIN_GRAPH
+                        } else {
+                            Routes.AUTH_GRAPH
                         }
                     }
-                }
 
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val showBottomBar = remember(navBackStackEntry) {
-                    navBackStackEntry?.destination.isInGraph(Routes.MAIN_GRAPH)
-                        ?: false
-                }
-
-                Scaffold(
-                    bottomBar = {
-                        if (showBottomBar) {
-                            NyasaBottomBar(navController = navController)
+                    LaunchedEffect(token) {
+                        analyticsTracker.setUserId(token?.account_pk?.toString())
+                        val target = if (token.isValid()) {
+                            Routes.MAIN_GRAPH
+                        } else {
+                            Routes.AUTH_GRAPH
                         }
-                    }
-                ) { padding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = startDestination,
-                        modifier = Modifier.padding(padding)
-                    ) {
-                        authGraph(navController, sessionManager)
-                        mainGraph(
-                            navController = navController,
-                            currentTheme = themePreference,
-                            onThemeChanged = { preference ->
-                                themeScope.launch {
-                                    ThemePreferenceManager.setTheme(
-                                        themeDataStore,
-                                        preference
-                                    )
-                                }
+                        if (!navController.currentDestination.isInGraph(target)) {
+                            navController.navigate(target) {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                                launchSingleTop = true
                             }
-                        )
+                        }
+                    }
+
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val showBottomBar = remember(navBackStackEntry) {
+                        navBackStackEntry?.destination.isInGraph(Routes.MAIN_GRAPH)
+                            ?: false
+                    }
+
+                    Scaffold(
+                        bottomBar = {
+                            if (showBottomBar) {
+                                NyasaBottomBar(navController = navController)
+                            }
+                        }
+                    ) { padding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination,
+                            modifier = Modifier.padding(padding)
+                        ) {
+                            authGraph(navController, sessionManager)
+                            mainGraph(
+                                navController = navController,
+                                currentTheme = themePreference,
+                                onThemeChanged = { preference ->
+                                    themeScope.launch {
+                                        ThemePreferenceManager.setTheme(
+                                            themeDataStore,
+                                            preference
+                                        )
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
-            }
             }
         }
     }

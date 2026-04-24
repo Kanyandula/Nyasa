@@ -9,12 +9,12 @@ import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.models.ProfileUpdateRequest
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
-import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
-import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountUiEvent
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_PASSWORD_UPDATE_SUCCESS
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

@@ -71,8 +71,8 @@ import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
-import kotlinx.coroutines.flow.Flow
 import com.kanyandula.nyasa.util.analytics.TrackScreen
+import kotlinx.coroutines.flow.Flow
 
 enum class FeedMode { Home, Search }
 

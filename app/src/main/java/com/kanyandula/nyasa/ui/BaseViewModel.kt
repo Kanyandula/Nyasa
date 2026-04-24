@@ -61,5 +61,4 @@ abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
             is Resource.Error -> onError(resource.error)
         }
     }
-
 }

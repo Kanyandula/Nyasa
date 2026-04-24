@@ -7,13 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
 import com.kanyandula.nyasa.ui.BaseViewModel
-import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
-import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
