@@ -1,6 +1,3 @@
-
-<a href='https://nyasablog.com/' target='_blank'><img class='header-img' src='https://nyasa-blog-spaces.nyc3.cdn.digitaloceanspaces.com/nyasa-blog-static/nyasa_github.png' /></a>
-
 # NyasaBlog Android App
 
 NyasaBlog is a native Android application that interacts with the REST API at [nyasablog.com](https://nyasablog.com/). The platform was created for Malawian content creators to publish Malawian-related content.
@@ -10,7 +7,7 @@ NyasaBlog is a native Android application that interacts with the REST API at [n
 The app follows **MVVM with Clean Architecture** principles:
 
 ```
-UI (Compose / Fragments) → ViewModel → UseCase → Repository (interface) → RepositoryImpl → Room + Retrofit
+UI (Compose) → ViewModel → UseCase → Repository (interface) → RepositoryImpl → Room + Retrofit
 ```
 
 - **State management**: `StateFlow` for UI state, `SharedFlow` for one-shot events (toasts, navigation)
