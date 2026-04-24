@@ -41,6 +41,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import com.kanyandula.nyasa.R as AppR
 
 private const val AUTH_TOKEN_BUNDLE_KEY = "auth_token"
 
@@ -178,11 +179,11 @@ private fun toastForUploadState(
     context: android.content.Context,
     state: WorkInfo.State
 ) {
-    val msg = when (state) {
-        WorkInfo.State.SUCCEEDED -> "Post published"
-        WorkInfo.State.FAILED -> "Upload failed — check notifications"
-        WorkInfo.State.CANCELLED -> "Upload cancelled"
+    val resId = when (state) {
+        WorkInfo.State.SUCCEEDED -> AppR.string.upload_completed_success
+        WorkInfo.State.FAILED -> AppR.string.upload_completed_failed
+        WorkInfo.State.CANCELLED -> AppR.string.upload_completed_cancelled
         else -> return
     }
-    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(resId), Toast.LENGTH_SHORT).show()
 }

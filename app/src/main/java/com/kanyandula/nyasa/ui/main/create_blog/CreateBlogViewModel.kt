@@ -31,24 +31,31 @@ constructor(
     }
 
     fun createNewBlogPost(title: String, body: String, imageUri: Uri?) {
+        if (isLoading.value) return // double-tap guard
+        setLoading(true)
         val fields = viewState.value.blogFields
         val tagsCsv = BlogUtils.parseTags(fields.tags)
             .takeIf { it.isNotEmpty() }
             ?.joinToString(",")
 
-        blogUploadEnqueuer.enqueueCreate(
-            title = title,
-            body = body,
-            imageUri = imageUri,
-            category = fields.category,
-            tagsCsv = tagsCsv
-        )
-
-        // H6: analytics now fires on enqueue (attempt), not on success. Terminal state
-        // is observed at the Activity level via WorkManager WorkInfo for the user-facing Toast.
-        analyticsTracker.trackEvent(AnalyticsEvent.CreatePost(fields.category))
-        sendEvent(UiEvent.ShowToast("Publishing in the background…"))
-        clearNewBlogFields()
+        viewModelScope.launch {
+            try {
+                blogUploadEnqueuer.enqueueCreate(
+                    title = title,
+                    body = body,
+                    imageUri = imageUri,
+                    category = fields.category,
+                    tagsCsv = tagsCsv
+                )
+                // H6: analytics fires on enqueue (attempt). Terminal state is observed at
+                // the Activity level via WorkManager WorkInfo for the user-facing Toast.
+                analyticsTracker.trackEvent(AnalyticsEvent.CreatePost(fields.category))
+                sendEvent(UiEvent.ShowToast("Publishing in the background…"))
+                clearNewBlogFields()
+            } finally {
+                setLoading(false)
+            }
+        }
     }
 
     fun setNewBlogFields(

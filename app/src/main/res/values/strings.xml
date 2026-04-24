@@ -7,4 +7,10 @@
     <string name="text_yes">yes</string>
     <string name="are_you_sure">Are you sure?</string>
     <string name="are_you_sure_delete">Are you sure you want to delete this? This can\'t be un-done.</string>
+
+    <!-- H6 background uploads -->
+    <string name="upload_publishing_in_background">Publishing in the background…</string>
+    <string name="upload_completed_success">Post published</string>
+    <string name="upload_completed_failed">Upload failed — check notifications</string>
+    <string name="upload_completed_cancelled">Upload cancelled</string>
 </resources>

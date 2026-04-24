@@ -7,9 +7,11 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.kanyandula.nyasa.util.toCompressedUploadFile
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,14 +20,18 @@ import javax.inject.Singleton
 class BlogUploadEnqueuer @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    fun enqueueCreate(
+    /**
+     * Stages [imageUri] (compressing on Dispatchers.IO) and enqueues an [UploadBlogPostWorker].
+     * Suspends only for the duration of compression — enqueuing itself is fast.
+     */
+    suspend fun enqueueCreate(
         title: String,
         body: String,
         imageUri: Uri?,
         category: String?,
         tagsCsv: String?,
     ): UUID {
-        val imagePath = imageUri?.let(::copyToUploadsCache)
+        val imagePath = imageUri?.let { stageImage(it) }
 
         val request = OneTimeWorkRequestBuilder<UploadBlogPostWorker>()
             .addTag(UploadKeys.WORK_TAG_UPLOAD)
@@ -49,15 +55,9 @@ class BlogUploadEnqueuer @Inject constructor(
         return request.id
     }
 
-    private fun copyToUploadsCache(uri: Uri): String? = try {
-        val dir = File(context.cacheDir, "uploads").apply { mkdirs() }
-        val dest = File(dir, "upload_${UUID.randomUUID()}.jpg")
-        context.contentResolver.openInputStream(uri)?.use { src ->
-            dest.outputStream().use { out -> src.copyTo(out) }
-        }
-        dest.absolutePath
-    } catch (t: Throwable) {
-        Timber.w(t, "Failed to stage upload image; enqueuing without image")
-        null
+    private suspend fun stageImage(uri: Uri): String? = withContext(Dispatchers.IO) {
+        runCatching { uri.toCompressedUploadFile(context).absolutePath }
+            .onFailure { Timber.w(it, "Failed to stage upload image; enqueuing without image") }
+            .getOrNull()
     }
 }

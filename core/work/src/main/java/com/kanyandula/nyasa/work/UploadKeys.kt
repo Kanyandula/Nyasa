@@ -15,6 +15,5 @@ object UploadKeys {
 
     const val WORK_TAG_UPLOAD = "blog_upload"
     const val NOTIFICATION_CHANNEL_ID = "upload_progress"
-    const val NOTIFICATION_CHANNEL_NAME = "Blog Uploads"
     const val NOTIFICATION_ID_ONGOING = 0xBEEF
 }

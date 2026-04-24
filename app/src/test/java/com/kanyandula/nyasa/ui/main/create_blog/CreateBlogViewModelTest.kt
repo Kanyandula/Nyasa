@@ -10,10 +10,12 @@ import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.work.BlogUploadEnqueuer
-import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -33,7 +35,7 @@ class CreateBlogViewModelTest {
     fun setup() {
         fakeCategoryRepository = FakeCategoryRepository()
         enqueuer = mockk(relaxed = true)
-        every { enqueuer.enqueueCreate(any(), any(), any(), any(), any()) } returns UUID.randomUUID()
+        coEvery { enqueuer.enqueueCreate(any(), any(), any(), any(), any()) } returns UUID.randomUUID()
         viewModel = CreateBlogViewModel(
             blogUploadEnqueuer = enqueuer,
             getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),
@@ -42,10 +44,11 @@ class CreateBlogViewModelTest {
     }
 
     @Test
-    fun `createNewBlogPost enqueues upload via BlogUploadEnqueuer`() {
+    fun `createNewBlogPost enqueues upload via BlogUploadEnqueuer`() = runTest {
         viewModel.createNewBlogPost("Title", "Body", null)
+        advanceUntilIdle()
 
-        verify {
+        coVerify {
             enqueuer.enqueueCreate(
                 title = "Title",
                 body = "Body",
@@ -57,9 +60,10 @@ class CreateBlogViewModelTest {
     }
 
     @Test
-    fun `createNewBlogPost emits ShowToast event`() = kotlinx.coroutines.test.runTest {
+    fun `createNewBlogPost emits ShowToast event`() = runTest {
         viewModel.events.test {
             viewModel.createNewBlogPost("Title", "Body", null)
+            advanceUntilIdle()
 
             val event = awaitItem()
             assertThat(event).isInstanceOf(UiEvent.ShowToast::class.java)
@@ -68,14 +72,26 @@ class CreateBlogViewModelTest {
     }
 
     @Test
-    fun `createNewBlogPost clears fields after enqueue`() {
+    fun `createNewBlogPost clears fields after enqueue`() = runTest {
         viewModel.setNewBlogFields("Title", "Body", null)
         viewModel.createNewBlogPost("Title", "Body", null)
+        advanceUntilIdle()
 
         val state = viewModel.viewState.value
         assertThat(state.blogFields.newBlogTitle).isNull()
         assertThat(state.blogFields.newBlogBody).isNull()
         assertThat(state.blogFields.newImageUri).isNull()
+    }
+
+    @Test
+    fun `createNewBlogPost ignores re-entrant calls while loading`() = runTest {
+        viewModel.createNewBlogPost("Title", "Body", null)
+        viewModel.createNewBlogPost("Other", "Other body", null)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            enqueuer.enqueueCreate(any(), any(), any(), any(), any())
+        }
     }
 
     @Test
