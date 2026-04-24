@@ -45,6 +45,26 @@ UI (Compose / Fragments) → ViewModel → UseCase → Repository (interface) �
 - **Offline Support** -- Room-based caching with single source of truth
 - **Connectivity Awareness** -- reactive `ConnectivityObserver` using `NetworkCallback`
 
+## UI Design & Mockups
+
+Design system is Nyasa Horizon, sourced from [Stitch](https://stitch.withgoogle.com/). Click any preview for the full-size render.
+
+| Screen | Preview | Description |
+| --- | :---: | --- |
+| Welcome | <img src="docs/screenshots/welcome.png" width="140"/> | Landing screen with hero imagery and Login / Register / Forgot Password actions. |
+| Login | <img src="docs/screenshots/login.png" width="140"/> | Email + password sign-in with forgot-password shortcut and social provider slots. |
+| Register | <img src="docs/screenshots/register.png" width="140"/> | Account creation form with inline validation and terms acceptance. |
+| Forgot Password | <img src="docs/screenshots/forgot-password.png" width="140"/> | Email-driven password reset with success and error feedback. |
+| Blog Feed - Home | <img src="docs/screenshots/blog-feed-home.png" width="140"/> | Paged blog list with top bar, bottom nav, and pull-to-refresh. |
+| Blog Feed - Search | <img src="docs/screenshots/blog-feed-search.png" width="140"/> | Query-driven search surface over the same feed. |
+| Blog Feed - Filter | <img src="docs/screenshots/blog-feed-filter.png" width="140"/> | Category, tag, and sort filter sheet for narrowing the feed. |
+| Blog Detail | <img src="docs/screenshots/blog-detail.png" width="140"/> | Native Compose HTML renderer with comments, like, and bookmark actions. |
+| Create Blog | <img src="docs/screenshots/create-blog.png" width="140"/> | Blog-post composer with image picker, category dropdown, and tag chips. |
+| Edit Blog | <img src="docs/screenshots/edit-blog.png" width="140"/> | Existing-post editor that reuses the composer layout. |
+| Account Profile | <img src="docs/screenshots/account-profile.png" width="140"/> | Signed-in user profile summary with account actions. |
+| Edit Account | <img src="docs/screenshots/edit-account.png" width="140"/> | Inline editing for profile fields (name, email, avatar). |
+| Change Password | <img src="docs/screenshots/change-password.png" width="140"/> | Password update form with current, new, and confirm inputs. |
+
 ## Build
 
 ```bash
