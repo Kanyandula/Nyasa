@@ -56,7 +56,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
     }
 
     private suspend fun performUpload(input: UploadInput): Result {
-        val response = callCreateBlog(input)
+        val response = callApi(input)
         if (!response.isSuccessful) {
             val code = response.code()
             return when {
@@ -77,7 +77,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
         )
     }
 
-    private suspend fun callCreateBlog(input: UploadInput): Response<BlogCreateUpdateResponse> {
+    private suspend fun callApi(input: UploadInput): Response<BlogCreateUpdateResponse> {
         val imagePart = input.imageFile?.let { file ->
             val streamBody = UploadStreamRequestBody(
                 mediaType = "image/jpeg",
@@ -88,13 +88,15 @@ class UploadBlogPostWorker @AssistedInject constructor(
             )
             MultipartBody.Part.createFormData("image", file.name, streamBody)
         }
-        return service.createBlog(
-            title = input.title.toPlainTextBody(),
-            body = input.body.toPlainTextBody(),
-            image = imagePart,
-            category = input.category?.toPlainTextBody(),
-            tags = input.tagsCsv?.toPlainTextBody(),
-        )
+        val titlePart = input.title.toPlainTextBody()
+        val bodyPart = input.body.toPlainTextBody()
+        val categoryPart = input.category?.toPlainTextBody()
+        val tagsPart = input.tagsCsv?.toPlainTextBody()
+        return if (input.slug != null) {
+            service.updateBlog(input.slug, titlePart, bodyPart, imagePart, categoryPart, tagsPart)
+        } else {
+            service.createBlog(titlePart, bodyPart, imagePart, categoryPart, tagsPart)
+        }
     }
 
     private fun failureFor(reason: String): Result =
@@ -115,6 +117,8 @@ class UploadBlogPostWorker @AssistedInject constructor(
         val category: String?,
         val tagsCsv: String?,
         val imageFile: File?,
+        /** When non-null, the worker hits PUT update on this slug; otherwise POST create. */
+        val slug: String?,
     ) {
         companion object {
             fun from(data: Data): UploadInput? {
@@ -127,6 +131,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
                     category = data.getString(UploadKeys.INPUT_CATEGORY),
                     tagsCsv = data.getString(UploadKeys.INPUT_TAGS_CSV),
                     imageFile = data.getString(UploadKeys.INPUT_IMAGE_PATH)?.let(::File),
+                    slug = data.getString(UploadKeys.INPUT_SLUG),
                 )
             }
         }

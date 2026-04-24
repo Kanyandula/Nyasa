@@ -9,7 +9,6 @@ import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.LikeBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
-import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
@@ -28,6 +27,9 @@ import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.work.BlogUploadEnqueuer
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -49,6 +51,7 @@ class BlogViewModelTest {
     private lateinit var fakeCategoryRepository: FakeCategoryRepository
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
+    private lateinit var uploadEnqueuer: BlogUploadEnqueuer
     private lateinit var viewModel: BlogViewModel
 
     private fun createTestBlogPost(
@@ -68,6 +71,10 @@ class BlogViewModelTest {
         fakeCategoryRepository = FakeCategoryRepository()
         sharedPreferences = mockk(relaxed = true)
         editor = mockk(relaxed = true)
+        uploadEnqueuer = mockk(relaxed = true)
+        coEvery {
+            uploadEnqueuer.enqueueUpdate(any(), any(), any(), any(), any(), any())
+        } returns java.util.UUID.randomUUID()
 
         every { sharedPreferences.getString(any(), any()) } answers { secondArg() }
         BlogDetailPrefetch.pendingPost = null
@@ -76,7 +83,7 @@ class BlogViewModelTest {
             searchBlogPostsUseCase = SearchBlogPostsUseCase(fakeRepository),
             isAuthorOfBlogPostUseCase = IsAuthorOfBlogPostUseCase(fakeRepository),
             deleteBlogPostUseCase = DeleteBlogPostUseCase(fakeRepository),
-            updateBlogPostUseCase = UpdateBlogPostUseCase(fakeRepository),
+            blogUploadEnqueuer = uploadEnqueuer,
             getBlogPostBySlugUseCase = GetBlogPostBySlugUseCase(fakeRepository),
             likeBlogPostUseCase = LikeBlogPostUseCase(fakeRepository),
             bookmarkBlogPostUseCase = BookmarkBlogPostUseCase(fakeRepository),
@@ -322,33 +329,38 @@ class BlogViewModelTest {
     }
 
     @Test
-    fun `updateBlogPost success emits BlogUpdateSuccess and updates state`() = runTest {
-        val updatedPost = createTestBlogPost(title = "Updated Title", body = "Updated Body")
-        fakeRepository.updateResult = Resource.Success(updatedPost)
-
+    fun `updateBlogPost enqueues upload and emits BlogUpdateSuccess`() = runTest {
         viewModel.events.test {
             viewModel.updateBlogPost("test-blog", "Updated Title", "Updated Body", null)
             advanceUntilIdle()
 
-            val event = awaitItem()
-            assertThat(event).isEqualTo(BlogNavigationEvent.BlogUpdateSuccess)
+            val toast = awaitItem()
+            assertThat(toast).isInstanceOf(UiEvent.ShowToast::class.java)
+            val nav = awaitItem()
+            assertThat(nav).isEqualTo(BlogNavigationEvent.BlogUpdateSuccess)
             cancelAndIgnoreRemainingEvents()
         }
 
-        assertThat(viewModel.viewBlogState.value.blogPost).isEqualTo(updatedPost)
+        coVerify {
+            uploadEnqueuer.enqueueUpdate(
+                slug = "test-blog",
+                title = "Updated Title",
+                body = "Updated Body",
+                imageUri = null,
+                category = any(),
+                tagsCsv = any()
+            )
+        }
     }
 
     @Test
-    fun `updateBlogPost error emits error event`() = runTest {
-        fakeRepository.updateResult = Resource.Error(AppError.Unknown(RuntimeException("Update failed")))
+    fun `updateBlogPost ignores re-entrant calls while loading`() = runTest {
+        viewModel.updateBlogPost("test-blog", "First", "First body", null)
+        viewModel.updateBlogPost("test-blog", "Second", "Second body", null)
+        advanceUntilIdle()
 
-        viewModel.events.test {
-            viewModel.updateBlogPost("test-blog", "Title", "Body", null)
-            advanceUntilIdle()
-
-            val event = awaitItem()
-            assertThat(event).isInstanceOf(UiEvent.ShowErrorDialog::class.java)
-            cancelAndIgnoreRemainingEvents()
+        coVerify(exactly = 1) {
+            uploadEnqueuer.enqueueUpdate(any(), any(), any(), any(), any(), any())
         }
     }
 

@@ -12,7 +12,6 @@ import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.LikeBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
-import com.kanyandula.nyasa.domain.usecase.blog.UpdateBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.CreateCommentUseCase
 import com.kanyandula.nyasa.domain.usecase.comment.DeleteCommentUseCase
@@ -38,6 +37,7 @@ import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
 import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.util.toUserMessage
+import com.kanyandula.nyasa.work.BlogUploadEnqueuer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -59,7 +59,7 @@ constructor(
     private val searchBlogPostsUseCase: SearchBlogPostsUseCase,
     private val isAuthorOfBlogPostUseCase: IsAuthorOfBlogPostUseCase,
     private val deleteBlogPostUseCase: DeleteBlogPostUseCase,
-    private val updateBlogPostUseCase: UpdateBlogPostUseCase,
+    private val blogUploadEnqueuer: BlogUploadEnqueuer,
     private val getBlogPostBySlugUseCase: GetBlogPostBySlugUseCase,
     private val likeBlogPostUseCase: LikeBlogPostUseCase,
     private val bookmarkBlogPostUseCase: BookmarkBlogPostUseCase,
@@ -316,26 +316,32 @@ constructor(
     }
 
     fun updateBlogPost(slug: String, title: String, body: String, imageUri: Uri?) {
+        if (isLoading.value) return // double-tap guard
+        setLoading(true)
         val state = _updateBlogState.value
-        val tagsList = BlogUtils.parseTags(state.updatedTags).takeIf { it.isNotEmpty() }
+        val tagsCsv = BlogUtils.parseTags(state.updatedTags)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(",")
 
         updateJob?.cancel()
         updateJob = viewModelScope.launch {
-            updateBlogPostUseCase(
-                slug = slug,
-                title = title,
-                body = body,
-                image = imageUri,
-                category = state.updatedCategory,
-                tags = tagsList
-            ).collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { blogPost ->
-                        onBlogPostUpdateSuccess(blogPost)
-                        sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
-                    }
+            try {
+                blogUploadEnqueuer.enqueueUpdate(
+                    slug = slug,
+                    title = title,
+                    body = body,
+                    imageUri = imageUri,
+                    category = state.updatedCategory,
+                    tagsCsv = tagsCsv
                 )
+                // H6 PR B: emit nav event on enqueue (attempt). Success/failure surfaces
+                // via the WorkInfo observer in MainActivity (Toast) and the DAO insert
+                // performed by the worker on success propagating through Paging.
+                sendEvent(UiEvent.ShowToast("Saving in the background…"))
+                sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
+                clearUpdatedImageUri()
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -501,15 +507,4 @@ constructor(
     }
 
     // endregion
-
-    private fun onBlogPostUpdateSuccess(blogPost: BlogPost) {
-        clearUpdatedImageUri()
-        setUpdatedBlogFields(
-            title = blogPost.title,
-            body = blogPost.body,
-            originalImageUrl = blogPost.image
-        )
-        setBlogPost(blogPost)
-        updateViewBlogState { copy(likeCount = blogPost.like_count ?: 0) }
-    }
 }
