@@ -34,6 +34,8 @@ import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.util.toUserMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,7 +69,8 @@ constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val sharedPreferences: SharedPreferences,
     private val editor: SharedPreferences.Editor,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<BlogListUiState>(BlogListUiState()) {
 
     private val _viewBlogState = MutableStateFlow(ViewBlogUiState())
@@ -162,6 +165,9 @@ constructor(
             filterAndOrder = viewState.value.order + viewState.value.filter,
             category = viewState.value.selectedCategory
         )
+        if (viewState.value.searchQuery.isNotBlank()) {
+            analyticsTracker.trackEvent(AnalyticsEvent.Search(true))
+        }
     }
 
     fun saveFilterOptions(filter: String, order: String) {
@@ -251,6 +257,7 @@ constructor(
         if (prefetched != null && prefetched.slug == slug) {
             BlogDetailPrefetch.pendingPost = null
             displayBlogPost(prefetched)
+            analyticsTracker.trackEvent(AnalyticsEvent.ViewPost(slug))
             return
         }
 
@@ -259,6 +266,7 @@ constructor(
             val blogPost = getBlogPostBySlugUseCase(slug)
             if (blogPost != null) {
                 displayBlogPost(blogPost)
+                analyticsTracker.trackEvent(AnalyticsEvent.ViewPost(slug))
             } else {
                 sendEvent(UiEvent.ShowErrorDialog(AppError.NotFound.toUserMessage()))
             }
@@ -295,6 +303,9 @@ constructor(
                         if (message == SUCCESS_BLOG_DELETED) {
                             sendEvent(UiEvent.ShowToast(message))
                             sendEvent(BlogNavigationEvent.BlogDeleted)
+                            analyticsTracker.trackEvent(
+                                AnalyticsEvent.DeletePost(blogPost.slug)
+                            )
                         }
                     }
                 )
@@ -347,12 +358,17 @@ constructor(
                     val result = likeBlogPostUseCase(slug)
                         .first { it !is Resource.Loading }
                     when (result) {
-                        is Resource.Success -> Resource.Success(
-                            state.copy(
-                                isLiked = result.data.liked,
-                                likeCount = result.data.likeCount
+                        is Resource.Success -> {
+                            if (result.data.liked) {
+                                analyticsTracker.trackEvent(AnalyticsEvent.LikePost(slug))
+                            }
+                            Resource.Success(
+                                state.copy(
+                                    isLiked = result.data.liked,
+                                    likeCount = result.data.likeCount
+                                )
                             )
-                        )
+                        }
                         is Resource.Error -> result
                         is Resource.Loading ->
                             Resource.Error(AppError.Unknown(null))
@@ -378,9 +394,14 @@ constructor(
                     val result = bookmarkBlogPostUseCase(slug)
                         .first { it !is Resource.Loading }
                     when (result) {
-                        is Resource.Success -> Resource.Success(
-                            state.copy(isBookmarked = result.data)
-                        )
+                        is Resource.Success -> {
+                            if (result.data) {
+                                analyticsTracker.trackEvent(AnalyticsEvent.BookmarkPost(slug))
+                            }
+                            Resource.Success(
+                                state.copy(isBookmarked = result.data)
+                            )
+                        }
                         is Resource.Error -> result
                         is Resource.Loading ->
                             Resource.Error(AppError.Unknown(null))
@@ -414,7 +435,12 @@ constructor(
         addCommentJob?.cancel()
         addCommentJob = viewModelScope.launch {
             createCommentUseCase(slug, body).collect { resource ->
-                handleResource(resource, onSuccess = {})
+                handleResource(
+                    resource,
+                    onSuccess = {
+                        analyticsTracker.trackEvent(AnalyticsEvent.CreateComment(slug))
+                    }
+                )
             }
         }
     }

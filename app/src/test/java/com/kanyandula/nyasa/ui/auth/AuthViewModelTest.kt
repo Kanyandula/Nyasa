@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.domain.usecase.auth.CheckPreviousAuthUseCase
 import com.kanyandula.nyasa.domain.usecase.auth.LoginUseCase
 import com.kanyandula.nyasa.domain.usecase.auth.RegisterUseCase
+import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeAuthRepository
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.ui.UiEvent
@@ -36,7 +37,8 @@ class AuthViewModelTest {
         viewModel = AuthViewModel(
             loginUseCase = LoginUseCase(fakeRepository),
             registerUseCase = RegisterUseCase(fakeRepository),
-            checkPreviousAuthUseCase = CheckPreviousAuthUseCase(fakeRepository)
+            checkPreviousAuthUseCase = CheckPreviousAuthUseCase(fakeRepository),
+            analyticsTracker = FakeAnalyticsTracker()
         )
     }
 

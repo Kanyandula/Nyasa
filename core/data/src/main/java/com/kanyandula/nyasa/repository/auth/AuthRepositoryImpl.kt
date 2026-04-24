@@ -1,7 +1,6 @@
 package com.kanyandula.nyasa.repository.auth
 
 import android.content.SharedPreferences
-import android.util.Log
 import com.kanyandula.nyasa.api.auth.NyasaBlogApiAuthService
 import com.kanyandula.nyasa.domain.repository.AuthRepository
 import com.kanyandula.nyasa.models.AccountProperties
@@ -18,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import javax.inject.Inject
 
 class AuthRepositoryImpl
@@ -51,7 +51,7 @@ constructor(
         when (val result = safeApiCall { nyasaBlogApiAuthService.login(email, password) }) {
             is Resource.Success -> {
                 val body = result.data
-                Log.d(TAG, "login success: $body")
+                Timber.d("login success: $body")
 
                 if (body.response == GENERIC_AUTH_ERROR) {
                     emit(
@@ -112,7 +112,7 @@ constructor(
         ) {
             is Resource.Success -> {
                 val body = result.data
-                Log.d(TAG, "registration success: $body")
+                Timber.d("registration success: $body")
 
                 if (body.response == GENERIC_AUTH_ERROR) {
                     emit(
@@ -153,16 +153,16 @@ constructor(
             sharedPreferences.getString(PreferenceKeys.PREVIOUS_AUTH_USER, null)
 
         if (previousAuthUserEmail.isNullOrBlank()) {
-            Log.d(TAG, "checkPreviousAuthUser: No previously authenticated user found.")
+            Timber.d("checkPreviousAuthUser: No previously authenticated user found.")
             emit(Resource.Success(null))
             return@flow
         }
 
         val accountProperties = accountPropertiesDao.searchByEmail(previousAuthUserEmail)
-        Log.d(TAG, "checkPreviousAuthUser: searching for token... account properties: $accountProperties")
+        Timber.d("checkPreviousAuthUser: searching for token... account properties: $accountProperties")
 
         if (accountProperties == null || accountProperties.pk <= -1) {
-            Log.d(TAG, "checkPreviousAuthUser: AuthToken not found...")
+            Timber.d("checkPreviousAuthUser: AuthToken not found...")
             emit(Resource.Success(null))
             return@flow
         }
@@ -171,7 +171,7 @@ constructor(
         if (authToken?.token != null) {
             emit(Resource.Success(authToken))
         } else {
-            Log.d(TAG, "checkPreviousAuthUser: AuthToken not found...")
+            Timber.d("checkPreviousAuthUser: AuthToken not found...")
             emit(Resource.Success(null))
         }
     }.flowOn(Dispatchers.IO)
@@ -182,7 +182,6 @@ constructor(
     }
 
     companion object {
-        private const val TAG = "AppDebug"
         private const val GENERIC_AUTH_ERROR = "Error"
     }
 }

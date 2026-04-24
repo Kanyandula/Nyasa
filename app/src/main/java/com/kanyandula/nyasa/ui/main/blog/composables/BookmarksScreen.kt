@@ -31,6 +31,7 @@ import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.BlogUtils
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,7 @@ fun BookmarksScreen(
     onRemoveBookmark: (String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    TrackScreen("Bookmarks")
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {

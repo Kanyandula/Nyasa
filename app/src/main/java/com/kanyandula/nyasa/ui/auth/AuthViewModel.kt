@@ -10,6 +10,8 @@ import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +22,8 @@ class AuthViewModel
 constructor(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
-    private val checkPreviousAuthUseCase: CheckPreviousAuthUseCase
+    private val checkPreviousAuthUseCase: CheckPreviousAuthUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<AuthViewState>(AuthViewState()) {
 
     private var hasCheckedPreviousUser = false
@@ -30,7 +33,10 @@ constructor(
             loginUseCase(email, password).collect { resource ->
                 handleResource(
                     resource,
-                    onSuccess = { authToken -> setAuthToken(authToken) }
+                    onSuccess = { authToken ->
+                        setAuthToken(authToken)
+                        analyticsTracker.trackEvent(AnalyticsEvent.Login)
+                    }
                 )
             }
         }
@@ -47,7 +53,10 @@ constructor(
                 .collect { resource ->
                     handleResource(
                         resource,
-                        onSuccess = { authToken -> setAuthToken(authToken) }
+                        onSuccess = { authToken ->
+                            setAuthToken(authToken)
+                            analyticsTracker.trackEvent(AnalyticsEvent.Register)
+                        }
                     )
                 }
         }

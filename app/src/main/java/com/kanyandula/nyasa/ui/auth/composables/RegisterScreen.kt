@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @Composable
 fun RegisterScreen(
@@ -51,6 +52,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onFieldsChanged: (email: String, username: String) -> Unit
 ) {
+    TrackScreen("Register")
     var email by rememberSaveable { mutableStateOf(initialEmail) }
     var username by rememberSaveable { mutableStateOf(initialUsername) }
     var password by rememberSaveable { mutableStateOf("") }

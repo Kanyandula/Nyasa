@@ -71,6 +71,7 @@ import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 import kotlinx.coroutines.flow.Flow
 
 enum class FeedMode { Home, Search }
@@ -83,6 +84,7 @@ fun BlogFeedScreen(
     onAction: (BlogFeedAction) -> Unit,
     mode: FeedMode = FeedMode.Home
 ) {
+    TrackScreen("BlogFeed")
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
     var query by rememberSaveable { mutableStateOf(state.searchQuery) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }

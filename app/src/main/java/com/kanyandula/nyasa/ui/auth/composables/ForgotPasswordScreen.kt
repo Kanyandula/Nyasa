@@ -43,6 +43,7 @@ import com.kanyandula.nyasa.ui.auth.WebAppInterface
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.Constants
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -51,6 +52,7 @@ fun ForgotPasswordScreen(
     onError: (String) -> Unit,
     onLoadingChanged: (Boolean) -> Unit
 ) {
+    TrackScreen("ForgotPassword")
     var resetLinkSent by rememberSaveable { mutableStateOf(false) }
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
     val handler = remember { Handler(Looper.getMainLooper()) }

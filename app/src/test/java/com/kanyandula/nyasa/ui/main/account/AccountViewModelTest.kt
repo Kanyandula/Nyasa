@@ -7,6 +7,7 @@ import com.kanyandula.nyasa.domain.usecase.account.GetAccountPropertiesUseCase
 import com.kanyandula.nyasa.domain.usecase.account.SaveAccountPropertiesUseCase
 import com.kanyandula.nyasa.domain.usecase.profile.UpdateProfileUseCase
 import com.kanyandula.nyasa.fakes.FakeAccountRepository
+import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeProfileRepository
 import com.kanyandula.nyasa.models.AccountProperties
 import com.kanyandula.nyasa.session.SessionManager
@@ -49,7 +50,8 @@ class AccountViewModelTest {
             getAccountPropertiesUseCase = GetAccountPropertiesUseCase(fakeRepository),
             saveAccountPropertiesUseCase = SaveAccountPropertiesUseCase(fakeRepository),
             changePasswordUseCase = ChangePasswordUseCase(fakeRepository),
-            updateProfileUseCase = UpdateProfileUseCase(fakeProfileRepository)
+            updateProfileUseCase = UpdateProfileUseCase(fakeProfileRepository),
+            analyticsTracker = FakeAnalyticsTracker()
         )
     }
 

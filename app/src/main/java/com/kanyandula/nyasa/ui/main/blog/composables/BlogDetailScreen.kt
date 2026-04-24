@@ -61,6 +61,8 @@ import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.DateUtils
+import com.kanyandula.nyasa.util.analytics.TrackScreen
+import android.graphics.Color as AndroidColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -69,6 +71,7 @@ fun BlogDetailScreen(
     isLoading: Boolean,
     onAction: (BlogDetailAction) -> Unit
 ) {
+    TrackScreen("BlogDetail")
     val blogPost = state.blogPost
     val isLiked = state.isLiked
     val isBookmarked = state.isBookmarked

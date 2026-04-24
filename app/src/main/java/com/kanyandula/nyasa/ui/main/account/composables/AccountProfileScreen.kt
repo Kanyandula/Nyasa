@@ -44,6 +44,7 @@ import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.AccountViewState
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.ThemePreference
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @Composable
 fun AccountProfileScreen(
@@ -53,6 +54,7 @@ fun AccountProfileScreen(
     onThemeChanged: (ThemePreference) -> Unit,
     onAction: (AccountProfileAction) -> Unit
 ) {
+    TrackScreen("AccountProfile")
     val account = state.accountProperties
     val email = account?.email.orEmpty()
     val username = account?.username.orEmpty()

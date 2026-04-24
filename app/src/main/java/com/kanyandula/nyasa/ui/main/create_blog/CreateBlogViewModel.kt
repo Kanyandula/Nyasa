@@ -12,6 +12,8 @@ import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
+import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,7 +23,8 @@ class CreateBlogViewModel
 @Inject
 constructor(
     private val createBlogPostUseCase: CreateBlogPostUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<CreateBlogViewState>(CreateBlogViewState()) {
 
     init {
@@ -41,6 +44,9 @@ constructor(
                             sendEvent(UiEvent.ShowSuccessDialog(message))
                             if (message == SUCCESS_BLOG_CREATED) {
                                 clearNewBlogFields()
+                                analyticsTracker.trackEvent(
+                                    AnalyticsEvent.CreatePost(fields.category)
+                                )
                             }
                         }
                     )
