@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @Composable
 fun LoginScreen(
@@ -54,6 +55,7 @@ fun LoginScreen(
     isLoading: Boolean,
     onAction: (LoginAction) -> Unit
 ) {
+    TrackScreen("Login")
     var email by rememberSaveable { mutableStateOf(initialEmail) }
     var password by rememberSaveable { mutableStateOf("") }
 

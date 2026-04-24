@@ -65,6 +65,7 @@ import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +83,7 @@ fun CreateBlogScreen(
     onNavigateBack: () -> Unit,
     onSaveDraft: () -> Unit
 ) {
+    TrackScreen("CreateBlog")
     var title by rememberSaveable { mutableStateOf(initialTitle) }
     var body by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(initialBody))

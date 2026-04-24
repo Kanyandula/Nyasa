@@ -42,6 +42,7 @@ import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.main.account.state.ProfileFormData
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +62,7 @@ fun EditAccountScreen(
     onNavigateBack: () -> Unit,
     onDeleteAccount: () -> Unit = {}
 ) {
+    TrackScreen("EditAccount")
     var email by rememberSaveable { mutableStateOf(initialEmail) }
     var username by rememberSaveable { mutableStateOf(initialUsername) }
     var bio by rememberSaveable { mutableStateOf(initialBio) }

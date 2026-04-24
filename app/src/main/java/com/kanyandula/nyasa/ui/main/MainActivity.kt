@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +20,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
+import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
+import com.kanyandula.nyasa.util.analytics.LocalAnalyticsTracker
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.authGraph
@@ -43,6 +46,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themeDataStore: DataStore<Preferences>
 
+    @Inject
+    lateinit var analyticsTracker: AnalyticsTracker
+
     @Suppress("LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +65,7 @@ class MainActivity : ComponentActivity() {
                 ThemePreference.DARK -> true
             }
 
+            CompositionLocalProvider(LocalAnalyticsTracker provides analyticsTracker) {
             NyasaTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
                 val themeScope = rememberCoroutineScope()
@@ -73,6 +80,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(token) {
+                    analyticsTracker.setUserId(token?.account_pk?.toString())
                     val target = if (token.isValid()) {
                         Routes.MAIN_GRAPH
                     } else {
@@ -119,6 +127,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
             }
         }
     }

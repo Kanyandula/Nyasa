@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.kanyandula.nyasa.ui.components.ButtonStyle
 import com.kanyandula.nyasa.ui.components.NyasaButton
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @Composable
 fun WelcomeScreen(
@@ -39,6 +40,7 @@ fun WelcomeScreen(
     onRegisterClick: () -> Unit,
     onForgotPasswordClick: () -> Unit
 ) {
+    TrackScreen("Welcome")
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surface

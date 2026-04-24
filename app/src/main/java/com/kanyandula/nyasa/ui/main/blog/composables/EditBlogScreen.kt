@@ -50,6 +50,7 @@ import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +64,7 @@ fun EditBlogScreen(
     isLoading: Boolean,
     onAction: (EditBlogAction) -> Unit
 ) {
+    TrackScreen("EditBlog")
     var title by rememberSaveable { mutableStateOf(initialTitle) }
     var body by rememberSaveable { mutableStateOf(initialBody) }
     var tags by rememberSaveable { mutableStateOf(initialTags) }

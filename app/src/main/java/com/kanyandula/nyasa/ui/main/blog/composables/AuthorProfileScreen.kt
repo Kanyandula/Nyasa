@@ -30,6 +30,7 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.components.ProfileAvatar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
+import com.kanyandula.nyasa.util.analytics.TrackScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +39,7 @@ fun AuthorProfileScreen(
     isLoading: Boolean,
     onNavigateBack: () -> Unit
 ) {
+    TrackScreen("AuthorProfile")
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
