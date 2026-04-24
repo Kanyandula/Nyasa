@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+    id 'dagger.hilt.android.plugin'
+}
+
+android {
+    namespace 'com.kanyandula.nyasa.core.work'
+    compileSdk 35
+    defaultConfig { minSdk 24 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    lint {
+        abortOnError false
+        warningsAsErrors false
+    }
+}
+
+dependencies {
+    implementation project(':core:common')
+    implementation project(':core:network')
+    implementation project(':core:database')
+    implementation project(':core:session')
+    // Needed for Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER + BlogResponseMappers.toBlogPost().
+    // TODO(H6 follow-up): move those to :core:common / :core:network so :core:work doesn't need :core:data.
+    implementation project(':core:data')
+
+    // AndroidX Core (NotificationCompat)
+    implementation 'androidx.core:core-ktx:1.13.1'
+
+    // Hilt
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    ksp "com.google.dagger:hilt-compiler:$hilt_version"
+
+    // Hilt + WorkManager integration
+    implementation 'androidx.hilt:hilt-work:1.2.0'
+    ksp 'androidx.hilt:hilt-compiler:1.2.0'
+
+    // WorkManager
+    implementation 'androidx.work:work-runtime-ktx:2.9.1'
+
+    // OkHttp (RequestBody / MultipartBody)
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // Retrofit (Response typing, already a transitive via :core:network but explicit for clarity)
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Timber
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+}

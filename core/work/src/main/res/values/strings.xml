@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upload_notification_channel_name">Blog Uploads</string>
+    <string name="upload_notification_channel_description">Progress for blog uploads running in the background.</string>
+    <string name="upload_notification_title">Publishing your post</string>
+    <string name="upload_notification_indeterminate">Working…</string>
+    <string name="upload_notification_progress_percent">%1$d%%</string>
+</resources>

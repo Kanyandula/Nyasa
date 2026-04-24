@@ -25,6 +25,17 @@ fun String.toPlainTextBody(): RequestBody =
     toRequestBody("text/plain".toMediaTypeOrNull())
 
 suspend fun Uri.toCompressedMultipartImage(context: Context): MultipartBody.Part {
+    val compressed = toCompressedUploadFile(context)
+    val requestBody = compressed.asRequestBody("image/jpeg".toMediaTypeOrNull())
+    return MultipartBody.Part.createFormData("image", "blog_image.jpg", requestBody)
+}
+
+/**
+ * Stages [this] image URI as a compressed JPEG on disk and returns the resulting [File].
+ * Used by both the foreground multipart path ([toCompressedMultipartImage]) and the H6
+ * background upload path (BlogUploadEnqueuer). Caller owns the returned file's lifecycle.
+ */
+suspend fun Uri.toCompressedUploadFile(context: Context): File {
     cleanupStaleTempFiles(context)
 
     val tempFile = copyUriToTempFile(context, this)
@@ -33,8 +44,7 @@ suspend fun Uri.toCompressedMultipartImage(context: Context): MultipartBody.Part
         val compressed = compressImage(context, tempFile)
         tempFile.delete()
         validatePostCompressionSize(compressed)
-        val requestBody = compressed.asRequestBody("image/jpeg".toMediaTypeOrNull())
-        return MultipartBody.Part.createFormData("image", "blog_image.jpg", requestBody)
+        return compressed
     } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
         tempFile.delete()
         throw e
