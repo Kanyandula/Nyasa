@@ -1,11 +1,8 @@
 package com.kanyandula.nyasa.api
 
-import com.kanyandula.nyasa.models.AuthToken
-import com.kanyandula.nyasa.session.SessionManager
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.flow.MutableStateFlow
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -20,7 +17,7 @@ import java.net.InetAddress
 class AuthInterceptorTest {
 
     private lateinit var server: MockWebServer
-    private lateinit var sessionManager: SessionManager
+    private lateinit var tokenProvider: TokenProvider
     private lateinit var client: OkHttpClient
 
     private val localhostDns = object : Dns {
@@ -32,10 +29,10 @@ class AuthInterceptorTest {
     fun setUp() {
         server = MockWebServer()
         server.start()
-        sessionManager = mockk(relaxed = true)
-        every { sessionManager.cachedToken } returns MutableStateFlow(AuthToken(1, "test-token"))
+        tokenProvider = mockk(relaxed = true)
+        every { tokenProvider.token } returns "test-token"
         client = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(sessionManager))
+            .addInterceptor(AuthInterceptor(tokenProvider))
             .dns(localhostDns)
             .build()
     }
@@ -55,9 +52,9 @@ class AuthInterceptorTest {
 
     @Test
     fun `no Authorization header when token is null`() {
-        every { sessionManager.cachedToken } returns MutableStateFlow(null)
+        every { tokenProvider.token } returns null
         val noTokenClient = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(sessionManager))
+            .addInterceptor(AuthInterceptor(tokenProvider))
             .dns(localhostDns)
             .build()
         server.enqueue(MockResponse().setResponseCode(200))
@@ -75,24 +72,24 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `401 response calls SessionManager invalidate`() {
+    fun `401 response calls TokenProvider invalidate`() {
         server.enqueue(MockResponse().setResponseCode(401))
         client.newCall(Request.Builder().url(apiUrl()).build()).execute()
-        verify(exactly = 1) { sessionManager.invalidate() }
+        verify(exactly = 1) { tokenProvider.invalidate() }
     }
 
     @Test
     fun `401 from non-API host does not call invalidate`() {
         server.enqueue(MockResponse().setResponseCode(401))
         client.newCall(Request.Builder().url(server.url("/")).build()).execute()
-        verify(exactly = 0) { sessionManager.invalidate() }
+        verify(exactly = 0) { tokenProvider.invalidate() }
     }
 
     @Test
     fun `200 response does not call invalidate`() {
         server.enqueue(MockResponse().setResponseCode(200))
         client.newCall(Request.Builder().url(apiUrl()).build()).execute()
-        verify(exactly = 0) { sessionManager.invalidate() }
+        verify(exactly = 0) { tokenProvider.invalidate() }
     }
 
     private fun apiUrl(path: String = "/"): okhttp3.HttpUrl =
