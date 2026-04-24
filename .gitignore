@@ -22,3 +22,6 @@ local.properties
 # Kotlin compiler cache
 .kotlin/
 .claude/worktrees/
+
+# Firebase config (contains API keys)
+app/google-services.json
