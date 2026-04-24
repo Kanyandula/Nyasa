@@ -202,7 +202,7 @@ fun ChangePasswordScreen(
 
                 // Password requirements checklist
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    horizontalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.l)
                 ) {
                     PasswordRequirement(
                         text = "8+ CHARACTERS",

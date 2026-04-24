@@ -255,7 +255,7 @@ private fun AccountInfoRow(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(NyasaTheme.spacing.s))
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyLarge,

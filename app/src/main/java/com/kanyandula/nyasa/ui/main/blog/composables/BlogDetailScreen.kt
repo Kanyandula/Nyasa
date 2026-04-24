@@ -62,7 +62,6 @@ import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.DateUtils
 import com.kanyandula.nyasa.util.analytics.TrackScreen
-import android.graphics.Color as AndroidColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -360,7 +359,7 @@ private fun CommentsSection(
             )
         }
     }
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(NyasaTheme.spacing.m))
     comments.forEach { comment ->
         val canDelete = comment.username == currentUsername
         CommentItem(
