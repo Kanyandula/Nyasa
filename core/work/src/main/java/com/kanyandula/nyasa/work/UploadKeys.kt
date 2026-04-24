@@ -7,6 +7,9 @@ object UploadKeys {
     const val INPUT_TAGS_CSV = "upload_tags_csv"
     const val INPUT_IMAGE_PATH = "upload_image_path"
 
+    /** Present → PUT update on this slug. Absent → POST create. */
+    const val INPUT_SLUG = "upload_slug_for_update"
+
     const val PROGRESS_PERCENT = "upload_progress_percent"
 
     const val OUTPUT_SLUG = "upload_slug"
