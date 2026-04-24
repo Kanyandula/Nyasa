@@ -5,15 +5,14 @@ package com.kanyandula.nyasa.ui.main.create_blog
 import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
-import com.kanyandula.nyasa.domain.usecase.createblog.CreateBlogPostUseCase
 import com.kanyandula.nyasa.ui.BaseViewModel
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import com.kanyandula.nyasa.util.BlogUtils
-import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_CREATED
 import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
 import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
+import com.kanyandula.nyasa.work.BlogUploadEnqueuer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +21,7 @@ import javax.inject.Inject
 class CreateBlogViewModel
 @Inject
 constructor(
-    private val createBlogPostUseCase: CreateBlogPostUseCase,
+    private val blogUploadEnqueuer: BlogUploadEnqueuer,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<CreateBlogViewState>(CreateBlogViewState()) {
@@ -33,25 +32,23 @@ constructor(
 
     fun createNewBlogPost(title: String, body: String, imageUri: Uri?) {
         val fields = viewState.value.blogFields
-        val tagsList = BlogUtils.parseTags(fields.tags).takeIf { it.isNotEmpty() }
+        val tagsCsv = BlogUtils.parseTags(fields.tags)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(",")
 
-        viewModelScope.launch {
-            createBlogPostUseCase(title, body, imageUri, fields.category, tagsList)
-                .collect { resource ->
-                    handleResource(
-                        resource,
-                        onSuccess = { message ->
-                            sendEvent(UiEvent.ShowSuccessDialog(message))
-                            if (message == SUCCESS_BLOG_CREATED) {
-                                clearNewBlogFields()
-                                analyticsTracker.trackEvent(
-                                    AnalyticsEvent.CreatePost(fields.category)
-                                )
-                            }
-                        }
-                    )
-                }
-        }
+        blogUploadEnqueuer.enqueueCreate(
+            title = title,
+            body = body,
+            imageUri = imageUri,
+            category = fields.category,
+            tagsCsv = tagsCsv
+        )
+
+        // H6: analytics now fires on enqueue (attempt), not on success. Terminal state
+        // is observed at the Activity level via WorkManager WorkInfo for the user-facing Toast.
+        analyticsTracker.trackEvent(AnalyticsEvent.CreatePost(fields.category))
+        sendEvent(UiEvent.ShowToast("Publishing in the background…"))
+        clearNewBlogFields()
     }
 
     fun setNewBlogFields(
