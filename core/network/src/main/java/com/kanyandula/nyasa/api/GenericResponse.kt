@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 class GenericResponse(
     @SerialName("response")
-    var response: String
+    var response: String = ""
 )
