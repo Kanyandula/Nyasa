@@ -4,7 +4,6 @@ object Constants {
 
     const val BASE_URL = "https://nyasablog.com/api/"
     const val PASSWORD_RESET_URL: String = "https://nyasablog.com/password_reset/"
-    const val RESPONSE_MUST_HAVE_NYASABLOG_UER = "Create a NyasaBlog Account"
 
     const val NETWORK_TIMEOUT = 6000L
 

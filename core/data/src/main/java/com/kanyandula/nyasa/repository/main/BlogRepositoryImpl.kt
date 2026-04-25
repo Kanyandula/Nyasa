@@ -1,7 +1,5 @@
 package com.kanyandula.nyasa.repository.main
 
-import android.content.Context
-import android.net.Uri
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -21,16 +19,12 @@ import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_HAS_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.RESPONSE_NO_PERMISSION_TO_EDIT
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
-import com.kanyandula.nyasa.util.toCompressedMultipartImage
-import com.kanyandula.nyasa.util.toPlainTextBody
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class BlogRepositoryImpl
 @Inject
 constructor(
-    @ApplicationContext private val context: Context,
     private val nyasaBlogApiMainService: NyasaBlogApiMainService,
     private val database: AppDatabase,
     private val connectivityObserver: ConnectivityObserver
@@ -87,37 +81,6 @@ constructor(
             } else {
                 Resource.Error(AppError.Unknown(null))
             }
-        }
-    )
-
-    override fun updateBlogPost(
-        slug: String,
-        title: String,
-        body: String,
-        image: Uri?,
-        category: String?,
-        tags: List<String>?
-    ): Flow<Resource<BlogPost>> = networkApiFlow(
-        connectivityObserver = connectivityObserver,
-        apiCall = {
-            val titleBody = title.toPlainTextBody()
-            val bodyBody = body.toPlainTextBody()
-            val imagePart = image?.toCompressedMultipartImage(context)
-            val categoryBody = category?.toPlainTextBody()
-            val tagsBody = tags?.takeIf { it.isNotEmpty() }?.joinToString(",")?.toPlainTextBody()
-            nyasaBlogApiMainService.updateBlog(
-                slug,
-                titleBody,
-                bodyBody,
-                imagePart,
-                categoryBody,
-                tagsBody
-            )
-        },
-        onSuccess = { body ->
-            val updatedBlogPost = body.toBlogPost()
-            blogPostDao.insert(updatedBlogPost)
-            Resource.Success(updatedBlogPost)
         }
     )
 

@@ -44,9 +44,6 @@ dependencies {
     implementation "androidx.room:room-runtime:2.6.1"
     implementation "androidx.room:room-ktx:2.6.1"
 
-    // Image Compression (for RequestBodyExt)
-    implementation "id.zelory:compressor:3.0.1"
-
     // Encrypted SharedPreferences (for AuthRepositoryImpl)
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
 

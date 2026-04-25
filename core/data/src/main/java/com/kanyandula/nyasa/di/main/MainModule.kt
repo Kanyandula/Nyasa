@@ -5,13 +5,11 @@ import com.kanyandula.nyasa.domain.repository.AccountRepository
 import com.kanyandula.nyasa.domain.repository.BlogRepository
 import com.kanyandula.nyasa.domain.repository.CategoryRepository
 import com.kanyandula.nyasa.domain.repository.CommentRepository
-import com.kanyandula.nyasa.domain.repository.CreateBlogRepository
 import com.kanyandula.nyasa.domain.repository.ProfileRepository
 import com.kanyandula.nyasa.repository.main.AccountRepositoryImpl
 import com.kanyandula.nyasa.repository.main.BlogRepositoryImpl
 import com.kanyandula.nyasa.repository.main.CategoryRepositoryImpl
 import com.kanyandula.nyasa.repository.main.CommentRepositoryImpl
-import com.kanyandula.nyasa.repository.main.CreateBlogRepositoryImpl
 import com.kanyandula.nyasa.repository.main.ProfileRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -32,10 +30,6 @@ abstract class MainModule {
     @Binds
     @Singleton
     abstract fun bindBlogRepository(impl: BlogRepositoryImpl): BlogRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindCreateBlogRepository(impl: CreateBlogRepositoryImpl): CreateBlogRepository
 
     @Binds
     @Singleton

@@ -25,9 +25,6 @@ dependencies {
     implementation project(':core:network')
     implementation project(':core:database')
     implementation project(':core:session')
-    // Needed for Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER + BlogResponseMappers.toBlogPost().
-    // TODO(H6 follow-up): move those to :core:common / :core:network so :core:work doesn't need :core:data.
-    implementation project(':core:data')
 
     // AndroidX Core (NotificationCompat)
     implementation 'androidx.core:core-ktx:1.13.1'
@@ -51,6 +48,9 @@ dependencies {
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Image compression (used by upload staging in BlogUploadEnqueuer)
+    implementation 'id.zelory:compressor:3.0.1'
 
     // Timber
     implementation 'com.jakewharton.timber:timber:5.0.1'

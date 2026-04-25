@@ -1,10 +1,8 @@
 package com.kanyandula.nyasa.repository.main
 
-import android.content.Context
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
-import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
 import com.kanyandula.nyasa.api.main.responses.BlogSearchResponse
 import com.kanyandula.nyasa.api.main.responses.BookmarkResponse
 import com.kanyandula.nyasa.api.main.responses.LikeResponse
@@ -36,7 +34,6 @@ class BlogRepositoryImplTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private lateinit var context: Context
     private lateinit var apiService: NyasaBlogApiMainService
     private lateinit var database: AppDatabase
     private lateinit var blogPostDao: BlogPostDao
@@ -55,7 +52,6 @@ class BlogRepositoryImplTest {
 
     @Before
     fun setup() {
-        context = mockk(relaxed = true)
         apiService = mockk()
         blogPostDao = mockk(relaxed = true)
         database = mockk {
@@ -63,7 +59,7 @@ class BlogRepositoryImplTest {
         }
         connectivityObserver = mockk()
         every { connectivityObserver.isConnected } returns MutableStateFlow(true)
-        repository = BlogRepositoryImpl(context, apiService, database, connectivityObserver)
+        repository = BlogRepositoryImpl(apiService, database, connectivityObserver)
     }
 
     @Test
@@ -126,38 +122,6 @@ class BlogRepositoryImplTest {
         val results = repository.deleteBlogPost(testPost).toList()
 
         assertThat(results.last()).isInstanceOf(Resource.Error::class.java)
-    }
-
-    @Test
-    fun `updateBlogPost success inserts to DAO`() = runTest {
-        val updateResponse = mockk<BlogCreateUpdateResponse>(relaxed = true) {
-            every { pk } returns 1
-            every { title } returns "Updated"
-            every { slug } returns "updated"
-            every { body } returns "Updated body"
-            every { image } returns ""
-            every { date_updated } returns "2024-06-01T00:00:00Z"
-            every { username } returns "user"
-            every { category } returns null
-            every { tags } returns emptyList()
-            every { reading_time } returns 3
-        }
-        coEvery {
-            apiService.updateBlog(any(), any(), any(), any(), any(), any())
-        } returns Response.success(updateResponse)
-
-        val results = repository.updateBlogPost(
-            "test",
-            "Updated",
-            "Updated body",
-            null,
-            null,
-            null
-        ).toList()
-
-        val success = results.last() as Resource.Success
-        assertThat(success.data.title).isEqualTo("Updated")
-        coVerify { blogPostDao.insert(any()) }
     }
 
     @Test

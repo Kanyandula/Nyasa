@@ -9,11 +9,14 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
+import com.kanyandula.nyasa.api.main.responses.RESPONSE_MUST_HAVE_NYASABLOG_USER
 import com.kanyandula.nyasa.api.main.responses.toBlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.session.ConnectivityObserver
-import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
+import com.kanyandula.nyasa.util.AppError
+import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.UploadStreamRequestBody
+import com.kanyandula.nyasa.util.safeApiCall
 import com.kanyandula.nyasa.util.toPlainTextBody
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -36,7 +39,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
         UploadNotifications.ongoingForegroundInfo(applicationContext, progressPercent = 0)
 
     override suspend fun doWork(): Result {
-        val input = UploadInput.from(inputData) ?: return failureFor("InvalidInput")
+        val input = UploadInput.from(inputData) ?: return failureFor(REASON_INVALID_INPUT)
         val result = computeResult(input)
         if (result !is Result.Retry) input.imageFile?.runCatching { delete() }
         return result
@@ -50,23 +53,21 @@ class UploadBlogPostWorker @AssistedInject constructor(
         runLoggingCatch("setForeground") { setForeground(getForegroundInfo()) }
         if (input.imageFile != null && !input.imageFile.exists()) {
             Timber.w("Upload image missing at ${input.imageFile}")
-            return failureFor("ImageMissing")
+            return failureFor(REASON_IMAGE_MISSING)
         }
         return runLoggingCatch("upload") { performUpload(input) } ?: Result.retry()
     }
 
-    private suspend fun performUpload(input: UploadInput): Result {
-        val response = callApi(input)
-        if (!response.isSuccessful) {
-            val code = response.code()
-            return when {
-                code == 408 || code in 500..599 -> Result.retry()
-                else -> failureFor("Http$code")
-            }
+    private suspend fun performUpload(input: UploadInput): Result =
+        when (val resource = safeApiCall { callApi(input) }) {
+            is Resource.Success -> handleSuccess(resource.data)
+            is Resource.Error -> handleError(resource.error)
+            is Resource.Loading -> Result.retry() // safeApiCall never emits Loading; defensive
         }
-        val payload = response.body() ?: return failureFor("EmptyBody")
+
+    private suspend fun handleSuccess(payload: BlogCreateUpdateResponse): Result {
         val post = payload.toBlogPost()
-        if (payload.response != RESPONSE_MUST_HAVE_NYASABLOG_UER) {
+        if (payload.response != RESPONSE_MUST_HAVE_NYASABLOG_USER) {
             blogPostDao.insert(post)
         }
         return Result.success(
@@ -75,6 +76,17 @@ class UploadBlogPostWorker @AssistedInject constructor(
                 UploadKeys.OUTPUT_MESSAGE to payload.response,
             ),
         )
+    }
+
+    private fun handleError(error: AppError): Result = when (error) {
+        AppError.Offline,
+        AppError.Timeout,
+        is AppError.Server,
+        is AppError.Unknown -> Result.retry()
+        AppError.Unauthorized -> failureFor(REASON_UNAUTHORIZED)
+        AppError.Forbidden -> failureFor(REASON_FORBIDDEN)
+        AppError.NotFound -> failureFor(REASON_NOT_FOUND)
+        is AppError.Validation -> failureFor(REASON_VALIDATION)
     }
 
     private suspend fun callApi(input: UploadInput): Response<BlogCreateUpdateResponse> {
@@ -135,5 +147,14 @@ class UploadBlogPostWorker @AssistedInject constructor(
                 )
             }
         }
+    }
+
+    private companion object {
+        const val REASON_INVALID_INPUT = "InvalidInput"
+        const val REASON_IMAGE_MISSING = "ImageMissing"
+        const val REASON_UNAUTHORIZED = "Unauthorized"
+        const val REASON_FORBIDDEN = "Forbidden"
+        const val REASON_NOT_FOUND = "NotFound"
+        const val REASON_VALIDATION = "Validation"
     }
 }
