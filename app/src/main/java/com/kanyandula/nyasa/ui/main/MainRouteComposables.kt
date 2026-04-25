@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.ProfileUpdateRequest
+import com.kanyandula.nyasa.ui.components.RequestNotificationPermissionEffect
 import com.kanyandula.nyasa.ui.main.account.AccountViewModel
 import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileAction
 import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileScreen
@@ -40,6 +41,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BookmarksViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.composables.CreateBlogScreen
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogNavigationEvent
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.createImagePickerIntent
 import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
@@ -150,6 +152,8 @@ internal fun EditBlogRoute(
     onNavigateBack: () -> Unit,
     onSaved: () -> Unit
 ) {
+    RequestNotificationPermissionEffect()
+
     val activity = LocalContext.current as Activity
     val state by viewModel.updateBlogState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -209,6 +213,8 @@ internal fun CreateBlogRoute(
     viewModel: CreateBlogViewModel,
     onNavigateBack: () -> Unit
 ) {
+    RequestNotificationPermissionEffect()
+
     val activity = LocalContext.current as Activity
     val blogFields by viewModel.viewState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -227,7 +233,10 @@ internal fun CreateBlogRoute(
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
-            handleStandardEvent(context, event)
+            when (event) {
+                is CreateBlogNavigationEvent.BlogCreated -> onNavigateBack()
+                else -> handleStandardEvent(context, event)
+            }
         }
     }
 

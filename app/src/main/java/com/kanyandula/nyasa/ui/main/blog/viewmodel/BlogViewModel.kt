@@ -337,9 +337,8 @@ constructor(
                 // H6 PR B: emit nav event on enqueue (attempt). Success/failure surfaces
                 // via the WorkInfo observer in MainActivity (Toast) and the DAO insert
                 // performed by the worker on success propagating through Paging.
-                sendEvent(UiEvent.ShowToast("Saving in the background…"))
-                sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
                 clearUpdatedImageUri()
+                sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
             } finally {
                 setLoading(false)
             }

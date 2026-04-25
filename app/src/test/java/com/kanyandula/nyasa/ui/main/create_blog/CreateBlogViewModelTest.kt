@@ -7,7 +7,7 @@ import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
-import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogNavigationEvent
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.work.BlogUploadEnqueuer
 import io.mockk.coEvery
@@ -60,13 +60,13 @@ class CreateBlogViewModelTest {
     }
 
     @Test
-    fun `createNewBlogPost emits ShowToast event`() = runTest {
+    fun `createNewBlogPost emits BlogCreated nav event`() = runTest {
         viewModel.events.test {
             viewModel.createNewBlogPost("Title", "Body", null)
             advanceUntilIdle()
 
             val event = awaitItem()
-            assertThat(event).isInstanceOf(UiEvent.ShowToast::class.java)
+            assertThat(event).isEqualTo(CreateBlogNavigationEvent.BlogCreated)
             cancelAndIgnoreRemainingEvents()
         }
     }
