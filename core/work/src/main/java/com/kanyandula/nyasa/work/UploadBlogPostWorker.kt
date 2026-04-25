@@ -9,11 +9,14 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.BlogCreateUpdateResponse
+import com.kanyandula.nyasa.api.main.responses.RESPONSE_MUST_HAVE_NYASABLOG_USER
 import com.kanyandula.nyasa.api.main.responses.toBlogPost
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.session.ConnectivityObserver
-import com.kanyandula.nyasa.util.Constants.RESPONSE_MUST_HAVE_NYASABLOG_UER
+import com.kanyandula.nyasa.util.AppError
+import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.UploadStreamRequestBody
+import com.kanyandula.nyasa.util.safeApiCall
 import com.kanyandula.nyasa.util.toPlainTextBody
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -36,7 +39,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
         UploadNotifications.ongoingForegroundInfo(applicationContext, progressPercent = 0)
 
     override suspend fun doWork(): Result {
-        val input = UploadInput.from(inputData) ?: return failureFor("InvalidInput")
+        val input = UploadInput.from(inputData) ?: return failureFor(REASON_INVALID_INPUT)
         val result = computeResult(input)
         if (result !is Result.Retry) input.imageFile?.runCatching { delete() }
         return result
@@ -50,23 +53,23 @@ class UploadBlogPostWorker @AssistedInject constructor(
         runLoggingCatch("setForeground") { setForeground(getForegroundInfo()) }
         if (input.imageFile != null && !input.imageFile.exists()) {
             Timber.w("Upload image missing at ${input.imageFile}")
-            return failureFor("ImageMissing")
+            return failureFor(REASON_IMAGE_MISSING)
         }
         return runLoggingCatch("upload") { performUpload(input) } ?: Result.retry()
     }
 
-    private suspend fun performUpload(input: UploadInput): Result {
-        val response = callApi(input)
-        if (!response.isSuccessful) {
-            val code = response.code()
-            return when {
-                code == 408 || code in 500..599 -> Result.retry()
-                else -> failureFor("Http$code")
-            }
+    private suspend fun performUpload(input: UploadInput): Result =
+        when (val resource = safeApiCall { callApi(input) }) {
+            is Resource.Success -> handleSuccess(resource.data)
+            is Resource.Error -> handleError(resource.error)
+            // safeApiCall never emits Loading. If that contract changes, fail terminally
+            // so the worker doesn't loop forever — we'd see this in Crashlytics.
+            is Resource.Loading -> failureFor(REASON_UNEXPECTED_LOADING)
         }
-        val payload = response.body() ?: return failureFor("EmptyBody")
+
+    private suspend fun handleSuccess(payload: BlogCreateUpdateResponse): Result {
         val post = payload.toBlogPost()
-        if (payload.response != RESPONSE_MUST_HAVE_NYASABLOG_UER) {
+        if (payload.response != RESPONSE_MUST_HAVE_NYASABLOG_USER) {
             blogPostDao.insert(post)
         }
         return Result.success(
@@ -75,6 +78,32 @@ class UploadBlogPostWorker @AssistedInject constructor(
                 UploadKeys.OUTPUT_MESSAGE to payload.response,
             ),
         )
+    }
+
+    private fun handleError(error: AppError): Result {
+        Timber.w((error as? AppError.Unknown)?.cause, "Upload failed: %s", error)
+        return if (error.isTransient()) Result.retry() else failureFor(error.reasonCode())
+    }
+
+    private fun AppError.isTransient(): Boolean = when (this) {
+        AppError.Offline,
+        AppError.Timeout,
+        is AppError.Server,
+        is AppError.Unknown -> true
+        AppError.Unauthorized,
+        AppError.Forbidden,
+        AppError.NotFound,
+        is AppError.Validation -> false
+    }
+
+    private fun AppError.reasonCode(): String = when (this) {
+        AppError.Unauthorized -> REASON_UNAUTHORIZED
+        AppError.Forbidden -> REASON_FORBIDDEN
+        AppError.NotFound -> REASON_NOT_FOUND
+        is AppError.Validation -> REASON_VALIDATION
+        // Transient errors don't surface a reason code — the worker retries instead of failing.
+        AppError.Offline, AppError.Timeout, is AppError.Server, is AppError.Unknown ->
+            error("reasonCode() called on transient error $this")
     }
 
     private suspend fun callApi(input: UploadInput): Response<BlogCreateUpdateResponse> {
@@ -135,5 +164,15 @@ class UploadBlogPostWorker @AssistedInject constructor(
                 )
             }
         }
+    }
+
+    private companion object {
+        const val REASON_INVALID_INPUT = "InvalidInput"
+        const val REASON_IMAGE_MISSING = "ImageMissing"
+        const val REASON_UNAUTHORIZED = "Unauthorized"
+        const val REASON_FORBIDDEN = "Forbidden"
+        const val REASON_NOT_FOUND = "NotFound"
+        const val REASON_VALIDATION = "Validation"
+        const val REASON_UNEXPECTED_LOADING = "UnexpectedLoading"
     }
 }

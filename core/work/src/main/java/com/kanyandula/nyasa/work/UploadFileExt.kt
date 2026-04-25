@@ -1,4 +1,4 @@
-package com.kanyandula.nyasa.util
+package com.kanyandula.nyasa.work
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -7,11 +7,6 @@ import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.format
 import id.zelory.compressor.constraint.quality
 import id.zelory.compressor.constraint.resolution
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
 private const val UPLOAD_TEMP_PREFIX = "nyasa_upload_"
@@ -21,19 +16,10 @@ private const val MAX_COMPRESSED_SIZE_BYTES = 10L * 1024 * 1024
 private const val COMPRESSION_QUALITY = 80
 private const val MAX_RESOLUTION = 1920
 
-fun String.toPlainTextBody(): RequestBody =
-    toRequestBody("text/plain".toMediaTypeOrNull())
-
-suspend fun Uri.toCompressedMultipartImage(context: Context): MultipartBody.Part {
-    val compressed = toCompressedUploadFile(context)
-    val requestBody = compressed.asRequestBody("image/jpeg".toMediaTypeOrNull())
-    return MultipartBody.Part.createFormData("image", "blog_image.jpg", requestBody)
-}
-
 /**
  * Stages [this] image URI as a compressed JPEG on disk and returns the resulting [File].
- * Used by both the foreground multipart path ([toCompressedMultipartImage]) and the H6
- * background upload path (BlogUploadEnqueuer). Caller owns the returned file's lifecycle.
+ * Used by the H6 background upload path (BlogUploadEnqueuer). Caller owns the returned
+ * file's lifecycle.
  */
 suspend fun Uri.toCompressedUploadFile(context: Context): File {
     cleanupStaleTempFiles(context)
