@@ -15,7 +15,7 @@ const val RESPONSE_MUST_HAVE_NYASABLOG_USER = "Create a NyasaBlog Account"
 class BlogCreateUpdateResponse(
 
     @SerialName("response")
-    var response: String,
+    var response: String = "",
 
     @SerialName("pk")
     override var pk: Int,
