@@ -10,7 +10,7 @@ class RegistrationResponse(
     var response: String,
 
     @SerialName("error_message")
-    var errorMessage: String,
+    var errorMessage: String = "",
 
     @SerialName("email")
     var email: String,

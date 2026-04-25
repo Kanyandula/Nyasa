@@ -10,7 +10,7 @@ class LoginResponse(
     var response: String,
 
     @SerialName("error_message")
-    var errorMessage: String,
+    var errorMessage: String = "",
 
     @SerialName("token")
     var token: String,

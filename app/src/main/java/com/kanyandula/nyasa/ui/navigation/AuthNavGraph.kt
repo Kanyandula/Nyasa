@@ -66,6 +66,11 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             val state by viewModel.viewState.collectAsStateWithLifecycle()
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
+            val context = LocalContext.current
+            LaunchedEffect(Unit) {
+                viewModel.events.collect { event -> handleStandardEvent(context, event) }
+            }
+
             Box(modifier = Modifier.fillMaxSize()) {
                 LoginScreen(
                     initialEmail = state.loginFields?.login_email.orEmpty(),
@@ -96,6 +101,11 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val state by viewModel.viewState.collectAsStateWithLifecycle()
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+            val context = LocalContext.current
+            LaunchedEffect(Unit) {
+                viewModel.events.collect { event -> handleStandardEvent(context, event) }
+            }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 RegisterScreen(
