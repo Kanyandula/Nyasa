@@ -79,6 +79,9 @@ class BlogUploadEnqueuer @Inject constructor(
         slug: String?,
     ): OneTimeWorkRequest {
         val imagePath = imageUri?.let { stageImage(it) }
+        // The editor produces markdown; PostBodyRenderer reads HTML. Convert here
+        // so the body is uploaded already-rendered.
+        val htmlBody = body.markdownToHtml()
         return OneTimeWorkRequestBuilder<UploadBlogPostWorker>()
             .addTag(UploadKeys.WORK_TAG_UPLOAD)
             .setConstraints(
@@ -89,7 +92,7 @@ class BlogUploadEnqueuer @Inject constructor(
             .setInputData(
                 workDataOf(
                     UploadKeys.INPUT_TITLE to title,
-                    UploadKeys.INPUT_BODY to body,
+                    UploadKeys.INPUT_BODY to htmlBody,
                     UploadKeys.INPUT_CATEGORY to category,
                     UploadKeys.INPUT_TAGS_CSV to tagsCsv,
                     UploadKeys.INPUT_IMAGE_PATH to imagePath,

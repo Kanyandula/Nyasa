@@ -52,6 +52,14 @@ dependencies {
     // Image compression (used by upload staging in BlogUploadEnqueuer)
     implementation 'id.zelory:compressor:3.0.1'
 
+    // CommonMark — converts the markdown the editor produces into HTML that
+    // PostBodyRenderer (Jsoup-based) can render on read.
+    implementation 'org.commonmark:commonmark:0.22.0'
+
     // Timber
     implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    // Unit tests
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.truth:truth:1.4.4'
 }
