@@ -56,6 +56,11 @@ dependencies {
     // PostBodyRenderer (Jsoup-based) can render on read.
     implementation 'org.commonmark:commonmark:0.22.0'
 
+    // flexmark html2md — reverse conversion when loading an existing post
+    // into the editor. Without this, editing a post that was previously
+    // saved as HTML would re-encode the tags as literal text on save.
+    implementation 'com.vladsch.flexmark:flexmark-html2md-converter:0.64.8'
+
     // Timber
     implementation 'com.jakewharton.timber:timber:5.0.1'
 

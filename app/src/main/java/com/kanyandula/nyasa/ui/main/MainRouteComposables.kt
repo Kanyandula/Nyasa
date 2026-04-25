@@ -46,6 +46,7 @@ import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.createImagePickerIntent
 import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
 import com.kanyandula.nyasa.ui.theme.ThemePreference
+import com.kanyandula.nyasa.work.htmlToMarkdown
 
 internal fun handleBlogFeedAction(
     vm: BlogViewModel,
@@ -114,7 +115,10 @@ internal fun BlogDetailRoute(
                         viewModel.clearUpdatedImageUri()
                         viewModel.setUpdatedBlogFields(
                             title = blogPost.title,
-                            body = blogPost.body,
+                            // Stored body is HTML; show markdown in the editor so
+                            // the user can edit normally and the next save
+                            // round-trips cleanly back through markdownToHtml.
+                            body = blogPost.body.htmlToMarkdown(),
                             originalImageUrl = blogPost.image,
                             category = blogPost.category,
                             tags = blogPost.tags
