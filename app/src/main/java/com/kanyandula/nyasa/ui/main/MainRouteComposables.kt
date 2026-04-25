@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.ProfileUpdateRequest
+import com.kanyandula.nyasa.ui.components.RequestNotificationPermissionEffect
 import com.kanyandula.nyasa.ui.main.account.AccountViewModel
 import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileAction
 import com.kanyandula.nyasa.ui.main.account.composables.AccountProfileScreen
@@ -150,6 +151,8 @@ internal fun EditBlogRoute(
     onNavigateBack: () -> Unit,
     onSaved: () -> Unit
 ) {
+    RequestNotificationPermissionEffect()
+
     val activity = LocalContext.current as Activity
     val state by viewModel.updateBlogState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -209,6 +212,8 @@ internal fun CreateBlogRoute(
     viewModel: CreateBlogViewModel,
     onNavigateBack: () -> Unit
 ) {
+    RequestNotificationPermissionEffect()
+
     val activity = LocalContext.current as Activity
     val blogFields by viewModel.viewState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
