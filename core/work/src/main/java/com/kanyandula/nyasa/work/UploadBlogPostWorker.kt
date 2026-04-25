@@ -62,7 +62,9 @@ class UploadBlogPostWorker @AssistedInject constructor(
         when (val resource = safeApiCall { callApi(input) }) {
             is Resource.Success -> handleSuccess(resource.data)
             is Resource.Error -> handleError(resource.error)
-            is Resource.Loading -> Result.retry() // safeApiCall never emits Loading; defensive
+            // safeApiCall never emits Loading. If that contract changes, fail terminally
+            // so the worker doesn't loop forever — we'd see this in Crashlytics.
+            is Resource.Loading -> failureFor(REASON_UNEXPECTED_LOADING)
         }
 
     private suspend fun handleSuccess(payload: BlogCreateUpdateResponse): Result {
@@ -78,15 +80,30 @@ class UploadBlogPostWorker @AssistedInject constructor(
         )
     }
 
-    private fun handleError(error: AppError): Result = when (error) {
+    private fun handleError(error: AppError): Result {
+        Timber.w((error as? AppError.Unknown)?.cause, "Upload failed: %s", error)
+        return if (error.isTransient()) Result.retry() else failureFor(error.reasonCode())
+    }
+
+    private fun AppError.isTransient(): Boolean = when (this) {
         AppError.Offline,
         AppError.Timeout,
         is AppError.Server,
-        is AppError.Unknown -> Result.retry()
-        AppError.Unauthorized -> failureFor(REASON_UNAUTHORIZED)
-        AppError.Forbidden -> failureFor(REASON_FORBIDDEN)
-        AppError.NotFound -> failureFor(REASON_NOT_FOUND)
-        is AppError.Validation -> failureFor(REASON_VALIDATION)
+        is AppError.Unknown -> true
+        AppError.Unauthorized,
+        AppError.Forbidden,
+        AppError.NotFound,
+        is AppError.Validation -> false
+    }
+
+    private fun AppError.reasonCode(): String = when (this) {
+        AppError.Unauthorized -> REASON_UNAUTHORIZED
+        AppError.Forbidden -> REASON_FORBIDDEN
+        AppError.NotFound -> REASON_NOT_FOUND
+        is AppError.Validation -> REASON_VALIDATION
+        // Transient errors don't surface a reason code — the worker retries instead of failing.
+        AppError.Offline, AppError.Timeout, is AppError.Server, is AppError.Unknown ->
+            error("reasonCode() called on transient error $this")
     }
 
     private suspend fun callApi(input: UploadInput): Response<BlogCreateUpdateResponse> {
@@ -156,5 +173,6 @@ class UploadBlogPostWorker @AssistedInject constructor(
         const val REASON_FORBIDDEN = "Forbidden"
         const val REASON_NOT_FOUND = "NotFound"
         const val REASON_VALIDATION = "Validation"
+        const val REASON_UNEXPECTED_LOADING = "UnexpectedLoading"
     }
 }

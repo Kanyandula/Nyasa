@@ -10,6 +10,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -99,9 +100,14 @@ class BlogUploadEnqueuer @Inject constructor(
     }
 
     private suspend fun stageImage(uri: Uri): String? = withContext(Dispatchers.IO) {
-        runCatching { uri.toCompressedUploadFile(context).absolutePath }
-            .onFailure { Timber.w(it, "Failed to stage upload image; enqueuing without image") }
-            .getOrNull()
+        try {
+            uri.toCompressedUploadFile(context).absolutePath
+        } catch (e: CancellationException) {
+            throw e
+        } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
+            Timber.w(t, "Failed to stage upload image; enqueuing without image")
+            null
+        }
     }
 
     companion object {
