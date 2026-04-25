@@ -41,6 +41,7 @@ import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BookmarksViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.composables.CreateBlogScreen
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogNavigationEvent
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.createImagePickerIntent
 import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
@@ -232,7 +233,10 @@ internal fun CreateBlogRoute(
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
-            handleStandardEvent(context, event)
+            when (event) {
+                is CreateBlogNavigationEvent.BlogCreated -> onNavigateBack()
+                else -> handleStandardEvent(context, event)
+            }
         }
     }
 

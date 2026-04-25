@@ -6,7 +6,7 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.ui.BaseViewModel
-import com.kanyandula.nyasa.ui.UiEvent
+import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogViewState.NewBlogFields
 import com.kanyandula.nyasa.util.BlogUtils
@@ -48,10 +48,10 @@ constructor(
                     tagsCsv = tagsCsv
                 )
                 // H6: analytics fires on enqueue (attempt). Terminal state is observed at
-                // the Activity level via WorkManager WorkInfo for the user-facing Toast.
+                // the Activity level via WorkManager WorkInfo for the success/failure Toast.
                 analyticsTracker.trackEvent(AnalyticsEvent.CreatePost(fields.category))
-                sendEvent(UiEvent.ShowToast("Publishing in the background…"))
                 clearNewBlogFields()
+                sendEvent(CreateBlogNavigationEvent.BlogCreated)
             } finally {
                 setLoading(false)
             }

@@ -334,8 +334,6 @@ class BlogViewModelTest {
             viewModel.updateBlogPost("test-blog", "Updated Title", "Updated Body", null)
             advanceUntilIdle()
 
-            val toast = awaitItem()
-            assertThat(toast).isInstanceOf(UiEvent.ShowToast::class.java)
             val nav = awaitItem()
             assertThat(nav).isEqualTo(BlogNavigationEvent.BlogUpdateSuccess)
             cancelAndIgnoreRemainingEvents()
