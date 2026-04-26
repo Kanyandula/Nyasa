@@ -7,7 +7,6 @@ import com.kanyandula.nyasa.domain.usecase.auth.RegisterUseCase
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.BaseViewModel
-import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.AuthViewState
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
@@ -71,13 +70,7 @@ constructor(
             checkPreviousAuthUseCase().collect { resource ->
                 handleResource(
                     resource,
-                    onSuccess = { authToken ->
-                        if (authToken != null) {
-                            activateSession(authToken)
-                        } else {
-                            sendEvent(AuthUiEvent.CheckPreviousAuthDone)
-                        }
-                    }
+                    onSuccess = { authToken -> authToken?.let(::activateSession) }
                 )
             }
         }

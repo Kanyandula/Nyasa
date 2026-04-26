@@ -26,6 +26,7 @@ import androidx.work.WorkManager
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
+import com.kanyandula.nyasa.ui.navigation.AuthEventHandler
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.authGraph
 import com.kanyandula.nyasa.ui.navigation.isInGraph
@@ -104,6 +105,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     UploadCompletionToasts()
+                    AuthEventHandler(navController)
 
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val showBottomBar = remember(navBackStackEntry) {

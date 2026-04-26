@@ -20,11 +20,15 @@ import com.kanyandula.nyasa.ui.auth.composables.LoginAction
 import com.kanyandula.nyasa.ui.auth.composables.LoginScreen
 import com.kanyandula.nyasa.ui.auth.composables.RegisterScreen
 import com.kanyandula.nyasa.ui.auth.composables.WelcomeScreen
-import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import com.kanyandula.nyasa.ui.components.LoadingOverlay
 
+/**
+ * Auth screens deliberately do NOT collect [AuthViewModel.events] — that
+ * job is hoisted to [AuthEventHandler], invoked once from `MainActivity`.
+ * Adding a new auth screen requires nothing extra for event handling.
+ */
 @Suppress("LongMethod")
 fun NavGraphBuilder.authGraph(navController: NavController) {
     navigation(startDestination = Routes.WELCOME, route = Routes.AUTH_GRAPH) {
@@ -35,16 +39,7 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-            val context = LocalContext.current
-            LaunchedEffect(Unit) {
-                viewModel.checkPreviousAuthUser()
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is AuthUiEvent.CheckPreviousAuthDone -> { /* UI now visible */ }
-                        else -> handleStandardEvent(context, event)
-                    }
-                }
-            }
+            LaunchedEffect(Unit) { viewModel.checkPreviousAuthUser() }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 WelcomeScreen(
@@ -65,11 +60,6 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val state by viewModel.viewState.collectAsStateWithLifecycle()
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-
-            val context = LocalContext.current
-            LaunchedEffect(Unit) {
-                viewModel.events.collect { event -> handleStandardEvent(context, event) }
-            }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 LoginScreen(
@@ -101,11 +91,6 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val state by viewModel.viewState.collectAsStateWithLifecycle()
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-
-            val context = LocalContext.current
-            LaunchedEffect(Unit) {
-                viewModel.events.collect { event -> handleStandardEvent(context, event) }
-            }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 RegisterScreen(
