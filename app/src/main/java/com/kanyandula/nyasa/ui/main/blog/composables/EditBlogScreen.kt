@@ -65,9 +65,9 @@ fun EditBlogScreen(
     onAction: (EditBlogAction) -> Unit
 ) {
     TrackScreen("EditBlog")
-    var title by rememberSaveable { mutableStateOf(initialTitle) }
-    var body by rememberSaveable { mutableStateOf(initialBody) }
-    var tags by rememberSaveable { mutableStateOf(initialTags) }
+    var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
+    var body by rememberSaveable(initialBody) { mutableStateOf(initialBody) }
+    var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(

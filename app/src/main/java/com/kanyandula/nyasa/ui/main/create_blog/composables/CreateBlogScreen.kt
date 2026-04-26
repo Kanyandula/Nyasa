@@ -84,11 +84,11 @@ fun CreateBlogScreen(
     onSaveDraft: () -> Unit
 ) {
     TrackScreen("CreateBlog")
-    var title by rememberSaveable { mutableStateOf(initialTitle) }
-    var body by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
+    var body by rememberSaveable(initialBody, stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(initialBody))
     }
-    var tags by rememberSaveable { mutableStateOf(initialTags) }
+    var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(

@@ -28,6 +28,7 @@ import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import com.kanyandula.nyasa.work.BlogUploadEnqueuer
+import com.kanyandula.nyasa.work.htmlToMarkdown
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -326,6 +327,18 @@ class BlogViewModelTest {
         val state = viewModel.updateBlogState.value
         assertThat(state.updatedBlogTitle).isEqualTo("New Title")
         assertThat(state.updatedBlogBody).isEqualTo("New Body")
+    }
+
+    // Guards the HTML→markdown conversion done before populating the editor:
+    // the markdown body must reach updateBlogState verbatim.
+    @Test
+    fun `setUpdatedBlogFields preserves htmlToMarkdown output`() {
+        val storedHtml = "<p><strong>bold</strong></p>"
+
+        viewModel.setUpdatedBlogFields(body = storedHtml.htmlToMarkdown())
+
+        assertThat(viewModel.updateBlogState.value.updatedBlogBody)
+            .isEqualTo("**bold**")
     }
 
     @Test
