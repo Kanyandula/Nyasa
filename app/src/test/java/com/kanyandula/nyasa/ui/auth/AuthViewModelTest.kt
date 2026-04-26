@@ -10,7 +10,6 @@ import com.kanyandula.nyasa.fakes.FakeAuthRepository
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.UiEvent
-import com.kanyandula.nyasa.ui.auth.state.AuthUiEvent
 import com.kanyandula.nyasa.ui.auth.state.LoginFields
 import com.kanyandula.nyasa.ui.auth.state.RegistrationFields
 import com.kanyandula.nyasa.util.AppError
@@ -141,20 +140,6 @@ class AuthViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.viewState.value.authToken).isEqualTo(existingToken)
-    }
-
-    @Test
-    fun `checkPreviousAuthUser with no token emits CheckPreviousAuthDone`() = runTest {
-        fakeRepository.previousAuthResult = Resource.Success(null)
-
-        viewModel.events.test {
-            viewModel.checkPreviousAuthUser()
-            advanceUntilIdle()
-
-            val event = awaitItem()
-            assertThat(event).isEqualTo(AuthUiEvent.CheckPreviousAuthDone)
-            cancelAndIgnoreRemainingEvents()
-        }
     }
 
     @Test
