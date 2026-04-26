@@ -3,7 +3,6 @@ package com.kanyandula.nyasa.work
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
-import androidx.work.Data
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -24,7 +23,6 @@ import kotlinx.coroutines.CancellationException
 import okhttp3.MultipartBody
 import retrofit2.Response
 import timber.log.Timber
-import java.io.File
 
 @HiltWorker
 class UploadBlogPostWorker @AssistedInject constructor(
@@ -39,7 +37,8 @@ class UploadBlogPostWorker @AssistedInject constructor(
         UploadNotifications.ongoingForegroundInfo(applicationContext, progressPercent = 0)
 
     override suspend fun doWork(): Result {
-        val input = UploadInput.from(inputData) ?: return failureFor(REASON_INVALID_INPUT)
+        val input = UploadInput.from(inputData)
+            ?: return failureFor(UploadFailureReasons.INVALID_INPUT)
         val result = computeResult(input)
         if (result !is Result.Retry) input.imageFile?.runCatching { delete() }
         return result
@@ -53,7 +52,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
         runLoggingCatch("setForeground") { setForeground(getForegroundInfo()) }
         if (input.imageFile != null && !input.imageFile.exists()) {
             Timber.w("Upload image missing at ${input.imageFile}")
-            return failureFor(REASON_IMAGE_MISSING)
+            return failureFor(UploadFailureReasons.IMAGE_MISSING)
         }
         return runLoggingCatch("upload") { performUpload(input) } ?: Result.retry()
     }
@@ -64,7 +63,7 @@ class UploadBlogPostWorker @AssistedInject constructor(
             is Resource.Error -> handleError(resource.error)
             // safeApiCall never emits Loading. If that contract changes, fail terminally
             // so the worker doesn't loop forever — we'd see this in Crashlytics.
-            is Resource.Loading -> failureFor(REASON_UNEXPECTED_LOADING)
+            is Resource.Loading -> failureFor(UploadFailureReasons.UNEXPECTED_LOADING)
         }
 
     private suspend fun handleSuccess(payload: BlogCreateUpdateResponse): Result {
@@ -83,27 +82,6 @@ class UploadBlogPostWorker @AssistedInject constructor(
     private fun handleError(error: AppError): Result {
         Timber.w((error as? AppError.Unknown)?.cause, "Upload failed: %s", error)
         return if (error.isTransient()) Result.retry() else failureFor(error.reasonCode())
-    }
-
-    private fun AppError.isTransient(): Boolean = when (this) {
-        AppError.Offline,
-        AppError.Timeout,
-        is AppError.Server,
-        is AppError.Unknown -> true
-        AppError.Unauthorized,
-        AppError.Forbidden,
-        AppError.NotFound,
-        is AppError.Validation -> false
-    }
-
-    private fun AppError.reasonCode(): String = when (this) {
-        AppError.Unauthorized -> REASON_UNAUTHORIZED
-        AppError.Forbidden -> REASON_FORBIDDEN
-        AppError.NotFound -> REASON_NOT_FOUND
-        is AppError.Validation -> REASON_VALIDATION
-        // Transient errors don't surface a reason code — the worker retries instead of failing.
-        AppError.Offline, AppError.Timeout, is AppError.Server, is AppError.Unknown ->
-            error("reasonCode() called on transient error $this")
     }
 
     private suspend fun callApi(input: UploadInput): Response<BlogCreateUpdateResponse> {
@@ -138,41 +116,5 @@ class UploadBlogPostWorker @AssistedInject constructor(
     } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
         Timber.w(t, "$label failed")
         null
-    }
-
-    private data class UploadInput(
-        val title: String,
-        val body: String,
-        val category: String?,
-        val tagsCsv: String?,
-        val imageFile: File?,
-        /** When non-null, the worker hits PUT update on this slug; otherwise POST create. */
-        val slug: String?,
-    ) {
-        companion object {
-            fun from(data: Data): UploadInput? {
-                val title = data.getString(UploadKeys.INPUT_TITLE)
-                val body = data.getString(UploadKeys.INPUT_BODY)
-                if (title.isNullOrBlank() || body.isNullOrBlank()) return null
-                return UploadInput(
-                    title = title,
-                    body = body,
-                    category = data.getString(UploadKeys.INPUT_CATEGORY),
-                    tagsCsv = data.getString(UploadKeys.INPUT_TAGS_CSV),
-                    imageFile = data.getString(UploadKeys.INPUT_IMAGE_PATH)?.let(::File),
-                    slug = data.getString(UploadKeys.INPUT_SLUG),
-                )
-            }
-        }
-    }
-
-    private companion object {
-        const val REASON_INVALID_INPUT = "InvalidInput"
-        const val REASON_IMAGE_MISSING = "ImageMissing"
-        const val REASON_UNAUTHORIZED = "Unauthorized"
-        const val REASON_FORBIDDEN = "Forbidden"
-        const val REASON_NOT_FOUND = "NotFound"
-        const val REASON_VALIDATION = "Validation"
-        const val REASON_UNEXPECTED_LOADING = "UnexpectedLoading"
     }
 }
