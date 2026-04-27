@@ -110,7 +110,14 @@ fun EditBlogScreen(
                 )
             },
             bottomBar = {
-                EditBottomToolbar()
+                Column {
+                    RichTextToolbarOverlay(
+                        state = bodyState,
+                        isVisible = isEditorFocused,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    EditBottomToolbar()
+                }
             }
         ) { padding ->
             Column(
@@ -255,11 +262,6 @@ fun EditBlogScreen(
             }
         }
         LoadingOverlay(isLoading = isLoading)
-        RichTextToolbarOverlay(
-            state = bodyState,
-            isVisible = isEditorFocused,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 

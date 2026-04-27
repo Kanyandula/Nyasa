@@ -38,7 +38,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
@@ -99,11 +98,18 @@ fun CreateBlogScreen(
                 )
             },
             bottomBar = {
-                PublishBar(
-                    isLoading = isLoading,
-                    onSaveDraft = onSaveDraft,
-                    onPublish = { onPublish(title, bodyState.toHtml(), tags) }
-                )
+                Column {
+                    RichTextToolbarOverlay(
+                        state = bodyState,
+                        isVisible = isEditorFocused,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    PublishBar(
+                        isLoading = isLoading,
+                        onSaveDraft = onSaveDraft,
+                        onPublish = { onPublish(title, bodyState.toHtml(), tags) }
+                    )
+                }
             }
         ) { padding ->
             Column(
@@ -168,12 +174,6 @@ fun CreateBlogScreen(
             }
         }
         LoadingOverlay(isLoading = isLoading)
-
-        RichTextToolbarOverlay(
-            state = bodyState,
-            isVisible = isEditorFocused,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 
