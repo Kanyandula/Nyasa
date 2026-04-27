@@ -2,7 +2,7 @@
 
 Living reference for post-Phase-9 hardening, modularization, and feature expansion. Companion to `REFACTORING_PLAN.md`.
 
-- **Status:** Compose migration **complete** (Phase 9). **H1 complete** (2026-04-17). Focus now: HTML renderer, design tokens, comments, modularization.
+- **Status:** Compose migration **complete** (Phase 9). H1 (2026-04-17), H2 (2026-04-23), H3 (2026-04-24), H4 (2026-04-24), H5 (2026-04-22), H6 (2026-04-25), and H8 (2026-04-24) shipped. Rich-text editor migration Phase 1–3 (compose-richeditor library + body field swap + formatting toolbar) shipped 2026-04-27. **Remaining hardening tracks: H7 (adaptive layout), H9 (test stack), H10 (growth, backend-blocked).**
 - **Target branch:** `Deploy_0.01`
 - **Backend:** `https://nyasablog.com/api/` (unchanged)
 - **Min/Target SDK:** 24 / 35 · **Kotlin:** 2.0.21 · **Java:** 17 · **Hilt:** 2.53.1 · **Room:** 2.6.1 · **Retrofit:** 2.11.0 + kotlinx-serialization-json 1.7.3 · **Paging:** 3.3.6 · **Coil:** 3.0.4
@@ -11,16 +11,21 @@ Living reference for post-Phase-9 hardening, modularization, and feature expansi
 
 - **UI:** 100% Jetpack Compose. No layout XML, no Fragments, no navigation XML remain. Resource XML is limited to launcher icons, fonts, themes, colors, strings, dimens.
 - **Navigation:** `navigation-compose` — `AuthNavGraph.kt`, `MainNavGraph.kt`, hosted by `MainActivity.kt`.
-- **Module layout:** single `:app` module. Package structure under `com.kanyandula.nyasa`:
+- **Module layout (post-H5):** multi-module Gradle build. `:app` hosts UI + composition root; shared concerns live in `:core:*` modules:
   ```
-  ui/{auth, main/{blog, account, create_blog}, navigation, components, theme}
-       each feature has composables/ + state/ subpackages
-  domain/{repository, usecase/{auth, blog, account, createblog, comment, category, profile}}
-  repository/{auth, main}     api/{auth, main}     persistance/
-  di/{auth, main}             models/              session/    util/
+  :app   — UI (composables, ViewModels, screens), MainActivity, navigation
+  :core:common         — AppError, Resource, UiEvent, ConnectivityObserver, ErrorHandling
+  :core:designsystem   — theme, colors, typography, shapes, NyasaSpacing
+  :core:network        — Retrofit services, interceptors, DTOs, SafeApiCall, NetworkModule
+  :core:database       — Room database, DAOs, entities, migrations
+  :core:domain         — repository interfaces, use cases, domain models
+  :core:session        — SessionManager, TokenProviderModule
+  :core:data           — repository implementations, mappers, DI bindings
+  :core:work           — WorkManager workers (UploadBlogPostWorker)
   ```
-- **Done:** StateFlow ViewModels, use cases, Paging 3 + RemoteMediator, reactive `ConnectivityObserver`, SafeArgs replaced by Compose nav, Compose screens across every feature.
-- **Not yet done** (this document's scope): multi-module split, `AppError` unification, HTML body renderer, adaptive/tablet layout, WorkManager uploads, observability, Paparazzi/Turbine test stack.
+  `:feature:*` extraction deferred — current scope cut keeps feature code in `:app`.
+- **Done:** Compose UI everywhere, StateFlow ViewModels, use cases, Paging 3 + RemoteMediator, reactive `ConnectivityObserver`, Compose nav, multi-module split (H5), `AppError` unification (H1), HTML body renderer (H2), design tokens (H3), comments persistence with optimistic UI (H4), WorkManager uploads (H6), observability via Crashlytics/Analytics/Performance + Timber (H8), rich-text editor via compose-richeditor with bold/italic/underline/list/link toolbar.
+- **Not yet done** (this document's scope): adaptive/tablet layout (H7), Paparazzi/Turbine test stack (H9), growth features (H10 — backend-blocked).
 
 ---
 
@@ -343,23 +348,32 @@ Phase 10 stack:
 
 ## 17. Implementation Order
 
-### Shipped (Phases 1–9 + H1)
-- Compose UI across all features · Paging 3 + RemoteMediator · SafeArgs → Compose nav · reactive `ConnectivityObserver` · StateFlow ViewModels · use-case layer · Hilt DI · Room caching · Auth/Feed/Detail/Create/Account/Bookmarks all functional.
+### Shipped
+- **Phases 1–9** (Compose migration): Compose UI across all features · Paging 3 + RemoteMediator · SafeArgs → Compose nav · reactive `ConnectivityObserver` · StateFlow ViewModels · use-case layer · Hilt DI · Room caching · Auth/Feed/Detail/Create/Account/Bookmarks all functional.
 - **H1 (2026-04-17):** `AppError` sealed interface · `safeApiCall` rewrite with typed error mapping · `AuthInterceptor` (token + 401 → `invalidate()`) · `RetryInterceptor` (GETs only, exponential backoff) · singleton `ImageLoader` sharing OkHttp · Gson → kotlinx-serialization across all DTOs · `GenericApiResponse` removed · 21 unit tests.
+- **H2 (2026-04-23):** native Compose HTML renderer — Jsoup parser → `PostBodyRenderer` with per-block fallbacks; `<h1>`/`<h2>` styling; block spacing tuned in PR #55.
+- **H3 (2026-04-24):** design-system tokens — `NyasaSpacing` (xs/s/m/l/xl), color/typography/shape tokens migrated across all screens; raw `dp` literals removed where a semantic token applies.
+- **H4 (2026-04-24):** comments persistence — `CommentEntity` Room table with optimistic insert/delete via `OptimisticAction` helper.
+- **H5 (2026-04-22):** multi-module Gradle split — `:core:common`, `:core:designsystem`, `:core:network`, `:core:database`, `:core:domain`, `:core:session`, `:core:data` extracted from `:app`. `:feature:*` extraction deferred (current scope cut).
+- **H6 (2026-04-25):** background uploads — `:core:work` module + `UploadBlogPostWorker` for create + edit; runtime `POST_NOTIFICATIONS` permission on Android 13+; `safeApiCall` route through worker.
+- **H8 (2026-04-24):** observability — Firebase Crashlytics + Analytics + Performance behind `AnalyticsTracker`; Timber `CrashlyticsTree`; `TrackScreen` integration on 13 screens & 4 ViewModels.
+- **Rich-text editor (Phase 1–3, 2026-04-27):** compose-richeditor 1.0.0-rc11 library; `RichTextState` hoisted into `BlogViewModel` / `CreateBlogViewModel`; body field migrated from `NyasaTextField` to `RichTextEditor`; 6-button formatting toolbar (bold/italic/underline/bullet list/numbered list/link) with active-state styling; `LinkInsertDialog` for URL+text entry. H1/H2 (heading) buttons deferred — library at this version has no semantic heading paragraph type.
 
-### Next milestones
-1. ~~**H1 — Error & network hardening**~~ ✅ Shipped.
-2. **H2 — HTML renderer**: `PostBodyRenderer` (Jsoup + Compose + per-block WebView fallback), 20-post Paparazzi golden suite. Highest-risk item — do first.
-3. **H3 — Design-system tokens**: pull Stitch exports into `designsystem` package; replace raw colors with semantic tokens; formalize `NyasaTypography` + `NyasaSpacing`; dark-mode audit.
-4. **H4 — Comments persistence**: add `CommentEntity` to Room; write-through optimistic insert/delete; `OptimisticAction` helper in `ui/components`.
-5. **H5 — Modularization**: split `:app` into `:core:*` + `:feature:*` per §2. Do after H1–H4 stabilize so the contract surface is clear.
-   - **Extraction order** (least to most risky): `:core:common` → `:core:designsystem` → `:core:network` → `:core:database` → `:core:domain` → `:core:data` → `:core:session` → `:feature:auth` → remaining features.
-   - **Hilt-move rule:** move the `@Module`/`@InstallIn` class together with its bindings into the same new Gradle module in a **single commit**. Run `./gradlew assembleDebug` before moving the next module. Never move + refactor in the same commit — Hilt errors become untraceable.
-6. **H6 — Background uploads**: `:core:work` + `UploadBlogPostWorker`; create/edit flow dismissable during upload.
-7. **H7 — Adaptive layout**: `WindowSizeClass`, `ListDetailPaneScaffold` for tablet/foldable; `NavigationRail` replaces bottom bar on Medium+.
-8. **H8 — Observability**: Crashlytics + Analytics + Performance behind `AnalyticsTracker` interface; Timber `CrashlyticsTree`.
-9. **H9 — Test stack (Phase 10)**: Turbine, MockWebServer, MockK, Paparazzi, `paging-testing`, Compose UI tests.
-10. **H10 — Growth (backend-dependent)**: forgot-password wiring, follows, FCM notifications, verified App Links.
+### Remaining milestones
+1. ~~**H1 — Error & network hardening**~~ ✅ Shipped 2026-04-17.
+2. ~~**H2 — HTML renderer**~~ ✅ Shipped 2026-04-23.
+3. ~~**H3 — Design-system tokens**~~ ✅ Shipped 2026-04-24.
+4. ~~**H4 — Comments persistence**~~ ✅ Shipped 2026-04-24.
+5. ~~**H5 — Modularization (core-only)**~~ ✅ Shipped 2026-04-22. Feature-module extraction (`:feature:auth`, etc.) **deferred**; revisit if cross-module compile times or build complexity warrant it.
+   - **Hilt-move rule (kept for reference):** move the `@Module`/`@InstallIn` class together with its bindings into the same new Gradle module in a **single commit**. Run `./gradlew assembleDebug` before moving the next module. Never move + refactor in the same commit — Hilt errors become untraceable.
+6. ~~**H6 — Background uploads**~~ ✅ Shipped 2026-04-25.
+7. **H7 — Adaptive layout**: `WindowSizeClass`, `ListDetailPaneScaffold` for tablet/foldable; `NavigationRail` replaces bottom bar on Medium+. **Next active track.**
+8. ~~**H8 — Observability**~~ ✅ Shipped 2026-04-24.
+9. **H9 — Test stack (Phase 10)**: Turbine, MockWebServer, MockK, Paparazzi, `paging-testing`, Compose UI tests. Some incremental coverage already shipped (e.g. `:core:work` Robolectric tests, OptimisticAction tests, viewmodel tests across blog/create); the formalized stack (Paparazzi golden suite, Compose UI tests beyond `RichTextToolbarUiTest.kt`) is still outstanding.
+10. **H10 — Growth (backend-dependent)**: forgot-password wiring, follows, FCM notifications, verified App Links. **Blocked** on backend endpoints.
+
+### Loose threads (outside the H track)
+- **Markdown residue in legacy posts** — pre-Phase-2 post bodies were authored as markdown (raw `##`, `**`); compose-richeditor's `setHtml()` shows them as literal text. Three options: accept and let authors clean on next edit, run a heuristic markdown→HTML pass on first load, or do a server-side data migration. Currently accepted; revisit if user-visible churn warrants action.
 
 ---
 
