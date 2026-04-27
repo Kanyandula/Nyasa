@@ -13,6 +13,7 @@ import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
 import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.work.BlogUploadEnqueuer
+import com.mohamedrejeb.richeditor.model.RichTextState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,6 +26,9 @@ constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : BaseViewModel<CreateBlogViewState>(CreateBlogViewState()) {
+
+    // Hoisted so a recomposition or rotation can't reset the editor mid-draft.
+    val createBodyState: RichTextState = RichTextState()
 
     init {
         loadCategories()
@@ -60,7 +64,6 @@ constructor(
 
     fun setNewBlogFields(
         title: String? = null,
-        body: String? = null,
         uri: Uri? = null,
         category: String? = null,
         tags: String? = null
@@ -70,7 +73,6 @@ constructor(
             copy(
                 blogFields = blogFields.copy(
                     newBlogTitle = title ?: current.newBlogTitle,
-                    newBlogBody = body ?: current.newBlogBody,
                     newImageUri = uri ?: current.newImageUri,
                     category = category ?: current.category,
                     tags = tags ?: current.tags
@@ -93,6 +95,8 @@ constructor(
 
     fun clearNewBlogFields() {
         updateState { copy(blogFields = NewBlogFields()) }
+        // Editor lives outside StateFlow; reset separately.
+        createBodyState.setHtml("")
     }
 
     private fun loadCategories() {
