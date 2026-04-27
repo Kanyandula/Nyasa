@@ -17,6 +17,7 @@ object HtmlParser {
     }
 
     private fun parseChildren(
+
         parent: Element,
         linkColor: Color,
         codeBackground: Color
