@@ -73,13 +73,12 @@ class CreateBlogViewModelTest {
 
     @Test
     fun `createNewBlogPost clears fields after enqueue`() = runTest {
-        viewModel.setNewBlogFields("Title", "Body", null)
+        viewModel.setNewBlogFields(title = "Title")
         viewModel.createNewBlogPost("Title", "Body", null)
         advanceUntilIdle()
 
         val state = viewModel.viewState.value
         assertThat(state.blogFields.newBlogTitle).isNull()
-        assertThat(state.blogFields.newBlogBody).isNull()
         assertThat(state.blogFields.newImageUri).isNull()
     }
 
@@ -96,21 +95,27 @@ class CreateBlogViewModelTest {
 
     @Test
     fun `setNewBlogFields updates state`() {
-        viewModel.setNewBlogFields("Test Title", "Test Body", null)
+        viewModel.setNewBlogFields(title = "Test Title")
 
-        val state = viewModel.viewState.value
-        assertThat(state.blogFields.newBlogTitle).isEqualTo("Test Title")
-        assertThat(state.blogFields.newBlogBody).isEqualTo("Test Body")
+        assertThat(viewModel.viewState.value.blogFields.newBlogTitle).isEqualTo("Test Title")
     }
 
     @Test
     fun `clearNewBlogFields resets to defaults`() {
-        viewModel.setNewBlogFields("Title", "Body", null)
+        viewModel.setNewBlogFields(title = "Title")
         viewModel.clearNewBlogFields()
 
         val state = viewModel.viewState.value
         assertThat(state.blogFields.newBlogTitle).isNull()
-        assertThat(state.blogFields.newBlogBody).isNull()
         assertThat(state.blogFields.newImageUri).isNull()
+    }
+
+    @Test
+    fun `clearNewBlogFields clears the rich-text editor body too`() {
+        viewModel.createBodyState.setHtml("<p>some draft</p>")
+
+        viewModel.clearNewBlogFields()
+
+        assertThat(viewModel.createBodyState.toHtml()).doesNotContain("some draft")
     }
 }

@@ -114,11 +114,11 @@ internal fun BlogDetailRoute(
                         viewModel.clearUpdatedImageUri()
                         viewModel.setUpdatedBlogFields(
                             title = blogPost.title,
-                            body = blogPost.body,
                             originalImageUrl = blogPost.image,
                             category = blogPost.category,
                             tags = blogPost.tags
                         )
+                        viewModel.editBodyState.setHtml(blogPost.body)
                         onEdit(slug)
                     }
                 }
@@ -164,7 +164,7 @@ internal fun EditBlogRoute(
         if (result.resultCode == Activity.RESULT_OK) {
             val uri = result.data?.data
             if (uri != null) {
-                viewModel.setUpdatedBlogFields(title = null, body = null, uri = uri)
+                viewModel.setUpdatedBlogFields(uri = uri)
             }
         }
     }
@@ -181,7 +181,7 @@ internal fun EditBlogRoute(
 
     EditBlogScreen(
         initialTitle = state.updatedBlogTitle.orEmpty(),
-        initialBody = state.updatedBlogBody.orEmpty(),
+        bodyState = viewModel.editBodyState,
         imageModel = state.updatedImageUri ?: state.originalImageUrl,
         selectedCategory = state.updatedCategory,
         initialTags = state.updatedTags.orEmpty(),
@@ -226,7 +226,7 @@ internal fun CreateBlogRoute(
         if (result.resultCode == Activity.RESULT_OK) {
             val uri = result.data?.data
             if (uri != null) {
-                viewModel.setNewBlogFields(title = null, body = null, uri = uri)
+                viewModel.setNewBlogFields(uri = uri)
             }
         }
     }
@@ -242,7 +242,7 @@ internal fun CreateBlogRoute(
 
     CreateBlogScreen(
         initialTitle = blogFields.blogFields.newBlogTitle.orEmpty(),
-        initialBody = blogFields.blogFields.newBlogBody.orEmpty(),
+        bodyState = viewModel.createBodyState,
         imageModel = blogFields.blogFields.newImageUri,
         selectedCategory = blogFields.blogFields.category,
         initialTags = blogFields.blogFields.tags.orEmpty(),

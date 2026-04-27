@@ -38,6 +38,7 @@ import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
 import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.util.toUserMessage
 import com.kanyandula.nyasa.work.BlogUploadEnqueuer
+import com.mohamedrejeb.richeditor.model.RichTextState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -79,6 +80,9 @@ constructor(
 
     private val _updateBlogState = MutableStateFlow(UpdateBlogUiState())
     val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
+
+    // Hoisted: rememberSaveable can't serialize RichTextState.
+    val editBodyState: RichTextState = RichTextState()
 
     private var loadBlogJob: Job? = null
     private var authorCheckJob: Job? = null
@@ -218,7 +222,6 @@ constructor(
 
     fun setUpdatedBlogFields(
         title: String? = null,
-        body: String? = null,
         uri: Uri? = null,
         originalImageUrl: String? = null,
         category: String? = null,
@@ -227,7 +230,6 @@ constructor(
         updateUpdateBlogState {
             copy(
                 updatedBlogTitle = title ?: updatedBlogTitle,
-                updatedBlogBody = body ?: updatedBlogBody,
                 updatedImageUri = uri ?: updatedImageUri,
                 originalImageUrl = originalImageUrl ?: this.originalImageUrl,
                 updatedCategory = category ?: updatedCategory,

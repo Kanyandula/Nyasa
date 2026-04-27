@@ -320,12 +320,10 @@ class BlogViewModelTest {
     // region Update Blog
 
     @Test
-    fun `setUpdatedBlogFields updates update state`() {
-        viewModel.setUpdatedBlogFields("New Title", "New Body", null)
+    fun `setUpdatedBlogFields updates title`() {
+        viewModel.setUpdatedBlogFields(title = "New Title")
 
-        val state = viewModel.updateBlogState.value
-        assertThat(state.updatedBlogTitle).isEqualTo("New Title")
-        assertThat(state.updatedBlogBody).isEqualTo("New Body")
+        assertThat(viewModel.updateBlogState.value.updatedBlogTitle).isEqualTo("New Title")
     }
 
     @Test
