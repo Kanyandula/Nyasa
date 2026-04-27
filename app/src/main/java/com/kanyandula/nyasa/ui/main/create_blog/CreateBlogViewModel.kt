@@ -95,6 +95,7 @@ constructor(
 
     fun clearNewBlogFields() {
         updateState { copy(blogFields = NewBlogFields()) }
+        // Editor lives outside StateFlow; reset separately.
         createBodyState.setHtml("")
     }
 

@@ -118,7 +118,7 @@ internal fun BlogDetailRoute(
                             category = blogPost.category,
                             tags = blogPost.tags
                         )
-                        viewModel.loadEditBody(blogPost.body)
+                        viewModel.editBodyState.setHtml(blogPost.body)
                         onEdit(slug)
                     }
                 }

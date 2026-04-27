@@ -327,17 +327,6 @@ class BlogViewModelTest {
     }
 
     @Test
-    fun `loadEditBody seeds the rich-text editor with the post HTML`() {
-        viewModel.loadEditBody("<p>Hello <strong>world</strong></p>")
-
-        // The library round-trips bold as the shorter <b> tag (semantic equivalent of
-        // <strong>); PostBodyRenderer's HtmlParser handles both.
-        val html = viewModel.editBodyState.toHtml()
-        assertThat(html).contains("<b>world</b>")
-        assertThat(viewModel.editBodyState.annotatedString.text).isEqualTo("Hello world")
-    }
-
-    @Test
     fun `updateBlogPost enqueues upload and emits BlogUpdateSuccess`() = runTest {
         viewModel.events.test {
             viewModel.updateBlogPost("test-blog", "Updated Title", "Updated Body", null)
