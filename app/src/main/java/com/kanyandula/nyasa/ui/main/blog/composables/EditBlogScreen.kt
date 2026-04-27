@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -50,13 +51,16 @@ import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.analytics.TrackScreen
+import com.mohamedrejeb.richeditor.model.RichTextState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditBlogScreen(
     initialTitle: String,
-    initialBody: String,
+    bodyState: RichTextState,
     imageModel: Any?,
     selectedCategory: String?,
     initialTags: String,
@@ -65,9 +69,8 @@ fun EditBlogScreen(
     onAction: (EditBlogAction) -> Unit
 ) {
     TrackScreen("EditBlog")
-    var title by rememberSaveable { mutableStateOf(initialTitle) }
-    var body by rememberSaveable { mutableStateOf(initialBody) }
-    var tags by rememberSaveable { mutableStateOf(initialTags) }
+    var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
+    var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -79,7 +82,7 @@ fun EditBlogScreen(
                     actions = {
                         Button(
                             onClick = {
-                                onAction(EditBlogAction.Save(title, body, tags))
+                                onAction(EditBlogAction.Save(title, bodyState.toHtml(), tags))
                             },
                             enabled = !isLoading,
                             shape = RoundedCornerShape(50),
@@ -154,13 +157,11 @@ fun EditBlogScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(NyasaTheme.spacing.s))
-                NyasaTextField(
-                    value = body,
-                    onValueChange = { body = it },
-                    label = "Your Story",
-                    singleLine = false,
-                    maxLines = Int.MAX_VALUE,
-                    imeAction = ImeAction.Default
+                RichTextEditor(
+                    state = bodyState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 240.dp)
                 )
                 Spacer(Modifier.height(20.dp))
 
@@ -211,8 +212,9 @@ fun EditBlogScreen(
                                 tint = MaterialTheme.colorScheme
                                     .onSurfaceVariant
                             )
-                            val readTime = remember(body) {
-                                val wordCount = body
+                            val plainText = bodyState.annotatedString.text
+                            val readTime = remember(plainText) {
+                                val wordCount = plainText
                                     .split("\\s+".toRegex())
                                     .count { it.isNotBlank() }
                                 (wordCount / 200).coerceAtLeast(1)
@@ -302,10 +304,13 @@ private fun EditBlogScreenPreview() {
     NyasaTheme {
         EditBlogScreen(
             initialTitle = "The Silent Wisdom of the Baobab:",
-            initialBody = "The sun hung low over the Dedza mountains," +
-                " painting the landscape in a shade of burnt sienna" +
-                " and deep ochre. Under the sprawling branches of" +
-                " an ancient baobab, time seems to slow down.",
+            bodyState = rememberRichTextState().apply {
+                setHtml(
+                    "<p>The sun hung low over the Dedza mountains, " +
+                        "painting the landscape in a shade of burnt sienna " +
+                        "and deep ochre.</p>"
+                )
+            },
             imageModel = null,
             selectedCategory = "culture",
             initialTags = "Malawi, Travel",
