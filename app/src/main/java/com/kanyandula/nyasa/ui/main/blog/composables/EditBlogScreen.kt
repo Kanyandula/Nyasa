@@ -40,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
+import com.kanyandula.nyasa.ui.components.richtext.RichTextToolbarOverlay
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.analytics.TrackScreen
 import com.mohamedrejeb.richeditor.model.RichTextState
@@ -75,6 +77,7 @@ fun EditBlogScreen(
     TrackScreen("EditBlog")
     var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
     var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
+    var isEditorFocused by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -107,7 +110,14 @@ fun EditBlogScreen(
                 )
             },
             bottomBar = {
-                EditBottomToolbar()
+                Column {
+                    RichTextToolbarOverlay(
+                        state = bodyState,
+                        isVisible = isEditorFocused,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    EditBottomToolbar()
+                }
             }
         ) { padding ->
             Column(
@@ -166,6 +176,7 @@ fun EditBlogScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 240.dp)
+                        .onFocusChanged { isEditorFocused = it.isFocused }
                 )
                 Spacer(Modifier.height(20.dp))
 

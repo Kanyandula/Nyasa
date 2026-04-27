@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,6 +50,7 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
+import com.kanyandula.nyasa.ui.components.richtext.RichTextToolbarOverlay
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.analytics.TrackScreen
@@ -75,6 +77,7 @@ fun CreateBlogScreen(
     TrackScreen("CreateBlog")
     var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
     var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
+    var isEditorFocused by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -95,11 +98,18 @@ fun CreateBlogScreen(
                 )
             },
             bottomBar = {
-                PublishBar(
-                    isLoading = isLoading,
-                    onSaveDraft = onSaveDraft,
-                    onPublish = { onPublish(title, bodyState.toHtml(), tags) }
-                )
+                Column {
+                    RichTextToolbarOverlay(
+                        state = bodyState,
+                        isVisible = isEditorFocused,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    PublishBar(
+                        isLoading = isLoading,
+                        onSaveDraft = onSaveDraft,
+                        onPublish = { onPublish(title, bodyState.toHtml(), tags) }
+                    )
+                }
             }
         ) { padding ->
             Column(
@@ -141,6 +151,7 @@ fun CreateBlogScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 240.dp)
+                        .onFocusChanged { isEditorFocused = it.isFocused }
                 )
                 Spacer(Modifier.height(NyasaTheme.spacing.l))
 
