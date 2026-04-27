@@ -21,8 +21,10 @@ import com.mohamedrejeb.richeditor.model.RichTextState
  * changes). Hosts both the toolbar and the link insertion dialog so each consumer screen
  * just decides when to show it (typically when the editor has focus). Designed to be
  * placed inside a Scaffold `bottomBar` slot, stacked above the screen's existing bottom
- * bar (e.g. PublishBar). Scaffold handles its own IME/system insets — this composable
- * does not add `imePadding`.
+ * bar (e.g. PublishBar). This composable does not add `imePadding`; the activity uses
+ * `windowSoftInputMode="adjustPan"`, so `WindowInsets.ime` is zero inside Compose and
+ * `imePadding` would be a no-op here. If the project later adopts edge-to-edge layout
+ * (e.g. `enableEdgeToEdge()`), revisit whether `imePadding` is needed.
  */
 @Composable
 fun RichTextToolbarOverlay(
