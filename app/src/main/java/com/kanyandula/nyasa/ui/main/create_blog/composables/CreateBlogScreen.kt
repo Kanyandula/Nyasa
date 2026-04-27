@@ -13,32 +13,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FormatBold
-import androidx.compose.material.icons.filled.FormatItalic
-import androidx.compose.material.icons.filled.FormatQuote
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,10 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,12 +52,15 @@ import com.kanyandula.nyasa.ui.components.NyasaTopBar
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.analytics.TrackScreen
+import com.mohamedrejeb.richeditor.model.RichTextState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateBlogScreen(
     initialTitle: String,
-    initialBody: String,
+    bodyState: RichTextState,
     imageModel: Any?,
     selectedCategory: String?,
     initialTags: String,
@@ -84,11 +73,8 @@ fun CreateBlogScreen(
     onSaveDraft: () -> Unit
 ) {
     TrackScreen("CreateBlog")
-    var title by rememberSaveable { mutableStateOf(initialTitle) }
-    var body by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(initialBody))
-    }
-    var tags by rememberSaveable { mutableStateOf(initialTags) }
+    var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
+    var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -112,7 +98,7 @@ fun CreateBlogScreen(
                 PublishBar(
                     isLoading = isLoading,
                     onSaveDraft = onSaveDraft,
-                    onPublish = { onPublish(title, body.text, tags) }
+                    onPublish = { onPublish(title, bodyState.toHtml(), tags) }
                 )
             }
         ) { padding ->
@@ -150,25 +136,14 @@ fun CreateBlogScreen(
                 Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                 SectionLabel("YOUR STORY")
-                OutlinedTextField(
-                    value = body,
-                    onValueChange = { body = it },
-                    label = { Text("Tell your story from the heart of Malawi...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = false,
-                    maxLines = Int.MAX_VALUE,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Default),
-                    shape = MaterialTheme.shapes.small,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        cursorColor = MaterialTheme.colorScheme.primary
-                    )
+                RichTextEditor(
+                    state = bodyState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 240.dp)
                 )
-                FormattingToolbar(
-                    onFormat = { transform -> body = transform(body) }
-                )
+                // FormattingToolbar is migrated in Phase 3 of the richtext migration —
+                // its current `(TextFieldValue) -> TextFieldValue` shape no longer applies.
                 Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                 if (categories.isNotEmpty()) {
@@ -253,112 +228,9 @@ private fun PublishBar(
     }
 }
 
-@Composable
-private fun FormattingToolbar(
-    onFormat: ((TextFieldValue) -> TextFieldValue) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = NyasaTheme.spacing.xs),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        FormatButton(Icons.Filled.FormatBold, "Bold") {
-            onFormat { wrapSelection(it, "**") }
-        }
-        FormatButton(Icons.Filled.FormatItalic, "Italic") {
-            onFormat { wrapSelection(it, "*") }
-        }
-        FormatButton(Icons.Filled.Link, "Link") {
-            onFormat { insertAtCursor(it, "[link text](https://)", cursorOffset = 1) }
-        }
-        FormatButton(Icons.AutoMirrored.Filled.FormatListBulleted, "List") {
-            onFormat { prefixLines(it, "- ") }
-        }
-        FormatButton(Icons.Filled.FormatQuote, "Quote") {
-            onFormat { prefixLines(it, "> ") }
-        }
-        FormatButton(Icons.Filled.Image, "Image") {
-            onFormat { insertAtCursor(it, "![alt](https://)", cursorOffset = 2) }
-        }
-    }
-}
-
-@Composable
-private fun FormatButton(
-    icon: ImageVector,
-    description: String,
-    onClick: () -> Unit
-) {
-    IconButton(onClick = onClick) {
-        Icon(
-            imageVector = icon,
-            contentDescription = description,
-            modifier = Modifier.size(22.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-private fun wrapSelection(
-    value: TextFieldValue,
-    prefix: String,
-    suffix: String = prefix
-): TextFieldValue {
-    val text = value.text
-    val start = value.selection.start
-    val end = value.selection.end
-    val before = text.substring(0, start)
-    val selected = text.substring(start, end)
-    val after = text.substring(end)
-    val newText = before + prefix + selected + suffix + after
-    val newSelection = if (value.selection.collapsed) {
-        TextRange(start + prefix.length)
-    } else {
-        TextRange(start + prefix.length, start + prefix.length + selected.length)
-    }
-    return value.copy(text = newText, selection = newSelection)
-}
-
-private fun prefixLines(value: TextFieldValue, linePrefix: String): TextFieldValue {
-    val text = value.text
-    val selStart = value.selection.start
-    val selEnd = value.selection.end
-    val lineStart = text.lastIndexOf('\n', (selStart - 1).coerceAtLeast(0)).let {
-        if (it < 0) 0 else it + 1
-    }
-    val lineEnd = text.indexOf('\n', selEnd).let {
-        if (it < 0) text.length else it
-    }
-    val before = text.substring(0, lineStart)
-    val block = text.substring(lineStart, lineEnd)
-    val after = text.substring(lineEnd)
-    val modified = if (block.isEmpty()) {
-        linePrefix
-    } else {
-        block.lines().joinToString("\n") { linePrefix + it }
-    }
-    val newText = before + modified + after
-    return value.copy(
-        text = newText,
-        selection = TextRange(lineStart, lineStart + modified.length)
-    )
-}
-
-private fun insertAtCursor(
-    value: TextFieldValue,
-    insertion: String,
-    cursorOffset: Int = insertion.length
-): TextFieldValue {
-    val text = value.text
-    val start = value.selection.start
-    val end = value.selection.end
-    val newText = text.substring(0, start) + insertion + text.substring(end)
-    return value.copy(
-        text = newText,
-        selection = TextRange(start + cursorOffset)
-    )
-}
+// FormattingToolbar (markdown-emitting) and helpers were removed in Phase 2 of the
+// richtext migration. Phase 3 reintroduces a toolbar that calls RichTextState APIs
+// (toggleSpanStyle / toggleUnorderedList / addLink / setHeadingStyle).
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -423,7 +295,7 @@ private fun CreateBlogScreenPreview() {
     NyasaTheme {
         CreateBlogScreen(
             initialTitle = "",
-            initialBody = "",
+            bodyState = rememberRichTextState(),
             imageModel = null,
             selectedCategory = null,
             initialTags = "",

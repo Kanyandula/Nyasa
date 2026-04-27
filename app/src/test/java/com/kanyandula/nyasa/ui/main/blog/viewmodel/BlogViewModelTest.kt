@@ -320,12 +320,21 @@ class BlogViewModelTest {
     // region Update Blog
 
     @Test
-    fun `setUpdatedBlogFields updates update state`() {
-        viewModel.setUpdatedBlogFields("New Title", "New Body", null)
+    fun `setUpdatedBlogFields updates title`() {
+        viewModel.setUpdatedBlogFields(title = "New Title")
 
-        val state = viewModel.updateBlogState.value
-        assertThat(state.updatedBlogTitle).isEqualTo("New Title")
-        assertThat(state.updatedBlogBody).isEqualTo("New Body")
+        assertThat(viewModel.updateBlogState.value.updatedBlogTitle).isEqualTo("New Title")
+    }
+
+    @Test
+    fun `loadEditBody seeds the rich-text editor with the post HTML`() {
+        viewModel.loadEditBody("<p>Hello <strong>world</strong></p>")
+
+        // The library round-trips bold as the shorter <b> tag (semantic equivalent of
+        // <strong>); PostBodyRenderer's HtmlParser handles both.
+        val html = viewModel.editBodyState.toHtml()
+        assertThat(html).contains("<b>world</b>")
+        assertThat(viewModel.editBodyState.annotatedString.text).isEqualTo("Hello world")
     }
 
     @Test

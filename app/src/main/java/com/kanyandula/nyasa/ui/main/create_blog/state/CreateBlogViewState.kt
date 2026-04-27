@@ -11,7 +11,6 @@ data class CreateBlogViewState(
 ) {
     data class NewBlogFields(
         val newBlogTitle: String? = null,
-        val newBlogBody: String? = null,
         val newImageUri: Uri? = null,
         val category: String? = null,
         val tags: String? = null
