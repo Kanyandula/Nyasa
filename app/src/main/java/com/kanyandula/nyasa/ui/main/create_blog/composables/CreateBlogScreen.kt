@@ -2,11 +2,6 @@
 
 package com.kanyandula.nyasa.ui.main.create_blog.composables
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,8 +51,7 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
 import com.kanyandula.nyasa.ui.components.NyasaCategoryDropdown
 import com.kanyandula.nyasa.ui.components.NyasaTextField
 import com.kanyandula.nyasa.ui.components.NyasaTopBar
-import com.kanyandula.nyasa.ui.components.richtext.LinkInsertDialog
-import com.kanyandula.nyasa.ui.components.richtext.RichTextToolbar
+import com.kanyandula.nyasa.ui.components.richtext.RichTextToolbarOverlay
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.analytics.TrackScreen
@@ -86,8 +79,6 @@ fun CreateBlogScreen(
     var title by rememberSaveable(initialTitle) { mutableStateOf(initialTitle) }
     var tags by rememberSaveable(initialTags) { mutableStateOf(initialTags) }
     var isEditorFocused by remember { mutableStateOf(false) }
-    var showLinkDialog by remember { mutableStateOf(false) }
-    var pendingLinkSelectionText by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -178,40 +169,11 @@ fun CreateBlogScreen(
         }
         LoadingOverlay(isLoading = isLoading)
 
-        AnimatedVisibility(
-            visible = isEditorFocused,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .imePadding()
-        ) {
-            RichTextToolbar(
-                state = bodyState,
-                onInsertLinkClick = {
-                    val sel = bodyState.selection
-                    pendingLinkSelectionText = if (sel.collapsed) {
-                        ""
-                    } else {
-                        bodyState.annotatedString.text.substring(sel.start, sel.end)
-                    }
-                    showLinkDialog = true
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        if (showLinkDialog) {
-            LinkInsertDialog(
-                initialUrl = "",
-                initialText = pendingLinkSelectionText,
-                onConfirm = { url, text ->
-                    bodyState.addLink(text = text, url = url)
-                    showLinkDialog = false
-                },
-                onDismiss = { showLinkDialog = false }
-            )
-        }
+        RichTextToolbarOverlay(
+            state = bodyState,
+            isVisible = isEditorFocused,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

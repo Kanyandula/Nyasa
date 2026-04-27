@@ -9,7 +9,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -45,6 +47,48 @@ class RichTextToolbarUiTest {
     }
 
     @Test
+    fun italic_button_toggles_currentSpanStyle_fontStyle() {
+        var captured: RichTextState? = null
+        rule.setContent {
+            NyasaTheme {
+                val state = rememberRichTextState()
+                captured = state
+                RichTextToolbar(state = state, onInsertLinkClick = {})
+            }
+        }
+
+        rule.onNodeWithContentDescription("Italic").performClick()
+        rule.runOnIdle {
+            assertEquals(FontStyle.Italic, captured!!.currentSpanStyle.fontStyle)
+        }
+        rule.onNodeWithContentDescription("Italic").performClick()
+        rule.runOnIdle {
+            assertTrue(captured!!.currentSpanStyle.fontStyle != FontStyle.Italic)
+        }
+    }
+
+    @Test
+    fun underline_button_toggles_currentSpanStyle_textDecoration() {
+        var captured: RichTextState? = null
+        rule.setContent {
+            NyasaTheme {
+                val state = rememberRichTextState()
+                captured = state
+                RichTextToolbar(state = state, onInsertLinkClick = {})
+            }
+        }
+
+        rule.onNodeWithContentDescription("Underline").performClick()
+        rule.runOnIdle {
+            assertEquals(TextDecoration.Underline, captured!!.currentSpanStyle.textDecoration)
+        }
+        rule.onNodeWithContentDescription("Underline").performClick()
+        rule.runOnIdle {
+            assertTrue(captured!!.currentSpanStyle.textDecoration != TextDecoration.Underline)
+        }
+    }
+
+    @Test
     fun bullet_list_button_toggles_isUnorderedList() {
         var captured: RichTextState? = null
         rule.setContent {
@@ -74,6 +118,8 @@ class RichTextToolbarUiTest {
 
         rule.onNodeWithContentDescription("Numbered list").performClick()
         rule.runOnIdle { assertTrue(captured!!.isOrderedList) }
+        rule.onNodeWithContentDescription("Numbered list").performClick()
+        rule.runOnIdle { assertTrue(!captured!!.isOrderedList) }
     }
 
     @Test

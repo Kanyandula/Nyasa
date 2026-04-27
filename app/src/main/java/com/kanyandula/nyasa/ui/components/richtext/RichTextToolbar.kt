@@ -3,7 +3,6 @@ package com.kanyandula.nyasa.ui.components.richtext
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -36,7 +35,7 @@ fun RichTextToolbar(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         tonalElevation = 4.dp
     ) {
         Row(
@@ -45,22 +44,23 @@ fun RichTextToolbar(
                 .padding(horizontal = NyasaTheme.spacing.s, vertical = NyasaTheme.spacing.xs),
             horizontalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.xs)
         ) {
+            val spanStyle = state.currentSpanStyle
             ToggleButton(
-                checked = state.currentSpanStyle.fontWeight == FontWeight.Bold,
+                checked = spanStyle.fontWeight == FontWeight.Bold,
                 onCheckedChange = {
                     state.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
                 }
             ) { Icon(Icons.Filled.FormatBold, contentDescription = "Bold") }
 
             ToggleButton(
-                checked = state.currentSpanStyle.fontStyle == FontStyle.Italic,
+                checked = spanStyle.fontStyle == FontStyle.Italic,
                 onCheckedChange = {
                     state.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
                 }
             ) { Icon(Icons.Filled.FormatItalic, contentDescription = "Italic") }
 
             ToggleButton(
-                checked = state.currentSpanStyle.textDecoration == TextDecoration.Underline,
+                checked = spanStyle.textDecoration?.contains(TextDecoration.Underline) == true,
                 onCheckedChange = {
                     state.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
                 }
@@ -93,17 +93,6 @@ private fun ToggleButton(
         checked = checked,
         onCheckedChange = onCheckedChange
     ) { content() }
-}
-
-internal fun normalizeUrl(input: String): String {
-    val trimmed = input.trim()
-    if (trimmed.isEmpty()) return trimmed
-    val lower = trimmed.lowercase()
-    return when {
-        lower.startsWith("https://") || lower.startsWith("http://") -> trimmed
-        lower.startsWith("mailto:") -> trimmed
-        else -> "https://$trimmed"
-    }
 }
 
 @Preview
