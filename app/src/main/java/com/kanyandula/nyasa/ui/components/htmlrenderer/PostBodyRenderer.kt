@@ -25,10 +25,12 @@ fun PostBodyRenderer(
         HtmlParser.parse(html, linkColor, codeBg)
     }
 
+    // Block spacing lives in layout, not markup — empty <p> tags don't render
+    // and the rich-text editor strips them at serialization.
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(
-            NyasaTheme.spacing.s
+            NyasaTheme.spacing.m
         )
     ) {
         blocks.forEach { node ->
@@ -44,7 +46,7 @@ internal fun RenderBlockNode(node: BlockNode) {
             content = node.content,
             style = headingStyle(node.level),
             modifier = Modifier.padding(
-                top = NyasaTheme.spacing.s
+                top = NyasaTheme.spacing.m
             )
         )
         is BlockNode.Paragraph -> TextBlock(
