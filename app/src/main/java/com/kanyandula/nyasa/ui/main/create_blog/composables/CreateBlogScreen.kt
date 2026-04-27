@@ -142,8 +142,6 @@ fun CreateBlogScreen(
                         .fillMaxWidth()
                         .heightIn(min = 240.dp)
                 )
-                // FormattingToolbar is migrated in Phase 3 of the richtext migration —
-                // its current `(TextFieldValue) -> TextFieldValue` shape no longer applies.
                 Spacer(Modifier.height(NyasaTheme.spacing.l))
 
                 if (categories.isNotEmpty()) {
@@ -227,10 +225,6 @@ private fun PublishBar(
         }
     }
 }
-
-// FormattingToolbar (markdown-emitting) and helpers were removed in Phase 2 of the
-// richtext migration. Phase 3 reintroduces a toolbar that calls RichTextState APIs
-// (toggleSpanStyle / toggleUnorderedList / addLink / setHeadingStyle).
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable

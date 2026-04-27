@@ -81,14 +81,8 @@ constructor(
     private val _updateBlogState = MutableStateFlow(UpdateBlogUiState())
     val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
 
-    // Hoisted out of EditBlogScreen so the editor's content survives recomposition,
-    // navigation, and config change without the rememberSaveable staleness pitfall.
+    // Hoisted: rememberSaveable can't serialize RichTextState.
     val editBodyState: RichTextState = RichTextState()
-
-    /** Pre-fill the editor with an existing post's HTML before navigating to Edit. */
-    fun loadEditBody(html: String) {
-        editBodyState.setHtml(html)
-    }
 
     private var loadBlogJob: Job? = null
     private var authorCheckJob: Job? = null

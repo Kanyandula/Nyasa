@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,9 @@ import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
+
+private val WHITESPACE_REGEX = "\\s+".toRegex()
+private const val WORDS_PER_MINUTE = 200
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -212,12 +216,16 @@ fun EditBlogScreen(
                                 tint = MaterialTheme.colorScheme
                                     .onSurfaceVariant
                             )
-                            val plainText = bodyState.annotatedString.text
-                            val readTime = remember(plainText) {
-                                val wordCount = plainText
-                                    .split("\\s+".toRegex())
-                                    .count { it.isNotBlank() }
-                                (wordCount / 200).coerceAtLeast(1)
+                            // derivedStateOf scopes the recomposition trigger to the
+                            // computed minute value — the parent column doesn't recompose
+                            // on every keystroke, only when the read-time bucket changes.
+                            val readTime by remember(bodyState) {
+                                derivedStateOf {
+                                    val wordCount = bodyState.annotatedString.text
+                                        .split(WHITESPACE_REGEX)
+                                        .count { it.isNotBlank() }
+                                    (wordCount / WORDS_PER_MINUTE).coerceAtLeast(1)
+                                }
                             }
                             Text(
                                 text = "$readTime min",
