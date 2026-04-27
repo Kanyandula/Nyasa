@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.FormatBold
 import androidx.compose.material.icons.filled.FormatItalic
-import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.FormatUnderlined
 import androidx.compose.material.icons.filled.Link
@@ -69,7 +69,7 @@ fun RichTextToolbar(
             ToggleButton(
                 checked = state.isUnorderedList,
                 onCheckedChange = { state.toggleUnorderedList() }
-            ) { Icon(Icons.Filled.FormatListBulleted, contentDescription = "Bullet list") }
+            ) { Icon(Icons.AutoMirrored.Filled.FormatListBulleted, contentDescription = "Bullet list") }
 
             ToggleButton(
                 checked = state.isOrderedList,
