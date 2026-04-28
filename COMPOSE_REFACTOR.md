@@ -261,14 +261,14 @@ Compose-native window classifier in `:core:designsystem`, exposed via `LocalWind
 - `DefaultWindowClassifier` reads `LocalConfiguration` and classifies as `Medium` when width ≥ **600dp** OR (landscape AND height < **400dp**); helpers return `State<Boolean>` via `derivedStateOf` so consumers only recompose on flips.
 - `LocalWindow` `staticCompositionLocalOf` provided by `NyasaTheme`; `WindowSizeClassScaffold` slot router for two-class branches.
 - `NyasaSideRail` (`NavigationRail` variant) in `:app`; `MainActivity` swaps `NyasaBottomBar` ↔ `NyasaSideRail` based on the classifier; `MainNavItem` extracted so both surfaces share one source of truth.
-- Unit-tested via pure `classify(...)` helper in `WindowClassifierTest.kt`.
+- Breakpoint matrix and custom-threshold overrides covered in `WindowClassifierTest.kt` via the pure `classify(...)` helper.
 
 ### Full target (remaining phases)
 
 | Class | Feed | Post | Create |
 |---|---|---|---|
 | Small (phone) — ✅ P1 | single-pane, bottom bar | full screen | full screen |
-| Medium (foldable / small tablet) — ✅ rail (P1) · 🔜 list-detail (P2) · 🔜 modal create (P4) | list-detail pane scaffold, `NavigationRail` replaces bottom bar | pane 2 | modal bottom sheet |
+| Medium (foldable / small tablet) — ✅ P1 · 🔜 P2 · 🔜 P4 | list-detail pane scaffold, `NavigationRail` replaces bottom bar | pane 2 | modal bottom sheet |
 | Expanded (tablet) — 🔜 P3 | feed 2-col grid + detail + trending rail | pane 2 | side sheet |
 
 - **Phase 2** — `ListDetailPaneScaffold` for `BlogFeed` ↔ `BlogDetail`; pulls in `androidx.compose.material3.adaptive:adaptive-navigation`. Post selection on tablet = pane switch, not nav event — reassess `PostNavigator` contract need then.
