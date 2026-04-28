@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -26,6 +29,7 @@ import androidx.work.WorkManager
 import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
+import com.kanyandula.nyasa.ui.components.NyasaSideRail
 import com.kanyandula.nyasa.ui.navigation.AuthEventHandler
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.authGraph
@@ -35,6 +39,7 @@ import com.kanyandula.nyasa.ui.navigation.mainGraph
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
+import com.kanyandula.nyasa.ui.theme.window.LocalWindow
 import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.util.analytics.LocalAnalyticsTracker
 import com.kanyandula.nyasa.work.UploadKeys
@@ -108,35 +113,33 @@ class MainActivity : ComponentActivity() {
                     AuthEventHandler(navController)
 
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val showBottomBar = remember(navBackStackEntry) {
-                        navBackStackEntry?.destination.isInGraph(Routes.MAIN_GRAPH)
-                            ?: false
+                    val showNav = navBackStackEntry?.destination
+                        .isInGraph(Routes.MAIN_GRAPH) ?: false
+
+                    val onThemeChanged: (ThemePreference) -> Unit = { preference ->
+                        themeScope.launch {
+                            ThemePreferenceManager.setTheme(themeDataStore, preference)
+                        }
                     }
 
+                    val isMedium by LocalWindow.current.isMediumWindowAsState()
                     Scaffold(
                         bottomBar = {
-                            if (showBottomBar) {
-                                NyasaBottomBar(navController = navController)
-                            }
+                            if (showNav && !isMedium) NyasaBottomBar(navController = navController)
                         }
                     ) { padding ->
-                        NavHost(
-                            navController = navController,
-                            startDestination = startDestination,
-                            modifier = Modifier.padding(padding)
+                        Row(
+                            Modifier
+                                .padding(padding)
+                                .fillMaxSize()
                         ) {
-                            authGraph(navController)
-                            mainGraph(
+                            if (showNav && isMedium) NyasaSideRail(navController = navController)
+                            RootNavHost(
                                 navController = navController,
+                                startDestination = startDestination,
                                 currentTheme = themePreference,
-                                onThemeChanged = { preference ->
-                                    themeScope.launch {
-                                        ThemePreferenceManager.setTheme(
-                                            themeDataStore,
-                                            preference
-                                        )
-                                    }
-                                }
+                                onThemeChanged = onThemeChanged,
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
@@ -155,6 +158,28 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
+    }
+}
+
+@Composable
+private fun RootNavHost(
+    navController: NavHostController,
+    startDestination: String,
+    currentTheme: ThemePreference,
+    onThemeChanged: (ThemePreference) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier
+    ) {
+        authGraph(navController)
+        mainGraph(
+            navController = navController,
+            currentTheme = currentTheme,
+            onThemeChanged = onThemeChanged
+        )
     }
 }
 
