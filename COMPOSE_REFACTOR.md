@@ -254,15 +254,26 @@ See `memory/reference_stitch_designs.md` for project ID + screen IDs.
 
 ## 11. Tablet / Adaptive Layout
 
-Material3 `WindowSizeClass` from `MainActivity`, propagated via `CompositionLocal`.
+Compose-native window classifier in `:core:designsystem`, exposed via `LocalWindow`. Consumers branch by reading `isMediumWindowAsState()` (or the slot router `WindowSizeClassScaffold`).
+
+### Phase 1 shipped (2026-04-28, PR #61)
+- `WindowSizeClass` enum (`Small`, `Medium`) and `WindowClassifier` interface in `:core:designsystem` (`ui/theme/window/`).
+- `DefaultWindowClassifier` reads `LocalConfiguration` and classifies as `Medium` when width ≥ **600dp** OR (landscape AND height < **400dp**); helpers return `State<Boolean>` via `derivedStateOf` so consumers only recompose on flips.
+- `LocalWindow` `staticCompositionLocalOf` provided by `NyasaTheme`; `WindowSizeClassScaffold` slot router for two-class branches.
+- `NyasaSideRail` (`NavigationRail` variant) in `:app`; `MainActivity` swaps `NyasaBottomBar` ↔ `NyasaSideRail` based on the classifier; `MainNavItem` extracted so both surfaces share one source of truth.
+- Unit-tested via pure `classify(...)` helper in `WindowClassifierTest.kt`.
+
+### Full target (remaining phases)
 
 | Class | Feed | Post | Create |
 |---|---|---|---|
-| Compact (phone) | single-pane, bottom bar | full screen | full screen |
-| Medium (foldable / small tablet) | list-detail pane scaffold, `NavigationRail` replaces bottom bar | pane 2 | modal bottom sheet |
-| Expanded (tablet) | feed 2-col grid + detail + trending rail | pane 2 | side sheet |
+| Small (phone) — ✅ P1 | single-pane, bottom bar | full screen | full screen |
+| Medium (foldable / small tablet) — ✅ rail (P1) · 🔜 list-detail (P2) · 🔜 modal create (P4) | list-detail pane scaffold, `NavigationRail` replaces bottom bar | pane 2 | modal bottom sheet |
+| Expanded (tablet) — 🔜 P3 | feed 2-col grid + detail + trending rail | pane 2 | side sheet |
 
-Use `androidx.compose.material3.adaptive:adaptive-navigation` (`ListDetailPaneScaffold`). Post selection on tablet = pane switch, not nav event — `PostNavigator` contract abstracts over both.
+- **Phase 2** — `ListDetailPaneScaffold` for `BlogFeed` ↔ `BlogDetail`; pulls in `androidx.compose.material3.adaptive:adaptive-navigation`. Post selection on tablet = pane switch, not nav event — reassess `PostNavigator` contract need then.
+- **Phase 3** — Expanded class: 2-column feed grid + persistent detail pane + trending rail.
+- **Phase 4** — Create-blog modal bottom sheet on Medium, side sheet on Expanded (currently full-screen on all classes).
 
 ---
 
@@ -358,6 +369,7 @@ Phase 10 stack:
 - **H6 (2026-04-25):** background uploads — `:core:work` module + `UploadBlogPostWorker` for create + edit; runtime `POST_NOTIFICATIONS` permission on Android 13+; `safeApiCall` route through worker.
 - **H8 (2026-04-24):** observability — Firebase Crashlytics + Analytics + Performance behind `AnalyticsTracker`; Timber `CrashlyticsTree`; `TrackScreen` integration on 13 screens & 4 ViewModels.
 - **Rich-text editor (Phase 1–3, 2026-04-27):** compose-richeditor 1.0.0-rc11 library; `RichTextState` hoisted into `BlogViewModel` / `CreateBlogViewModel`; body field migrated from `NyasaTextField` to `RichTextEditor`; 6-button formatting toolbar (bold/italic/underline/bullet list/numbered list/link) with active-state styling; `LinkInsertDialog` for URL+text entry. H1/H2 (heading) buttons deferred — library at this version has no semantic heading paragraph type.
+- **H7 Phase 1 (2026-04-28):** adaptive layout foundation — Compose-native `WindowClassifier` + `LocalWindow` in `:core:designsystem`; `NyasaSideRail` (`NavigationRail`) replaces `NyasaBottomBar` on Medium windows (width ≥ 600dp OR phone landscape with height < 400dp); `MainNavItem` extracted as shared nav model across both surfaces. PR #61.
 
 ### Remaining milestones
 1. ~~**H1 — Error & network hardening**~~ ✅ Shipped 2026-04-17.
@@ -367,7 +379,10 @@ Phase 10 stack:
 5. ~~**H5 — Modularization (core-only)**~~ ✅ Shipped 2026-04-22. Feature-module extraction (`:feature:auth`, etc.) **deferred**; revisit if cross-module compile times or build complexity warrant it.
    - **Hilt-move rule (kept for reference):** move the `@Module`/`@InstallIn` class together with its bindings into the same new Gradle module in a **single commit**. Run `./gradlew assembleDebug` before moving the next module. Never move + refactor in the same commit — Hilt errors become untraceable.
 6. ~~**H6 — Background uploads**~~ ✅ Shipped 2026-04-25.
-7. **H7 — Adaptive layout**: `WindowSizeClass`, `ListDetailPaneScaffold` for tablet/foldable; `NavigationRail` replaces bottom bar on Medium+. **Next active track.**
+7. **H7 — Adaptive layout**: Phase 1 ✅ Shipped 2026-04-28 (`WindowClassifier` + `NyasaSideRail`, PR #61). Remaining:
+   - **Phase 2** — `ListDetailPaneScaffold` for `BlogFeed` ↔ `BlogDetail`; pulls in `androidx.compose.material3.adaptive:adaptive-navigation`. **Next active track.**
+   - **Phase 3** — Expanded class: 2-column feed grid + persistent detail pane + trending rail.
+   - **Phase 4** — Create-blog modal bottom sheet on Medium, side sheet on Expanded.
 8. ~~**H8 — Observability**~~ ✅ Shipped 2026-04-24.
 9. **H9 — Test stack (Phase 10)**: Turbine, MockWebServer, MockK, Paparazzi, `paging-testing`, Compose UI tests. Some incremental coverage already shipped (e.g. `:core:work` Robolectric tests, OptimisticAction tests, viewmodel tests across blog/create); the formalized stack (Paparazzi golden suite, Compose UI tests beyond `RichTextToolbarUiTest.kt`) is still outstanding.
 10. **H10 — Growth (backend-dependent)**: forgot-password wiring, follows, FCM notifications, verified App Links. **Blocked** on backend endpoints.
