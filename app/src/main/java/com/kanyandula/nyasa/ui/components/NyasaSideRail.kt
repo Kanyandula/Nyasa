@@ -1,15 +1,14 @@
 package com.kanyandula.nyasa.ui.components
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kanyandula.nyasa.ui.navigation.MainNavItem
@@ -18,14 +17,14 @@ import com.kanyandula.nyasa.ui.navigation.navigateToMainNavItem
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
 @Composable
-fun NyasaBottomBar(
+fun NyasaSideRail(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentItem = mainNavItemForRoute(navBackStackEntry?.destination?.route)
 
-    NyasaBottomBarContent(
+    NyasaSideRailContent(
         currentItem = currentItem,
         onItemSelected = navController::navigateToMainNavItem,
         modifier = modifier
@@ -33,17 +32,16 @@ fun NyasaBottomBar(
 }
 
 @Composable
-fun NyasaBottomBarContent(
+fun NyasaSideRailContent(
     currentItem: MainNavItem,
     onItemSelected: (MainNavItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    NavigationBar(
+    NavigationRail(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        tonalElevation = 0.dp
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
     ) {
-        val itemColors = NavigationBarItemDefaults.colors(
+        val itemColors = NavigationRailItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.onSurface,
             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             selectedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -52,7 +50,7 @@ fun NyasaBottomBarContent(
         )
         MainNavItem.entries.forEach { item ->
             val selected = item == currentItem
-            NavigationBarItem(
+            NavigationRailItem(
                 selected = selected,
                 onClick = { onItemSelected(item) },
                 icon = { MainNavItemIcon(item = item, selected = selected) },
@@ -65,9 +63,9 @@ fun NyasaBottomBarContent(
 
 @Preview
 @Composable
-private fun NyasaBottomBarPreview() {
+private fun NyasaSideRailPreview() {
     NyasaTheme {
-        NyasaBottomBarContent(
+        NyasaSideRailContent(
             currentItem = MainNavItem.Home,
             onItemSelected = {}
         )
