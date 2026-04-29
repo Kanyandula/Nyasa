@@ -88,10 +88,9 @@ fun BlogFeedScreen(
     TrackScreen("BlogFeed")
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
 
-    LaunchedEffect(pagingItems.itemSnapshotList) {
-        onVisibleSlugsChanged(
-            pagingItems.itemSnapshotList.items.map { it.slug }.toSet()
-        )
+    val visibleSlugs = pagingItems.itemSnapshotList.items.map { it.slug }.toSet()
+    LaunchedEffect(visibleSlugs) {
+        onVisibleSlugsChanged(visibleSlugs)
     }
     var query by rememberSaveable { mutableStateOf(state.searchQuery) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
