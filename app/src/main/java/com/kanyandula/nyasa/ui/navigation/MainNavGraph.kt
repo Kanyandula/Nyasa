@@ -2,7 +2,10 @@ package com.kanyandula.nyasa.ui.navigation
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -20,7 +23,9 @@ import com.kanyandula.nyasa.ui.main.CreateBlogRoute
 import com.kanyandula.nyasa.ui.main.EditAccountRoute
 import com.kanyandula.nyasa.ui.main.EditBlogRoute
 import com.kanyandula.nyasa.ui.main.account.AccountViewModel
+import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedAction
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedScreen
+import com.kanyandula.nyasa.ui.main.blog.composables.BlogListDetailScaffold
 import com.kanyandula.nyasa.ui.main.blog.composables.FeedMode
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
@@ -41,15 +46,50 @@ fun NavGraphBuilder.mainGraph(
                 }
                 val vm: BlogViewModel = hiltViewModel(parentEntry)
                 val state by vm.viewState.collectAsStateWithLifecycle()
+                val accountVm: AccountViewModel = hiltViewModel()
+                val accountState by accountVm.viewState.collectAsStateWithLifecycle()
+                LaunchedEffect(accountState.accountProperties?.username) {
+                    accountState.accountProperties?.username?.let { vm.setCurrentUsername(it) }
+                }
 
                 val feedAction = remember(vm, navController) {
                     handleBlogFeedAction(vm, navController)
                 }
-                BlogFeedScreen(
-                    pagingDataFlow = vm.pagingDataFlow,
-                    state = state,
+
+                var visibleSlugs by rememberSaveable { mutableStateOf(emptySet<String>()) }
+
+                BlogListDetailScaffold(
+                    onNavigateToDetailFullScreen = { slug ->
+                        navController.navigate(Routes.blogDetail(slug))
+                    },
+                    visibleSlugs = visibleSlugs,
                     mode = FeedMode.Home,
-                    onAction = feedAction
+                    listPane = { onBlogClicked ->
+                        BlogFeedScreen(
+                            pagingDataFlow = vm.pagingDataFlow,
+                            state = state,
+                            mode = FeedMode.Home,
+                            onAction = { action ->
+                                when (action) {
+                                    is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
+                                    else -> feedAction(action)
+                                }
+                            },
+                            onVisibleSlugsChanged = { visibleSlugs = it }
+                        )
+                    },
+                    detailPane = { slug, onClose ->
+                        BlogDetailRoute(
+                            slug = slug,
+                            viewModel = vm,
+                            onNavigateBack = onClose,
+                            onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
+                            onDeleted = onClose,
+                            onAuthorClick = { username ->
+                                navController.navigate(Routes.authorProfile(username))
+                            }
+                        )
+                    }
                 )
             }
             composable(Routes.BLOG_SEARCH) { entry ->
@@ -58,15 +98,50 @@ fun NavGraphBuilder.mainGraph(
                 }
                 val vm: BlogViewModel = hiltViewModel(parentEntry)
                 val state by vm.viewState.collectAsStateWithLifecycle()
+                val accountVm: AccountViewModel = hiltViewModel()
+                val accountState by accountVm.viewState.collectAsStateWithLifecycle()
+                LaunchedEffect(accountState.accountProperties?.username) {
+                    accountState.accountProperties?.username?.let { vm.setCurrentUsername(it) }
+                }
 
                 val feedAction = remember(vm, navController) {
                     handleBlogFeedAction(vm, navController)
                 }
-                BlogFeedScreen(
-                    pagingDataFlow = vm.pagingDataFlow,
-                    state = state,
+
+                var visibleSlugs by rememberSaveable { mutableStateOf(emptySet<String>()) }
+
+                BlogListDetailScaffold(
+                    onNavigateToDetailFullScreen = { slug ->
+                        navController.navigate(Routes.blogDetail(slug))
+                    },
+                    visibleSlugs = visibleSlugs,
                     mode = FeedMode.Search,
-                    onAction = feedAction
+                    listPane = { onBlogClicked ->
+                        BlogFeedScreen(
+                            pagingDataFlow = vm.pagingDataFlow,
+                            state = state,
+                            mode = FeedMode.Search,
+                            onAction = { action ->
+                                when (action) {
+                                    is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
+                                    else -> feedAction(action)
+                                }
+                            },
+                            onVisibleSlugsChanged = { visibleSlugs = it }
+                        )
+                    },
+                    detailPane = { slug, onClose ->
+                        BlogDetailRoute(
+                            slug = slug,
+                            viewModel = vm,
+                            onNavigateBack = onClose,
+                            onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
+                            onDeleted = onClose,
+                            onAuthorClick = { username ->
+                                navController.navigate(Routes.authorProfile(username))
+                            }
+                        )
+                    }
                 )
             }
             composable(
