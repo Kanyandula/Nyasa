@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
 @Composable
@@ -33,7 +32,7 @@ internal fun DetailPanePlaceholder(modifier: Modifier = Modifier) {
                 imageVector = Icons.Outlined.MenuBook,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(NyasaTheme.spacing.xxl)
             )
             Text(
                 text = "Select a post to read",
