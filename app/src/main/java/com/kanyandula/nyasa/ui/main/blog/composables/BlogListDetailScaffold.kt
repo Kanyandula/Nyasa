@@ -8,6 +8,7 @@ import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneScaffold
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import com.kanyandula.nyasa.ui.theme.window.LocalWindow
 
@@ -20,7 +21,6 @@ import com.kanyandula.nyasa.ui.theme.window.LocalWindow
  * `ThreePaneScaffoldNavigator`.
  */
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-@Suppress("UnusedParameter") // visibleSlugs + mode wired in Task 6 (search detail-clear)
 @Composable
 internal fun BlogListDetailScaffold(
     onNavigateToDetailFullScreen: (slug: String) -> Unit,
@@ -40,6 +40,17 @@ internal fun BlogListDetailScaffold(
         scaffoldDirective = calculatePaneScaffoldDirective(currentWindowAdaptiveInfo())
     )
     val onClose: () -> Unit = { navigator.navigateBack() }
+
+    // Q4 D rule: when the user changes the search query and the selected post drops out of
+    // the visible result set, collapse the detail pane. Operates on the scaffold navigator
+    // only — never touches NavController. Inactive in Home mode (paging churn from scrolling
+    // shouldn't clear the detail pane just because the selected post left the visible window).
+    val selected = navigator.currentDestination?.content as? String
+    LaunchedEffect(visibleSlugs, selected, mode) {
+        if (mode == FeedMode.Search && selected != null && selected !in visibleSlugs) {
+            navigator.navigateBack()
+        }
+    }
 
     NavigableListDetailPaneScaffold(
         navigator = navigator,
