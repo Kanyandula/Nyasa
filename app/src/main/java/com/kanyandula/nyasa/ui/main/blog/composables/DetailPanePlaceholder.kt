@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +29,7 @@ internal fun DetailPanePlaceholder(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.m)
         ) {
             Icon(
-                imageVector = Icons.Outlined.MenuBook,
+                imageVector = Icons.AutoMirrored.Outlined.MenuBook,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(NyasaTheme.spacing.xxl)
