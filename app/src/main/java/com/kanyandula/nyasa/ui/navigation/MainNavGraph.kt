@@ -4,6 +4,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,6 +34,11 @@ import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.handleBlogFeedAction
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 
+private val StringSetSaver: Saver<Set<String>, Any> = listSaver(
+    save = { it.toList() },
+    restore = { (it as List<*>).filterIsInstance<String>().toSet() }
+)
+
 @Suppress("LongMethod")
 fun NavGraphBuilder.mainGraph(
     navController: NavController,
@@ -56,7 +63,9 @@ fun NavGraphBuilder.mainGraph(
                     handleBlogFeedAction(vm, navController)
                 }
 
-                var visibleSlugs by rememberSaveable { mutableStateOf(emptySet<String>()) }
+                var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
+                    mutableStateOf(emptySet<String>())
+                }
 
                 BlogListDetailScaffold(
                     onNavigateToDetailFullScreen = { slug ->
@@ -108,7 +117,9 @@ fun NavGraphBuilder.mainGraph(
                     handleBlogFeedAction(vm, navController)
                 }
 
-                var visibleSlugs by rememberSaveable { mutableStateOf(emptySet<String>()) }
+                var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
+                    mutableStateOf(emptySet<String>())
+                }
 
                 BlogListDetailScaffold(
                     onNavigateToDetailFullScreen = { slug ->

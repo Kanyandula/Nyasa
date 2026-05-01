@@ -10,6 +10,7 @@ import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaf
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import com.kanyandula.nyasa.ui.theme.window.LocalWindow
 
 /**
@@ -36,8 +37,12 @@ internal fun BlogListDetailScaffold(
         return
     }
 
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val scaffoldDirective = remember(adaptiveInfo) {
+        calculatePaneScaffoldDirective(adaptiveInfo)
+    }
     val navigator = rememberListDetailPaneScaffoldNavigator<Any>(
-        scaffoldDirective = calculatePaneScaffoldDirective(currentWindowAdaptiveInfo())
+        scaffoldDirective = scaffoldDirective
     )
     val onClose: () -> Unit = { navigator.navigateBack() }
 
