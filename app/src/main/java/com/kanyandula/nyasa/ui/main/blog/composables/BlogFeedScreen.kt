@@ -82,10 +82,16 @@ fun BlogFeedScreen(
     pagingDataFlow: Flow<PagingData<BlogPost>>,
     state: BlogListUiState,
     onAction: (BlogFeedAction) -> Unit,
-    mode: FeedMode = FeedMode.Home
+    mode: FeedMode = FeedMode.Home,
+    onVisibleSlugsChanged: (Set<String>) -> Unit = {}
 ) {
     TrackScreen("BlogFeed")
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
+
+    val visibleSlugs = pagingItems.itemSnapshotList.items.map { it.slug }.toSet()
+    LaunchedEffect(visibleSlugs) {
+        onVisibleSlugsChanged(visibleSlugs)
+    }
     var query by rememberSaveable { mutableStateOf(state.searchQuery) }
     var showFilterSheet by rememberSaveable { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
