@@ -1,5 +1,6 @@
 package com.kanyandula.nyasa.ui.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,82 @@ private val StringSetSaver: Saver<Set<String>, Any> = listSaver(
     restore = { (it as List<*>).filterIsInstance<String>().toSet() }
 )
 
+/**
+ * Binds the signed-in account's username into the supplied [BlogViewModel] so the
+ * downstream BlogDetail / Feed flows can determine bookmark-as-author state. Shared by
+ * every route in `BLOG_GRAPH` to avoid drifting copies.
+ */
+@Composable
+private fun BindCurrentUsernameToBlogVm(vm: BlogViewModel) {
+    val accountVm: AccountViewModel = hiltViewModel()
+    val accountState by accountVm.viewState.collectAsStateWithLifecycle()
+    LaunchedEffect(accountState.accountProperties?.username) {
+        accountState.accountProperties?.username?.let { vm.setCurrentUsername(it) }
+    }
+}
+
+/**
+ * Registers a feed-style route (Home or Search) wrapped in [BlogListDetailScaffold]. On
+ * Small windows the wrapper passes clicks through to a full-screen `BLOG_DETAIL`; on
+ * Medium it owns selection inside the scaffold's pane navigator.
+ */
+private fun NavGraphBuilder.blogFeedRoute(
+    route: String,
+    mode: FeedMode,
+    navController: NavController
+) {
+    composable(route) { entry ->
+        val parentEntry = remember(entry) {
+            navController.getBackStackEntry(Routes.BLOG_GRAPH)
+        }
+        val vm: BlogViewModel = hiltViewModel(parentEntry)
+        val state by vm.viewState.collectAsStateWithLifecycle()
+        BindCurrentUsernameToBlogVm(vm)
+
+        val feedAction = remember(vm, navController) {
+            handleBlogFeedAction(vm, navController)
+        }
+
+        var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
+            mutableStateOf(emptySet<String>())
+        }
+
+        BlogListDetailScaffold(
+            onNavigateToDetailFullScreen = { slug ->
+                navController.navigate(Routes.blogDetail(slug))
+            },
+            visibleSlugs = visibleSlugs,
+            mode = mode,
+            listPane = { onBlogClicked ->
+                BlogFeedScreen(
+                    pagingDataFlow = vm.pagingDataFlow,
+                    state = state,
+                    mode = mode,
+                    onAction = { action ->
+                        when (action) {
+                            is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
+                            else -> feedAction(action)
+                        }
+                    },
+                    onVisibleSlugsChanged = { visibleSlugs = it }
+                )
+            },
+            detailPane = { slug, onClose ->
+                BlogDetailRoute(
+                    slug = slug,
+                    viewModel = vm,
+                    onNavigateBack = onClose,
+                    onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
+                    onDeleted = onClose,
+                    onAuthorClick = { username ->
+                        navController.navigate(Routes.authorProfile(username))
+                    }
+                )
+            }
+        )
+    }
+}
+
 @Suppress("LongMethod")
 fun NavGraphBuilder.mainGraph(
     navController: NavController,
@@ -47,114 +124,8 @@ fun NavGraphBuilder.mainGraph(
 ) {
     navigation(startDestination = Routes.BLOG_GRAPH, route = Routes.MAIN_GRAPH) {
         navigation(startDestination = Routes.BLOG_FEED, route = Routes.BLOG_GRAPH) {
-            composable(Routes.BLOG_FEED) { entry ->
-                val parentEntry = remember(entry) {
-                    navController.getBackStackEntry(Routes.BLOG_GRAPH)
-                }
-                val vm: BlogViewModel = hiltViewModel(parentEntry)
-                val state by vm.viewState.collectAsStateWithLifecycle()
-                val accountVm: AccountViewModel = hiltViewModel()
-                val accountState by accountVm.viewState.collectAsStateWithLifecycle()
-                LaunchedEffect(accountState.accountProperties?.username) {
-                    accountState.accountProperties?.username?.let { vm.setCurrentUsername(it) }
-                }
-
-                val feedAction = remember(vm, navController) {
-                    handleBlogFeedAction(vm, navController)
-                }
-
-                var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
-                    mutableStateOf(emptySet<String>())
-                }
-
-                BlogListDetailScaffold(
-                    onNavigateToDetailFullScreen = { slug ->
-                        navController.navigate(Routes.blogDetail(slug))
-                    },
-                    visibleSlugs = visibleSlugs,
-                    mode = FeedMode.Home,
-                    listPane = { onBlogClicked ->
-                        BlogFeedScreen(
-                            pagingDataFlow = vm.pagingDataFlow,
-                            state = state,
-                            mode = FeedMode.Home,
-                            onAction = { action ->
-                                when (action) {
-                                    is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
-                                    else -> feedAction(action)
-                                }
-                            },
-                            onVisibleSlugsChanged = { visibleSlugs = it }
-                        )
-                    },
-                    detailPane = { slug, onClose ->
-                        BlogDetailRoute(
-                            slug = slug,
-                            viewModel = vm,
-                            onNavigateBack = onClose,
-                            onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
-                            onDeleted = onClose,
-                            onAuthorClick = { username ->
-                                navController.navigate(Routes.authorProfile(username))
-                            }
-                        )
-                    }
-                )
-            }
-            composable(Routes.BLOG_SEARCH) { entry ->
-                val parentEntry = remember(entry) {
-                    navController.getBackStackEntry(Routes.BLOG_GRAPH)
-                }
-                val vm: BlogViewModel = hiltViewModel(parentEntry)
-                val state by vm.viewState.collectAsStateWithLifecycle()
-                val accountVm: AccountViewModel = hiltViewModel()
-                val accountState by accountVm.viewState.collectAsStateWithLifecycle()
-                LaunchedEffect(accountState.accountProperties?.username) {
-                    accountState.accountProperties?.username?.let { vm.setCurrentUsername(it) }
-                }
-
-                val feedAction = remember(vm, navController) {
-                    handleBlogFeedAction(vm, navController)
-                }
-
-                var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
-                    mutableStateOf(emptySet<String>())
-                }
-
-                BlogListDetailScaffold(
-                    onNavigateToDetailFullScreen = { slug ->
-                        navController.navigate(Routes.blogDetail(slug))
-                    },
-                    visibleSlugs = visibleSlugs,
-                    mode = FeedMode.Search,
-                    listPane = { onBlogClicked ->
-                        BlogFeedScreen(
-                            pagingDataFlow = vm.pagingDataFlow,
-                            state = state,
-                            mode = FeedMode.Search,
-                            onAction = { action ->
-                                when (action) {
-                                    is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
-                                    else -> feedAction(action)
-                                }
-                            },
-                            onVisibleSlugsChanged = { visibleSlugs = it }
-                        )
-                    },
-                    detailPane = { slug, onClose ->
-                        BlogDetailRoute(
-                            slug = slug,
-                            viewModel = vm,
-                            onNavigateBack = onClose,
-                            onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
-                            onDeleted = onClose,
-                            onAuthorClick = { username ->
-                                navController.navigate(Routes.authorProfile(username))
-                            }
-                        )
-                    }
-                )
-            }
+            blogFeedRoute(Routes.BLOG_FEED, FeedMode.Home, navController)
+            blogFeedRoute(Routes.BLOG_SEARCH, FeedMode.Search, navController)
             composable(
                 route = Routes.BLOG_DETAIL,
                 arguments = listOf(navArgument("slug") { type = NavType.StringType })
@@ -164,13 +135,7 @@ fun NavGraphBuilder.mainGraph(
                     navController.getBackStackEntry(Routes.BLOG_GRAPH)
                 }
                 val vm: BlogViewModel = hiltViewModel(parentEntry)
-                val accountVm: AccountViewModel = hiltViewModel()
-                val accountState by accountVm.viewState.collectAsStateWithLifecycle()
-                LaunchedEffect(accountState.accountProperties?.username) {
-                    accountState.accountProperties?.username?.let {
-                        vm.setCurrentUsername(it)
-                    }
-                }
+                BindCurrentUsernameToBlogVm(vm)
                 BlogDetailRoute(
                     slug = slug,
                     viewModel = vm,
