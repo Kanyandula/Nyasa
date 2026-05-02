@@ -21,6 +21,8 @@ import coil3.compose.AsyncImage
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
+private val THUMBNAIL_SIZE = 80.dp
+
 @Composable
 internal fun UpNextCard(
     blogPost: BlogPost,
@@ -40,7 +42,7 @@ internal fun UpNextCard(
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(80.dp)
+                .size(THUMBNAIL_SIZE)
                 .clip(RoundedCornerShape(NyasaTheme.spacing.s))
         )
         Column(
