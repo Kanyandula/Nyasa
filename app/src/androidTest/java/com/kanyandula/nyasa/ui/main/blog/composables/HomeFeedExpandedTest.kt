@@ -53,6 +53,7 @@ class HomeFeedExpandedTest {
 
         composeRule.onNodeWithText("Post 0 Title").assertIsDisplayed()
         composeRule.onNodeWithText("Post 1 Title").assertIsDisplayed()
+        composeRule.onNodeWithText("Post 3 Title").assertIsDisplayed()
         composeRule.onNodeWithText("Post 4 Title").assertIsDisplayed()
         composeRule.onNodeWithText("Post 5 Title").assertIsDisplayed()
         composeRule.onNodeWithText("Post 9 Title").assertIsDisplayed()
