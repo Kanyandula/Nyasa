@@ -30,6 +30,9 @@ import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedAction
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogFeedScreen
 import com.kanyandula.nyasa.ui.main.blog.composables.BlogListDetailScaffold
 import com.kanyandula.nyasa.ui.main.blog.composables.FeedMode
+import com.kanyandula.nyasa.ui.main.blog.composables.HomeFeedExpanded
+import com.kanyandula.nyasa.ui.main.blog.composables.SearchFeedExpanded
+import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.handleBlogFeedAction
@@ -54,6 +57,95 @@ private fun BindCurrentUsernameToBlogVm(vm: BlogViewModel) {
     }
 }
 
+@Composable
+private fun ExpandedFeedPane(
+    mode: FeedMode,
+    vm: BlogViewModel,
+    state: BlogListUiState,
+    feedAction: (BlogFeedAction) -> Unit,
+    onBlogClicked: (String) -> Unit,
+    onVisibleSlugsChanged: (Set<String>) -> Unit
+) {
+    when (mode) {
+        FeedMode.Home -> HomeFeedExpanded(
+            pagingDataFlow = vm.pagingDataFlow,
+            state = state,
+            onAction = { action ->
+                when (action) {
+                    is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
+                    else -> feedAction(action)
+                }
+            },
+            onBlogClicked = onBlogClicked,
+            onVisibleSlugsChanged = onVisibleSlugsChanged
+        )
+        FeedMode.Search -> SearchFeedExpanded(
+            pagingDataFlow = vm.pagingDataFlow,
+            state = state,
+            onAction = { action ->
+                when (action) {
+                    is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
+                    else -> feedAction(action)
+                }
+            },
+            onBlogClicked = onBlogClicked,
+            onVisibleSlugsChanged = onVisibleSlugsChanged
+        )
+    }
+}
+
+@Suppress("LongParameterList")
+@Composable
+private fun FeedScaffold(
+    mode: FeedMode,
+    vm: BlogViewModel,
+    state: BlogListUiState,
+    feedAction: (BlogFeedAction) -> Unit,
+    navController: NavController,
+    visibleSlugs: Set<String>,
+    onVisibleSlugsChanged: (Set<String>) -> Unit
+) {
+    BlogListDetailScaffold(
+        onNavigateToDetailFullScreen = { slug -> navController.navigate(Routes.blogDetail(slug)) },
+        visibleSlugs = visibleSlugs,
+        mode = mode,
+        listPane = { onBlogClicked ->
+            BlogFeedScreen(
+                pagingDataFlow = vm.pagingDataFlow,
+                state = state,
+                mode = mode,
+                onAction = { action ->
+                    when (action) {
+                        is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
+                        else -> feedAction(action)
+                    }
+                },
+                onVisibleSlugsChanged = onVisibleSlugsChanged
+            )
+        },
+        detailPane = { slug, onClose ->
+            BlogDetailRoute(
+                slug = slug,
+                viewModel = vm,
+                onNavigateBack = onClose,
+                onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
+                onDeleted = onClose,
+                onAuthorClick = { username -> navController.navigate(Routes.authorProfile(username)) }
+            )
+        },
+        expandedListPane = { onBlogClicked ->
+            ExpandedFeedPane(
+                mode = mode,
+                vm = vm,
+                state = state,
+                feedAction = feedAction,
+                onBlogClicked = onBlogClicked,
+                onVisibleSlugsChanged = onVisibleSlugsChanged
+            )
+        }
+    )
+}
+
 /**
  * Registers a feed-style route (Home or Search) wrapped in [BlogListDetailScaffold]. On
  * Small windows the wrapper passes clicks through to a full-screen `BLOG_DETAIL`; on
@@ -72,46 +164,20 @@ private fun NavGraphBuilder.blogFeedRoute(
         val state by vm.viewState.collectAsStateWithLifecycle()
         BindCurrentUsernameToBlogVm(vm)
 
-        val feedAction = remember(vm, navController) {
-            handleBlogFeedAction(vm, navController)
-        }
+        val feedAction = remember(vm, navController) { handleBlogFeedAction(vm, navController) }
 
         var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
             mutableStateOf(emptySet<String>())
         }
 
-        BlogListDetailScaffold(
-            onNavigateToDetailFullScreen = { slug ->
-                navController.navigate(Routes.blogDetail(slug))
-            },
-            visibleSlugs = visibleSlugs,
+        FeedScaffold(
             mode = mode,
-            listPane = { onBlogClicked ->
-                BlogFeedScreen(
-                    pagingDataFlow = vm.pagingDataFlow,
-                    state = state,
-                    mode = mode,
-                    onAction = { action ->
-                        when (action) {
-                            is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
-                            else -> feedAction(action)
-                        }
-                    },
-                    onVisibleSlugsChanged = { visibleSlugs = it }
-                )
-            },
-            detailPane = { slug, onClose ->
-                BlogDetailRoute(
-                    slug = slug,
-                    viewModel = vm,
-                    onNavigateBack = onClose,
-                    onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
-                    onDeleted = onClose,
-                    onAuthorClick = { username ->
-                        navController.navigate(Routes.authorProfile(username))
-                    }
-                )
-            }
+            vm = vm,
+            state = state,
+            feedAction = feedAction,
+            navController = navController,
+            visibleSlugs = visibleSlugs,
+            onVisibleSlugsChanged = { visibleSlugs = it }
         )
     }
 }
