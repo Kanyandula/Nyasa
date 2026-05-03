@@ -96,7 +96,7 @@ private fun ExpandedFeedPane(
 
 @Suppress("LongParameterList")
 @Composable
-private fun FeedScaffold(
+private fun BlogFeedScaffold(
     mode: FeedMode,
     vm: BlogViewModel,
     state: BlogListUiState,
@@ -170,7 +170,7 @@ private fun NavGraphBuilder.blogFeedRoute(
             mutableStateOf(emptySet<String>())
         }
 
-        FeedScaffold(
+        BlogFeedScaffold(
             mode = mode,
             vm = vm,
             state = state,
