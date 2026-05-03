@@ -1,5 +1,7 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
+import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -10,6 +12,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.test.core.app.ApplicationProvider
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.window.LocalWindow
 import com.kanyandula.nyasa.ui.theme.window.WindowClassifier
@@ -91,8 +94,8 @@ class BlogListDetailScaffoldTest {
 
     @Test
     fun expandedWidth_noSelection_rendersExpandedListPane() {
-        val expandedConfig = android.content.res.Configuration(
-            androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>().resources.configuration
+        val expandedConfig = Configuration(
+            ApplicationProvider.getApplicationContext<Context>().resources.configuration
         ).apply {
             screenWidthDp = 1280
             screenHeightDp = 800

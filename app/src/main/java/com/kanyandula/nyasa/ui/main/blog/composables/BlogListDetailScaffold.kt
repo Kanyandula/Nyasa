@@ -51,6 +51,10 @@ internal fun BlogListDetailScaffold(
     val isExpanded = adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
     val hasSelection = navigator.currentDestination?.content != null
 
+    // Expanded-class bypass: when the caller supplies a full-width Phase 3 layout for the
+    // no-selection state, render it directly instead of mounting NavigableListDetailPaneScaffold.
+    // The navigator is already constructed above so its Saver state survives the structural
+    // swap when the user taps a post and the scaffold mounts on the next recomposition.
     if (isExpanded && !hasSelection && expandedListPane != null) {
         expandedListPane { slug ->
             navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, slug)
