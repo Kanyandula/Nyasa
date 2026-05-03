@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.kanyandula.nyasa.ui.theme.window.LocalWindow
 
 /**
@@ -28,7 +29,8 @@ internal fun BlogListDetailScaffold(
     visibleSlugs: Set<String>,
     mode: FeedMode,
     listPane: @Composable (onBlogClicked: (String) -> Unit) -> Unit,
-    detailPane: @Composable (slug: String, onClose: () -> Unit) -> Unit
+    detailPane: @Composable (slug: String, onClose: () -> Unit) -> Unit,
+    expandedListPane: (@Composable (onBlogClicked: (String) -> Unit) -> Unit)? = null
 ) {
     val isMedium by LocalWindow.current.isMediumWindowAsState()
 
@@ -45,6 +47,16 @@ internal fun BlogListDetailScaffold(
         scaffoldDirective = scaffoldDirective
     )
     val onClose: () -> Unit = { navigator.navigateBack() }
+
+    val isExpanded = adaptiveInfo.windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
+    val hasSelection = navigator.currentDestination?.content != null
+
+    if (isExpanded && !hasSelection && expandedListPane != null) {
+        expandedListPane { slug ->
+            navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, slug)
+        }
+        return
+    }
 
     // Q4 D rule: when the user changes the search query and the selected post drops out of
     // the visible result set, collapse the detail pane. Operates on the scaffold navigator
