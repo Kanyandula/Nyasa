@@ -229,7 +229,7 @@ private fun FeedPagingList(
 }
 
 @Composable
-private fun FeedItem(
+internal fun FeedItem(
     blogPost: BlogPost,
     showEditorPick: Boolean,
     onAction: (BlogFeedAction) -> Unit
@@ -326,7 +326,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.feedAppendState(
 }
 
 @Composable
-private fun EditorPickCard(
+internal fun EditorPickCard(
     blogPost: BlogPost,
     onClick: () -> Unit
 ) {

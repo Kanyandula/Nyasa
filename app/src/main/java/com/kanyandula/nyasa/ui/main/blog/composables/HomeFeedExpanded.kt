@@ -63,7 +63,7 @@ internal fun HomeFeedExpanded(
         ) {
             hero?.let { post ->
                 item(key = "hero-${post.pk}") {
-                    HeroCard(
+                    EditorPickCard(
                         blogPost = post,
                         onClick = { onBlogClicked(post.slug) }
                     )
@@ -151,23 +151,4 @@ private fun GridRow(
             )
         }
     }
-}
-
-@Composable
-private fun HeroCard(
-    blogPost: BlogPost,
-    onClick: () -> Unit
-) {
-    NyasaBlogCard(
-        title = blogPost.title,
-        authorName = blogPost.username,
-        imageUrl = blogPost.image,
-        readTime = BlogUtils.formatReadingTime(blogPost.reading_time),
-        category = blogPost.category,
-        excerpt = BlogUtils.stripHtml(blogPost.body).take(120).takeIf { it.isNotBlank() },
-        likeCount = blogPost.like_count,
-        commentCount = blogPost.comment_count,
-        onClick = onClick,
-        authorAvatarUrl = blogPost.author_avatar
-    )
 }
