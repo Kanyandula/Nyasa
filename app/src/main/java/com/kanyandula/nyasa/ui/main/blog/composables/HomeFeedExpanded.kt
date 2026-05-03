@@ -1,6 +1,8 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -10,14 +12,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -30,7 +41,7 @@ import kotlinx.coroutines.flow.Flow
 
 private val RAIL_WIDTH = 320.dp
 
-@Suppress("UnusedParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeFeedExpanded(
     pagingDataFlow: Flow<PagingData<BlogPost>>,
@@ -46,6 +57,76 @@ internal fun HomeFeedExpanded(
         onVisibleSlugsChanged(visibleSlugs)
     }
 
+    Scaffold(
+        topBar = {
+            HomeTopBar(onFilterClick = { /* filter sheet is compact-only; no-op on expanded */ })
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onAction(BlogFeedAction.CreateClicked) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = "Create post"
+                )
+            }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            if (state.categories.isNotEmpty()) {
+                CategoryChipsRow(
+                    categories = state.categories,
+                    selectedCategory = state.selectedCategory,
+                    onCategorySelected = { onAction(BlogFeedAction.CategorySelected(it)) }
+                )
+            }
+
+            val itemCount = pagingItems.itemCount
+            val isRefreshing = pagingItems.loadState.refresh is LoadState.Loading
+            val isEmpty = itemCount == 0 && pagingItems.loadState.refresh is LoadState.NotLoading
+
+            when {
+                isRefreshing && itemCount == 0 -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                isEmpty -> {
+                    FeedEmptyState(
+                        query = state.searchQuery,
+                        onQueryChange = { onAction(BlogFeedAction.Search(it)) },
+                        onAction = onAction
+                    )
+                }
+
+                else -> {
+                    HeroAndGrid(
+                        pagingItems = pagingItems,
+                        onBlogClicked = onBlogClicked,
+                        onAction = onAction
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroAndGrid(
+    pagingItems: LazyPagingItems<BlogPost>,
+    onBlogClicked: (String) -> Unit,
+    onAction: (BlogFeedAction) -> Unit
+) {
     val itemCount = pagingItems.itemCount
     val hero: BlogPost? = if (itemCount > 0) pagingItems[0] else null
     val gridItems: List<BlogPost> = (1 until minOf(5, itemCount)).mapNotNull { pagingItems[it] }

@@ -260,7 +260,7 @@ internal fun FeedItem(
 }
 
 @Composable
-private fun FeedEmptyState(
+internal fun FeedEmptyState(
     query: String,
     onQueryChange: (String) -> Unit,
     onAction: (BlogFeedAction) -> Unit
@@ -402,7 +402,7 @@ internal fun EditorPickCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeTopBar(onFilterClick: () -> Unit) {
+internal fun HomeTopBar(onFilterClick: () -> Unit) {
     NyasaTopBar(
         title = "NyasaBlog",
         navigationIcon = null,
@@ -419,7 +419,7 @@ private fun HomeTopBar(onFilterClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SearchTopBar(
+internal fun SearchTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
@@ -450,7 +450,7 @@ private fun SearchTopBar(
 }
 
 @Composable
-private fun CategoryChipsRow(
+internal fun CategoryChipsRow(
     categories: List<Category>,
     selectedCategory: String?,
     onCategorySelected: (String?) -> Unit
