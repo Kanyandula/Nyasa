@@ -1,14 +1,18 @@
 package com.kanyandula.nyasa.ui.main.blog.composables
 
+import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.test.core.app.ApplicationProvider
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.window.LocalWindow
 import com.kanyandula.nyasa.ui.theme.window.WindowClassifier
@@ -86,5 +90,38 @@ class BlogListDetailScaffoldTest {
 
         composeRule.onNodeWithText("Select a post to read").assertIsDisplayed()
         composeRule.onNodeWithText("DETAIL[post-1]").assertDoesNotExist()
+    }
+
+    @Test
+    fun expandedWidth_noSelection_rendersExpandedListPane() {
+        val expandedConfig = Configuration(
+            ApplicationProvider.getApplicationContext<Context>().resources.configuration
+        ).apply {
+            screenWidthDp = 1280
+            screenHeightDp = 800
+            smallestScreenWidthDp = 1280
+        }
+
+        composeRule.setContent {
+            NyasaTheme {
+                CompositionLocalProvider(
+                    LocalConfiguration provides expandedConfig,
+                    LocalWindow provides FakeWindow(WindowSizeClass.Medium)
+                ) {
+                    BlogListDetailScaffold(
+                        onNavigateToDetailFullScreen = {},
+                        visibleSlugs = emptySet(),
+                        mode = FeedMode.Home,
+                        listPane = { Text("LIST_PANE_MARKER") },
+                        detailPane = { _, _ -> Text("DETAIL_PANE_MARKER") },
+                        expandedListPane = { Text("EXPANDED_MARKER") }
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("EXPANDED_MARKER").assertIsDisplayed()
+        composeRule.onNodeWithText("Select a post to read").assertDoesNotExist()
+        composeRule.onNodeWithText("LIST_PANE_MARKER").assertDoesNotExist()
     }
 }
