@@ -17,6 +17,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.kanyandula.nyasa.ui.Features
 import com.kanyandula.nyasa.ui.main.AccountProfileRoute
 import com.kanyandula.nyasa.ui.main.AuthorProfileRoute
 import com.kanyandula.nyasa.ui.main.BlogDetailRoute
@@ -133,15 +134,19 @@ private fun BlogFeedScaffold(
                 onAuthorClick = { username -> navController.navigate(Routes.authorProfile(username)) }
             )
         },
-        expandedListPane = { onBlogClicked ->
-            ExpandedFeedPane(
-                mode = mode,
-                vm = vm,
-                state = state,
-                feedAction = feedAction,
-                onBlogClicked = onBlogClicked,
-                onVisibleSlugsChanged = onVisibleSlugsChanged
-            )
+        expandedListPane = if (Features.ADAPTIVE_LAYOUT_ENABLED) {
+            { onBlogClicked ->
+                ExpandedFeedPane(
+                    mode = mode,
+                    vm = vm,
+                    state = state,
+                    feedAction = feedAction,
+                    onBlogClicked = onBlogClicked,
+                    onVisibleSlugsChanged = onVisibleSlugsChanged
+                )
+            }
+        } else {
+            null
         }
     )
 }
