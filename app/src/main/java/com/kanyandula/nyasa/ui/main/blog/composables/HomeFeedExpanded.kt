@@ -127,10 +127,10 @@ private fun HeroAndGrid(
     onBlogClicked: (String) -> Unit,
     onAction: (BlogFeedAction) -> Unit
 ) {
-    val itemCount = pagingItems.itemCount
-    val hero: BlogPost? = if (itemCount > 0) pagingItems[0] else null
-    val gridItems: List<BlogPost> = (1 until minOf(5, itemCount)).mapNotNull { pagingItems[it] }
-    val railItems: List<BlogPost> = (5 until minOf(10, itemCount)).mapNotNull { pagingItems[it] }
+    val items = pagingItems.itemSnapshotList.items
+    val hero: BlogPost? = items.getOrNull(0)
+    val gridItems: List<BlogPost> = items.drop(1).take(4)
+    val railItems: List<BlogPost> = items.drop(5).take(5)
 
     Row(
         modifier = Modifier.fillMaxSize(),
