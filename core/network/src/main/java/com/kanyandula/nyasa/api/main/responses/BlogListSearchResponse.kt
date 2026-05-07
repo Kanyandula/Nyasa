@@ -4,8 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Class for modeling the response when querying https://open-api.xyz/
-
+ * DRF paginated list response from the `blog/list` endpoint.
+ * `next` is the next-page URL or null on the last page.
  */
 @Serializable
 class BlogListSearchResponse(
@@ -13,11 +13,14 @@ class BlogListSearchResponse(
     @SerialName("results")
     var results: List<BlogSearchResponse> = emptyList(),
 
+    @SerialName("next")
+    var next: String? = null,
+
     @SerialName("detail")
     var detail: String = ""
 ) {
 
     override fun toString(): String {
-        return "BlogListSearchResponse(results=$results, detail='$detail')"
+        return "BlogListSearchResponse(results=$results, next=$next, detail='$detail')"
     }
 }

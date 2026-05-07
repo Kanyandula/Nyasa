@@ -11,7 +11,6 @@ import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.models.BlogRemoteKey
 import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.session.ConnectivityObserver
-import com.kanyandula.nyasa.util.Constants.PAGINATION_PAGE_SIZE
 import com.kanyandula.nyasa.util.isPaginationDone
 import java.util.concurrent.TimeUnit
 
@@ -101,7 +100,9 @@ class BlogRemoteMediator(
         val body = response.body()
             ?: return MediatorResult.Error(Exception("Empty response body"))
         val blogPosts = body.results.map { it.toBlogPost() }
-        val endOfPagination = blogPosts.size < PAGINATION_PAGE_SIZE
+        // Trust DRF's `next` URL — comparing list size against a client-side
+        // page-size constant short-circuits when the server's PAGE_SIZE differs.
+        val endOfPagination = body.next.isNullOrBlank()
 
         database.withTransaction {
             if (loadType == LoadType.REFRESH) {
