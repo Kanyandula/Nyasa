@@ -48,6 +48,7 @@ internal fun HomeFeedExpanded(
     state: BlogListUiState,
     onAction: (BlogFeedAction) -> Unit,
     onBlogClicked: (String) -> Unit,
+    featuredHero: BlogPost?,
     onVisibleSlugsChanged: (Set<String>) -> Unit = {}
 ) {
     val pagingItems: LazyPagingItems<BlogPost> = pagingDataFlow.collectAsLazyPagingItems()
@@ -112,6 +113,7 @@ internal fun HomeFeedExpanded(
                 else -> {
                     HeroAndGrid(
                         pagingItems = pagingItems,
+                        featuredHero = featuredHero,
                         onBlogClicked = onBlogClicked,
                         onAction = onAction
                     )
@@ -124,13 +126,13 @@ internal fun HomeFeedExpanded(
 @Composable
 private fun HeroAndGrid(
     pagingItems: LazyPagingItems<BlogPost>,
+    featuredHero: BlogPost?,
     onBlogClicked: (String) -> Unit,
     onAction: (BlogFeedAction) -> Unit
 ) {
     val items = pagingItems.itemSnapshotList.items
-    val hero: BlogPost? = items.getOrNull(0)
-    val gridItems: List<BlogPost> = items.drop(1).take(4)
-    val railItems: List<BlogPost> = items.drop(5).take(5)
+    val gridItems: List<BlogPost> = items.take(4)
+    val railItems: List<BlogPost> = items.drop(4).take(5)
 
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -143,7 +145,7 @@ private fun HeroAndGrid(
             contentPadding = PaddingValues(NyasaTheme.spacing.m),
             verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.l)
         ) {
-            hero?.let { post ->
+            featuredHero?.let { post ->
                 item(key = "hero-${post.pk}") {
                     EditorPickCard(
                         blogPost = post,

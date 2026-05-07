@@ -123,7 +123,6 @@ internal fun SearchFeedExpanded(
                         items(items, key = { it.pk }) { post ->
                             FeedItem(
                                 blogPost = post,
-                                showEditorPick = false,
                                 onAction = { action ->
                                     if (action is BlogFeedAction.BlogClicked) {
                                         onBlogClicked(action.slug)

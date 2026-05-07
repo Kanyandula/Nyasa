@@ -9,6 +9,7 @@ import androidx.paging.cachedIn
 import com.kanyandula.nyasa.domain.usecase.blog.BookmarkBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.DeleteBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.GetFeaturedBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.LikeBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
@@ -62,6 +63,7 @@ constructor(
     private val deleteBlogPostUseCase: DeleteBlogPostUseCase,
     private val blogUploadEnqueuer: BlogUploadEnqueuer,
     private val getBlogPostBySlugUseCase: GetBlogPostBySlugUseCase,
+    private val getFeaturedBlogPostUseCase: GetFeaturedBlogPostUseCase,
     private val likeBlogPostUseCase: LikeBlogPostUseCase,
     private val bookmarkBlogPostUseCase: BookmarkBlogPostUseCase,
     private val getCommentsUseCase: GetCommentsUseCase,
@@ -80,6 +82,10 @@ constructor(
 
     private val _updateBlogState = MutableStateFlow(UpdateBlogUiState())
     val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
+
+    private val _featuredHero = MutableStateFlow<BlogPost?>(null)
+    val featuredHero: StateFlow<BlogPost?> = _featuredHero.asStateFlow()
+    private var featuredHeroJob: Job? = null
 
     // Hoisted: rememberSaveable can't serialize RichTextState.
     val editBodyState: RichTextState = RichTextState()
@@ -136,6 +142,21 @@ constructor(
         savedStateHandle.get<String>(SAVED_SEARCH_QUERY)?.let { setQuery(it) }
         executeSearch()
         loadCategories()
+        loadFeaturedHero()
+    }
+
+    // Best-effort hero fetch: deliberately bypasses BaseViewModel.handleResource so a
+    // hero load failure doesn't surface a toast/error dialog or toggle global loading.
+    // Errors leave the prior featuredHero value in place (covered by VM test).
+    fun loadFeaturedHero() {
+        featuredHeroJob?.cancel()
+        featuredHeroJob = viewModelScope.launch {
+            getFeaturedBlogPostUseCase().collect { resource ->
+                if (resource is Resource.Success) {
+                    _featuredHero.value = resource.data
+                }
+            }
+        }
     }
 
     fun setCurrentUsername(username: String) {
@@ -261,7 +282,9 @@ constructor(
         if (prefetched != null && prefetched.slug == slug) {
             BlogDetailPrefetch.pendingPost = null
             displayBlogPost(prefetched)
-            analyticsTracker.trackEvent(AnalyticsEvent.ViewPost(slug))
+            analyticsTracker.trackEvent(
+                AnalyticsEvent.ViewPost(slug, isFeatured = prefetched.is_featured)
+            )
             return
         }
 
@@ -270,7 +293,9 @@ constructor(
             val blogPost = getBlogPostBySlugUseCase(slug)
             if (blogPost != null) {
                 displayBlogPost(blogPost)
-                analyticsTracker.trackEvent(AnalyticsEvent.ViewPost(slug))
+                analyticsTracker.trackEvent(
+                    AnalyticsEvent.ViewPost(slug, isFeatured = blogPost.is_featured)
+                )
             } else {
                 sendEvent(UiEvent.ShowErrorDialog(AppError.NotFound.toUserMessage()))
             }

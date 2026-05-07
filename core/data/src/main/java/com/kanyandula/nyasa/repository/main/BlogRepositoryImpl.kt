@@ -110,4 +110,12 @@ constructor(
         apiCall = { nyasaBlogApiMainService.getBookmarks() },
         onSuccess = { body -> Resource.Success(body.map { it.toBlogPost() }) }
     )
+
+    override fun getFeaturedBlogPost(): Flow<Resource<BlogPost?>> = networkApiFlow(
+        connectivityObserver = connectivityObserver,
+        apiCall = { nyasaBlogApiMainService.getFeaturedBlogPost() },
+        onSuccess = { body ->
+            Resource.Success(body.results.firstOrNull()?.toBlogPost())
+        }
+    )
 }

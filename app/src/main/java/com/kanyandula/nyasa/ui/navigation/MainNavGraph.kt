@@ -17,6 +17,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.Features
 import com.kanyandula.nyasa.ui.main.AccountProfileRoute
 import com.kanyandula.nyasa.ui.main.AuthorProfileRoute
@@ -58,6 +59,7 @@ private fun BindCurrentUsernameToBlogVm(vm: BlogViewModel) {
     }
 }
 
+@Suppress("LongParameterList")
 @Composable
 private fun ExpandedFeedPane(
     mode: FeedMode,
@@ -65,6 +67,7 @@ private fun ExpandedFeedPane(
     state: BlogListUiState,
     feedAction: (BlogFeedAction) -> Unit,
     onBlogClicked: (String) -> Unit,
+    featuredHero: BlogPost?,
     onVisibleSlugsChanged: (Set<String>) -> Unit
 ) {
     when (mode) {
@@ -78,6 +81,7 @@ private fun ExpandedFeedPane(
                 }
             },
             onBlogClicked = onBlogClicked,
+            featuredHero = featuredHero,
             onVisibleSlugsChanged = onVisibleSlugsChanged
         )
         FeedMode.Search -> SearchFeedExpanded(
@@ -106,6 +110,7 @@ private fun BlogFeedScaffold(
     visibleSlugs: Set<String>,
     onVisibleSlugsChanged: (Set<String>) -> Unit
 ) {
+    val featuredHero by vm.featuredHero.collectAsStateWithLifecycle()
     BlogListDetailScaffold(
         onNavigateToDetailFullScreen = { slug -> navController.navigate(Routes.blogDetail(slug)) },
         visibleSlugs = visibleSlugs,
@@ -115,6 +120,7 @@ private fun BlogFeedScaffold(
                 pagingDataFlow = vm.pagingDataFlow,
                 state = state,
                 mode = mode,
+                featuredHero = featuredHero,
                 onAction = { action ->
                     when (action) {
                         is BlogFeedAction.BlogClicked -> onBlogClicked(action.slug)
@@ -142,6 +148,7 @@ private fun BlogFeedScaffold(
                     state = state,
                     feedAction = feedAction,
                     onBlogClicked = onBlogClicked,
+                    featuredHero = featuredHero,
                     onVisibleSlugsChanged = onVisibleSlugsChanged
                 )
             }

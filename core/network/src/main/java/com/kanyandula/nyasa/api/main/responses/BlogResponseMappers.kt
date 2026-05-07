@@ -17,5 +17,6 @@ fun BlogResponseFields.toBlogPost(): BlogPost = BlogPost(
     view_count = view_count,
     like_count = like_count,
     comment_count = comment_count,
-    author_avatar = author_avatar
+    author_avatar = author_avatar,
+    is_featured = is_featured
 )

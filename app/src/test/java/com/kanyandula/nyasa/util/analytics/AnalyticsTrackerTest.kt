@@ -16,9 +16,15 @@ class AnalyticsTrackerTest {
 
     @Test
     fun `ViewPost params contains slug`() {
-        val event = AnalyticsEvent.ViewPost("my-slug")
+        val event = AnalyticsEvent.ViewPost("my-slug", isFeatured = false)
         assertThat(event.name).isEqualTo("view_post")
         assertThat(event.params).containsEntry("slug", "my-slug")
+    }
+
+    @Test
+    fun `ViewPost params contains is_featured`() {
+        val event = AnalyticsEvent.ViewPost("hero-slug", isFeatured = true)
+        assertThat(event.params).containsEntry("is_featured", "true")
     }
 
     @Test
@@ -49,11 +55,11 @@ class AnalyticsTrackerTest {
         val tracker = FakeAnalyticsTracker()
 
         tracker.trackEvent(AnalyticsEvent.Login)
-        tracker.trackEvent(AnalyticsEvent.ViewPost("slug-1"))
+        tracker.trackEvent(AnalyticsEvent.ViewPost("slug-1", isFeatured = false))
 
         assertThat(tracker.events).hasSize(2)
         assertThat(tracker.events[0]).isEqualTo(AnalyticsEvent.Login)
-        assertThat(tracker.events[1]).isEqualTo(AnalyticsEvent.ViewPost("slug-1"))
+        assertThat(tracker.events[1]).isEqualTo(AnalyticsEvent.ViewPost("slug-1", isFeatured = false))
     }
 
     @Test
