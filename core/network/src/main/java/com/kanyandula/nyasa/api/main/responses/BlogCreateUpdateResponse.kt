@@ -57,6 +57,9 @@ class BlogCreateUpdateResponse(
     override var comment_count: Int? = null,
 
     @SerialName("author_avatar")
-    override var author_avatar: String? = null
+    override var author_avatar: String? = null,
+
+    @SerialName("is_featured")
+    override var is_featured: Boolean = false
 
 ) : BlogResponseFields

@@ -78,6 +78,13 @@ interface NyasaBlogApiMainService {
         @Query("status") status: String? = null
     ): Response<BlogListSearchResponse>
 
+    @GET("blog/list")
+    suspend fun getFeaturedBlogPost(
+        @Query("is_featured") isFeatured: Boolean = true,
+        @Query("status") status: String = "published",
+        @Query("page_size") pageSize: Int = 1
+    ): Response<BlogListSearchResponse>
+
     @GET("blog/{slug}/")
     suspend fun getBlogPost(
         @Path("slug") slug: String

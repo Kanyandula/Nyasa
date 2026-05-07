@@ -15,4 +15,5 @@ interface BlogResponseFields {
     val like_count: Int?
     val comment_count: Int?
     val author_avatar: String?
+    val is_featured: Boolean
 }

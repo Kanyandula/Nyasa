@@ -6,6 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.domain.usecase.blog.BookmarkBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.DeleteBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
+import com.kanyandula.nyasa.domain.usecase.blog.GetFeaturedBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.IsAuthorOfBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.LikeBlogPostUseCase
 import com.kanyandula.nyasa.domain.usecase.blog.SearchBlogPostsUseCase
@@ -79,27 +80,70 @@ class BlogViewModelTest {
         every { sharedPreferences.getString(any(), any()) } answers { secondArg() }
         BlogDetailPrefetch.pendingPost = null
 
-        viewModel = BlogViewModel(
-            searchBlogPostsUseCase = SearchBlogPostsUseCase(fakeRepository),
-            isAuthorOfBlogPostUseCase = IsAuthorOfBlogPostUseCase(fakeRepository),
-            deleteBlogPostUseCase = DeleteBlogPostUseCase(fakeRepository),
-            blogUploadEnqueuer = uploadEnqueuer,
-            getBlogPostBySlugUseCase = GetBlogPostBySlugUseCase(fakeRepository),
-            likeBlogPostUseCase = LikeBlogPostUseCase(fakeRepository),
-            bookmarkBlogPostUseCase = BookmarkBlogPostUseCase(fakeRepository),
-            getCommentsUseCase = GetCommentsUseCase(fakeCommentRepository),
-            getCommentsFlowUseCase = GetCommentsFlowUseCase(fakeCommentRepository),
-            createCommentUseCase = CreateCommentUseCase(fakeCommentRepository),
-            deleteCommentUseCase = DeleteCommentUseCase(fakeCommentRepository),
-            getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),
-            sharedPreferences = sharedPreferences,
-            editor = editor,
-            savedStateHandle = androidx.lifecycle.SavedStateHandle(),
-            analyticsTracker = FakeAnalyticsTracker()
-        )
+        viewModel = createViewModel()
     }
 
+    private fun createViewModel(): BlogViewModel = BlogViewModel(
+        searchBlogPostsUseCase = SearchBlogPostsUseCase(fakeRepository),
+        isAuthorOfBlogPostUseCase = IsAuthorOfBlogPostUseCase(fakeRepository),
+        deleteBlogPostUseCase = DeleteBlogPostUseCase(fakeRepository),
+        blogUploadEnqueuer = uploadEnqueuer,
+        getBlogPostBySlugUseCase = GetBlogPostBySlugUseCase(fakeRepository),
+        getFeaturedBlogPostUseCase = GetFeaturedBlogPostUseCase(fakeRepository),
+        likeBlogPostUseCase = LikeBlogPostUseCase(fakeRepository),
+        bookmarkBlogPostUseCase = BookmarkBlogPostUseCase(fakeRepository),
+        getCommentsUseCase = GetCommentsUseCase(fakeCommentRepository),
+        getCommentsFlowUseCase = GetCommentsFlowUseCase(fakeCommentRepository),
+        createCommentUseCase = CreateCommentUseCase(fakeCommentRepository),
+        deleteCommentUseCase = DeleteCommentUseCase(fakeCommentRepository),
+        getCategoriesUseCase = GetCategoriesUseCase(fakeCategoryRepository),
+        sharedPreferences = sharedPreferences,
+        editor = editor,
+        savedStateHandle = androidx.lifecycle.SavedStateHandle(),
+        analyticsTracker = FakeAnalyticsTracker()
+    )
+
     // region Blog List
+
+    @Test
+    fun `featuredHero is populated on init from repository`() = runTest {
+        val featured = createTestBlogPost(pk = 105, title = "Malawi Cichlids", slug = "cichlids")
+            .copy(is_featured = true)
+        fakeRepository.featuredBlogPostResult = Resource.Success(featured)
+
+        // Recreate the VM after setting the fake's result, so init's loadFeaturedHero picks it up
+        viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertThat(viewModel.featuredHero.value?.pk).isEqualTo(105)
+        assertThat(viewModel.featuredHero.value?.is_featured).isTrue()
+    }
+
+    @Test
+    fun `featuredHero stays null when nothing is featured`() = runTest {
+        fakeRepository.featuredBlogPostResult = Resource.Success(null)
+
+        viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertThat(viewModel.featuredHero.value).isNull()
+    }
+
+    @Test
+    fun `featuredHero is not overwritten on error`() = runTest {
+        val initialFeatured = createTestBlogPost(pk = 50, slug = "first").copy(is_featured = true)
+        fakeRepository.featuredBlogPostResult = Resource.Success(initialFeatured)
+        viewModel = createViewModel()
+        advanceUntilIdle()
+        assertThat(viewModel.featuredHero.value?.pk).isEqualTo(50)
+
+        fakeRepository.featuredBlogPostResult = Resource.Error(AppError.Unknown(null))
+        viewModel.loadFeaturedHero()
+        advanceUntilIdle()
+
+        // Error should not clear a successful prior value
+        assertThat(viewModel.featuredHero.value?.pk).isEqualTo(50)
+    }
 
     @Test
     fun `setQuery updates search query in state`() {

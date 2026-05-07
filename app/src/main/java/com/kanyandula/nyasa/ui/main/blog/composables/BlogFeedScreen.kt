@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -83,6 +84,7 @@ fun BlogFeedScreen(
     state: BlogListUiState,
     onAction: (BlogFeedAction) -> Unit,
     mode: FeedMode = FeedMode.Home,
+    featuredHero: BlogPost? = null,
     onVisibleSlugsChanged: (Set<String>) -> Unit = {}
 ) {
     TrackScreen("BlogFeed")
@@ -153,6 +155,7 @@ fun BlogFeedScreen(
                 pagingItems = pagingItems,
                 mode = mode,
                 query = query,
+                featuredHero = featuredHero,
                 onQueryChange = { query = it },
                 onRefresh = refreshFeed,
                 onAction = onAction
@@ -184,20 +187,42 @@ private fun FeedPagingList(
     pagingItems: LazyPagingItems<BlogPost>,
     mode: FeedMode,
     query: String,
+    featuredHero: BlogPost?,
     onQueryChange: (String) -> Unit,
     onRefresh: () -> Unit,
     onAction: (BlogFeedAction) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    val hero = featuredHero?.takeIf { mode == FeedMode.Home && query.isBlank() }
+    // When the hero appears after the feed has already rendered, LazyColumn preserves
+    // existing-item positions via stable keys — pushing the new top item off-screen above.
+    // If the user hasn't scrolled, snap back to expose the hero.
+    LaunchedEffect(hero?.pk) {
+        if (hero != null && listState.firstVisibleItemIndex == 1 &&
+            listState.firstVisibleItemScrollOffset == 0
+        ) {
+            listState.scrollToItem(0)
+        }
+    }
     PullToRefreshBox(
         isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
         onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = NyasaTheme.spacing.m, vertical = NyasaTheme.spacing.s),
             verticalArrangement = Arrangement.spacedBy(NyasaTheme.spacing.xl)
         ) {
+            if (hero != null) {
+                item(key = "featured-hero-${hero.pk}") {
+                    EditorPickCard(
+                        blogPost = hero,
+                        onClick = { onAction(BlogFeedAction.BlogClicked(hero.slug)) }
+                    )
+                }
+            }
             items(
                 count = pagingItems.itemCount,
                 key = { index -> pagingItems.peek(index)?.pk ?: index }
@@ -205,9 +230,6 @@ private fun FeedPagingList(
                 pagingItems[index]?.let { blogPost ->
                     FeedItem(
                         blogPost = blogPost,
-                        showEditorPick = mode == FeedMode.Home &&
-                            index == 0 &&
-                            query.isBlank(),
                         onAction = onAction
                     )
                 }
@@ -231,32 +253,24 @@ private fun FeedPagingList(
 @Composable
 internal fun FeedItem(
     blogPost: BlogPost,
-    showEditorPick: Boolean,
     onAction: (BlogFeedAction) -> Unit
 ) {
-    if (showEditorPick) {
-        EditorPickCard(
-            blogPost = blogPost,
-            onClick = { onAction(BlogFeedAction.BlogClicked(blogPost.slug)) }
-        )
-    } else {
-        val excerpt = remember(blogPost.pk) {
-            BlogUtils.stripHtml(blogPost.body).take(120).takeIf { it.isNotBlank() }
-        }
-        NyasaBlogCard(
-            title = blogPost.title,
-            authorName = blogPost.username,
-            imageUrl = blogPost.image,
-            readTime = BlogUtils.formatReadingTime(blogPost.reading_time),
-            category = blogPost.category,
-            excerpt = excerpt,
-            likeCount = blogPost.like_count,
-            commentCount = blogPost.comment_count,
-            onClick = { onAction(BlogFeedAction.BlogClicked(blogPost.slug)) },
-            onBookmarkClick = { onAction(BlogFeedAction.BookmarkClicked(blogPost.slug)) },
-            authorAvatarUrl = blogPost.author_avatar
-        )
+    val excerpt = remember(blogPost.pk) {
+        BlogUtils.stripHtml(blogPost.body).take(120).takeIf { it.isNotBlank() }
     }
+    NyasaBlogCard(
+        title = blogPost.title,
+        authorName = blogPost.username,
+        imageUrl = blogPost.image,
+        readTime = BlogUtils.formatReadingTime(blogPost.reading_time),
+        category = blogPost.category,
+        excerpt = excerpt,
+        likeCount = blogPost.like_count,
+        commentCount = blogPost.comment_count,
+        onClick = { onAction(BlogFeedAction.BlogClicked(blogPost.slug)) },
+        onBookmarkClick = { onAction(BlogFeedAction.BookmarkClicked(blogPost.slug)) },
+        authorAvatarUrl = blogPost.author_avatar
+    )
 }
 
 @Composable

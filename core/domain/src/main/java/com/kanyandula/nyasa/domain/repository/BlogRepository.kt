@@ -18,4 +18,5 @@ interface BlogRepository {
     fun likeBlogPost(slug: String): Flow<Resource<LikeResult>>
     fun bookmarkBlogPost(slug: String): Flow<Resource<Boolean>>
     fun getBookmarks(): Flow<Resource<List<BlogPost>>>
+    fun getFeaturedBlogPost(): Flow<Resource<BlogPost?>>
 }

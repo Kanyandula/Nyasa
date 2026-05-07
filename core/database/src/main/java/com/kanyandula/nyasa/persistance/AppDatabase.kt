@@ -18,7 +18,7 @@ import com.kanyandula.nyasa.models.CommentEntity
         BlogRemoteKey::class,
         CommentEntity::class
     ],
-    version = 7
+    version = 8
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -67,6 +67,12 @@ abstract class AppDatabase : RoomDatabase() {
             )
             it.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_comments_post_slug ON comments(post_slug)"
+            )
+        }
+
+        val MIGRATION_7_8 = Migration(7, 8) {
+            it.execSQL(
+                "ALTER TABLE blog_post ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0"
             )
         }
 

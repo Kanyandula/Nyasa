@@ -10,9 +10,12 @@ sealed interface AnalyticsEvent {
     data object Logout : AnalyticsEvent { override val name = "logout" }
 
     // Blog engagement
-    data class ViewPost(val slug: String) : AnalyticsEvent {
+    data class ViewPost(val slug: String, val isFeatured: Boolean) : AnalyticsEvent {
         override val name = "view_post"
-        override val params = mapOf("slug" to slug)
+        override val params = mapOf(
+            "slug" to slug,
+            "is_featured" to isFeatured.toString()
+        )
     }
 
     data class LikePost(val slug: String) : AnalyticsEvent {

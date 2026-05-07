@@ -43,4 +43,9 @@ class FakeBlogRepository : BlogRepository {
 
     override fun getBookmarks(): Flow<Resource<List<BlogPost>>> =
         fakeResourceFlow { bookmarksResult }
+
+    var featuredBlogPostResult: Resource<BlogPost?> = Resource.Success(null)
+
+    override fun getFeaturedBlogPost(): Flow<Resource<BlogPost?>> =
+        fakeResourceFlow { featuredBlogPostResult }
 }
