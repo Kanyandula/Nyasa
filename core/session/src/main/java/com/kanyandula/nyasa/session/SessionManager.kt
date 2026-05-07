@@ -35,8 +35,18 @@ constructor(
         setValue(newValue)
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override fun invalidate() {
+        val pk = _cachedToken.value?.account_pk
         _cachedToken.value = null
+        if (pk == null) return
+        scope.launch(Dispatchers.IO) {
+            try {
+                authTokenDao.nullifyToken(pk)
+            } catch (e: Exception) {
+                Timber.e(e, "invalidate: nullifyToken failed")
+            }
+        }
     }
 
     @Suppress("TooGenericExceptionCaught")

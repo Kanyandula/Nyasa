@@ -23,6 +23,6 @@ class LoginResponse(
 ) {
     override fun toString(): String {
         return "LoginResponse(response='$response', errorMessage='$errorMessage', " +
-            "token='$token', pk=$pk, email='$email')"
+            "token='***', pk=$pk, email='$email')"
     }
 }

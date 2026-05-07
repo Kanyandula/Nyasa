@@ -26,7 +26,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.kanyandula.nyasa.models.AuthToken
 import com.kanyandula.nyasa.session.SessionManager
 import com.kanyandula.nyasa.ui.components.NyasaBottomBar
 import com.kanyandula.nyasa.ui.components.NyasaSideRail
@@ -50,8 +49,6 @@ import java.util.UUID
 import javax.inject.Inject
 import com.kanyandula.nyasa.R as AppR
 
-private const val AUTH_TOKEN_BUNDLE_KEY = "auth_token"
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -67,7 +64,6 @@ class MainActivity : ComponentActivity() {
     @Suppress("LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        restoreSession(savedInstanceState)
 
         setContent {
             val themePreference by ThemePreferenceManager
@@ -146,18 +142,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    private fun restoreSession(savedInstanceState: Bundle?) {
-        @Suppress("DEPRECATION")
-        savedInstanceState?.getParcelable<AuthToken>(AUTH_TOKEN_BUNDLE_KEY)?.let {
-            sessionManager.login(it)
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
     }
 }
 

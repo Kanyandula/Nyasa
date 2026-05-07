@@ -27,6 +27,6 @@ class RegistrationResponse(
 
     override fun toString(): String {
         return "RegistrationResponse(response='$response', errorMessage='$errorMessage', " +
-            "email='$email', username='$username', token='$token')"
+            "email='$email', username='$username', token='***')"
     }
 }
