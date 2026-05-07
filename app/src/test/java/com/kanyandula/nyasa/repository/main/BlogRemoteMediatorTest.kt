@@ -86,6 +86,22 @@ class BlogRemoteMediatorTest {
         coVerify { blogPostDao.insertAll(any()) }
     }
 
+    // Regression: switching All → Culture → All used to leave a stale "All" remote
+    // key pointing at an empty `blog_post` (Culture's REFRESH wiped the shared
+    // table). `initialize()` then returned SKIP_INITIAL_REFRESH and the user saw
+    // an empty list. Fix: REFRESH must wipe ALL remote keys, not just its own.
+    @Test
+    fun `REFRESH clears all remote keys, not just the current filter's`() = runTest {
+        stubSearch(List(2) { fakeResponse(it) }, next = null)
+
+        val result = newMediator().load(LoadType.REFRESH, emptyState())
+
+        assertThat(result).isInstanceOf(RemoteMediator.MediatorResult.Success::class.java)
+        coVerify { remoteKeyDao.clearAll() }
+        coVerify { remoteKeyDao.insertOrReplace(any()) }
+        coVerify(exactly = 0) { remoteKeyDao.deleteByQuery(any()) }
+    }
+
     @Test
     fun `APPEND continues pagination when next is non-null even if results are below client page size`() = runTest {
         coEvery { remoteKeyDao.getRemoteKey(any()) } returns BlogRemoteKey(
@@ -101,6 +117,7 @@ class BlogRemoteMediatorTest {
         assertThat(success.endOfPaginationReached).isFalse()
         // APPEND must NOT clear the cache — only REFRESH does.
         coVerify(exactly = 0) { blogPostDao.clearAll() }
+        coVerify(exactly = 0) { remoteKeyDao.clearAll() }
         coVerify { blogPostDao.insertAll(any()) }
     }
 

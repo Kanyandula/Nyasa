@@ -106,8 +106,11 @@ class BlogRemoteMediator(
 
         database.withTransaction {
             if (loadType == LoadType.REFRESH) {
+                // REFRESH wipes the shared `blog_post` table, which invalidates every
+                // filter's remote key — not just this one. Otherwise switching back to
+                // a cached filter sees SKIP_INITIAL_REFRESH against an empty table.
                 blogPostDao.clearAll()
-                remoteKeyDao.deleteByQuery(cachedQueryKey)
+                remoteKeyDao.clearAll()
             }
             blogPostDao.insertAll(blogPosts)
             remoteKeyDao.insertOrReplace(
