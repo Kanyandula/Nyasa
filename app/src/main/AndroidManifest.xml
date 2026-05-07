@@ -28,6 +28,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Nyasa"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         tools:targetApi="s">
         <activity
             android:name=".ui.main.MainActivity"
