@@ -43,6 +43,11 @@ fun mainNavItemForRoute(currentRoute: String?): MainNavItem = when {
 /**
  * Navigates to the given top-level [item], preserving sibling back stacks (Material multi-stack pattern).
  *
+ * Anchored on [Routes.BLOG_FEED] — the deepest start destination of `MAIN_GRAPH`, always present in
+ * the back stack while the user is in `MAIN_GRAPH`. Anchoring on `MAIN_GRAPH` instead would collapse
+ * Home and Search into a single save bucket because they share `BLOG_GRAPH`, causing tab switches to
+ * restore each other and freeze navigation.
+ *
  * Guards against two failure modes that surface as `IllegalStateException: Restore State failed` from
  * [NavController.navigate]:
  * - A tap that races a session-driven graph swap (bottom bar still visible the frame after logout).
@@ -53,7 +58,7 @@ fun NavController.navigateToMainNavItem(item: MainNavItem) {
     if (!currentDestination.isInGraph(Routes.MAIN_GRAPH)) return
     try {
         navigate(item.route) {
-            popUpTo(Routes.MAIN_GRAPH) { saveState = true }
+            popUpTo(Routes.BLOG_FEED) { saveState = true }
             launchSingleTop = true
             restoreState = true
         }
@@ -70,7 +75,7 @@ fun NavController.navigateToMainNavItem(item: MainNavItem) {
         }
         try {
             navigate(item.route) {
-                popUpTo(Routes.MAIN_GRAPH) { saveState = true }
+                popUpTo(Routes.BLOG_FEED) { saveState = true }
                 launchSingleTop = true
             }
         } catch (retryFailure: IllegalStateException) {
