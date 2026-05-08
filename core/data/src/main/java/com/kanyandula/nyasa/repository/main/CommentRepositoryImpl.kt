@@ -1,10 +1,12 @@
 package com.kanyandula.nyasa.repository.main
 
+import androidx.room.withTransaction
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.toComment
 import com.kanyandula.nyasa.api.main.responses.toEntity
 import com.kanyandula.nyasa.domain.repository.CommentRepository
 import com.kanyandula.nyasa.models.Comment
+import com.kanyandula.nyasa.persistance.AppDatabase
 import com.kanyandula.nyasa.persistance.BlogPostDao
 import com.kanyandula.nyasa.persistance.CommentDao
 import com.kanyandula.nyasa.session.ConnectivityObserver
@@ -23,6 +25,7 @@ class CommentRepositoryImpl
 @Inject
 constructor(
     private val apiService: NyasaBlogApiMainService,
+    private val database: AppDatabase,
     private val commentDao: CommentDao,
     private val blogPostDao: BlogPostDao,
     private val connectivityObserver: ConnectivityObserver
@@ -44,8 +47,10 @@ constructor(
         when (val result = safeApiCall { apiService.getComments(slug) }) {
             is Resource.Success -> {
                 val entities = result.data.map { it.toEntity(slug) }
-                commentDao.clearBySlug(slug)
-                commentDao.insertAll(entities)
+                cacheIfPostExists(slug) {
+                    commentDao.clearBySlug(slug)
+                    commentDao.insertAll(entities)
+                }
                 emit(Resource.Success(entities.map { it.toComment() }))
             }
             is Resource.Error -> {
@@ -69,8 +74,10 @@ constructor(
         when (val result = safeApiCall { apiService.createComment(slug, body) }) {
             is Resource.Success -> {
                 val entity = result.data.toEntity(slug)
-                commentDao.insert(entity)
-                blogPostDao.updateCommentCount(slug, 1)
+                cacheIfPostExists(slug) {
+                    commentDao.insert(entity)
+                    blogPostDao.updateCommentCount(slug, 1)
+                }
                 emit(Resource.Success(entity.toComment()))
             }
             is Resource.Error -> emit(result)
@@ -94,4 +101,16 @@ constructor(
             is Resource.Loading -> Unit
         }
     }.flowOn(Dispatchers.IO)
+
+    // Persist comment cache only when the parent post is present, atomically with the
+    // existence check. Without the transaction, a concurrent feed REFRESH (which wipes
+    // `blog_posts` inside its own transaction) could violate the FK on
+    // `comments.post_slug → blog_posts.slug` between the check and the insert.
+    private suspend fun cacheIfPostExists(slug: String, writes: suspend () -> Unit) {
+        database.withTransaction {
+            if (blogPostDao.getBlogPostBySlug(slug) != null) {
+                writes()
+            }
+        }
+    }
 }
