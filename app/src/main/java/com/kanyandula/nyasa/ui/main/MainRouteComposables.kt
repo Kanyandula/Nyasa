@@ -72,14 +72,11 @@ internal fun handleBlogFeedAction(
             vm.bookmarkBlog(action.slug)
         is BlogFeedAction.CreateClicked ->
             navController.navigate(Routes.CREATE)
-        is BlogFeedAction.BackClicked -> {
-            // Today this only fires from SearchTopBar. When `popBackStack()` can't pop (the
-            // multi-stack bottom bar pattern can leave Search rooted with nothing below it),
-            // route the user to the Home tab via the same helper so saved Home state is restored.
-            if (!navController.popBackStack()) {
-                navController.navigateToMainNavItem(MainNavItem.Home)
-            }
-        }
+        is BlogFeedAction.BackClicked ->
+            // Today only SearchTopBar dispatches this. Route through the bottom-bar helper so
+            // we always land on Home in a single transition — `popBackStack()` could expose an
+            // intermediate NavGraph entry (no Composable) and render blank between taps.
+            navController.navigateToMainNavItem(MainNavItem.Home)
         is BlogFeedAction.Refresh -> vm.executeSearch()
     }
 }
