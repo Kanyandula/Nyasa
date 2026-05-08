@@ -4,6 +4,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.room.withTransaction
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
 import com.kanyandula.nyasa.api.main.responses.toBlogPost
 import com.kanyandula.nyasa.domain.repository.BlogRepository
@@ -108,7 +109,13 @@ constructor(
     override fun getBookmarks(): Flow<Resource<List<BlogPost>>> = networkApiFlow(
         connectivityObserver = connectivityObserver,
         apiCall = { nyasaBlogApiMainService.getBookmarks() },
-        onSuccess = { body -> Resource.Success(body.map { it.toBlogPost() }) }
+        onSuccess = { body ->
+            val posts = body.map { it.toBlogPost() }
+            // Cache so the FK on `comments.post_slug → blog_posts.slug` is satisfied
+            // when the user opens a bookmark's detail screen.
+            database.withTransaction { blogPostDao.insertAll(posts) }
+            Resource.Success(posts)
+        }
     )
 
     override fun getFeaturedBlogPost(): Flow<Resource<BlogPost?>> = networkApiFlow(

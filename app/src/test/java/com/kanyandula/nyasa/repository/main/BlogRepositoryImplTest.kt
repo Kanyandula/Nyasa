@@ -1,5 +1,6 @@
 package com.kanyandula.nyasa.repository.main
 
+import androidx.room.withTransaction
 import com.google.common.truth.Truth.assertThat
 import com.kanyandula.nyasa.api.GenericResponse
 import com.kanyandula.nyasa.api.main.NyasaBlogApiMainService
@@ -19,10 +20,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,12 +58,25 @@ class BlogRepositoryImplTest {
     fun setup() {
         apiService = mockk()
         blogPostDao = mockk(relaxed = true)
-        database = mockk {
-            every { getBlogPostDao() } returns blogPostDao
-        }
+        database = mockk(relaxed = true)
+        every { database.getBlogPostDao() } returns blogPostDao
         connectivityObserver = mockk()
         every { connectivityObserver.isConnected } returns MutableStateFlow(true)
+
+        // Run withTransaction blocks inline so DAO writes execute against the mocks.
+        mockkStatic("androidx.room.RoomDatabaseKt")
+        coEvery {
+            database.withTransaction(captureLambda<suspend () -> Unit>())
+        } coAnswers {
+            lambda<suspend () -> Unit>().captured.invoke()
+        }
+
         repository = BlogRepositoryImpl(apiService, database, connectivityObserver)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic("androidx.room.RoomDatabaseKt")
     }
 
     @Test
@@ -170,5 +187,6 @@ class BlogRepositoryImplTest {
         val success = results.last() as Resource.Success
         assertThat(success.data).hasSize(1)
         assertThat(success.data[0].title).isEqualTo("Bookmarked Post")
+        coVerify { blogPostDao.insertAll(match { it.size == 1 && it[0].slug == "bookmarked" }) }
     }
 }
