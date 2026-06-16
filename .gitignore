@@ -25,3 +25,6 @@ local.properties
 
 # Firebase config (contains API keys)
 app/google-services.json
+
+# graphify knowledge graph (locally generated, AST-only)
+graphify-out/
