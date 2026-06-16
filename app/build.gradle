@@ -233,6 +233,10 @@ dependencies {
     testImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
     testImplementation "androidx.room:room-testing:2.6.1"
     testImplementation "androidx.paging:paging-testing:3.3.6"
+    // Navigation testing (Robolectric + TestNavHostController)
+    testImplementation "org.robolectric:robolectric:4.14.1"
+    testImplementation "androidx.test:core:1.6.1"
+    testImplementation "androidx.navigation:navigation-testing:2.7.7"
 
     // Instrumented Tests
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

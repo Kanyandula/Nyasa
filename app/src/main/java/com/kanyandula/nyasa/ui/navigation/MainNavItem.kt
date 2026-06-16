@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import timber.log.Timber
 
 /** Top-level navigation destinations surfaced by [NyasaBottomBar] (phone) and [NyasaSideRail] (tablet). */
@@ -20,7 +21,7 @@ enum class MainNavItem(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    Home("Home", Routes.BLOG_GRAPH, Icons.Filled.Home, Icons.Outlined.Home),
+    Home("Home", Routes.BLOG_FEED, Icons.Filled.Home, Icons.Outlined.Home),
     Search("Search", Routes.BLOG_SEARCH, Icons.Filled.Search, Icons.Outlined.Search),
     Bookmarks(
         "Bookmarks",
@@ -28,7 +29,7 @@ enum class MainNavItem(
         Icons.Filled.Bookmark,
         Icons.Outlined.BookmarkBorder
     ),
-    Profile("Profile", Routes.ACCOUNT_GRAPH, Icons.Filled.Person, Icons.Outlined.Person)
+    Profile("Profile", Routes.ACCOUNT_PROFILE, Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 /** Maps the current route string to the active [MainNavItem]; defaults to [MainNavItem.Home]. */
@@ -39,6 +40,20 @@ fun mainNavItemForRoute(currentRoute: String?): MainNavItem = when {
     currentRoute?.startsWith(Routes.BLOG_GRAPH) == true -> MainNavItem.Home
     else -> MainNavItem.Home
 }
+
+/**
+ * Whether a bottom-bar tab tap should be allowed to navigate, given the current destination.
+ *
+ * A destination outside `MAIN_GRAPH` (e.g. `AUTH_GRAPH` the frame after a logout-driven graph swap)
+ * is ignored — navigating would race the swap and crash. A `null` destination, however, means the
+ * back stack is momentarily empty/dead (observed after process-death restore, and during the same
+ * swap); in that case the tap must be allowed through so `navigate()` recovers the user instead of
+ * silently early-returning and stranding them on a blank screen.
+ *
+ * @see navigateToMainNavItem — prefer that; this predicate is exposed for testing.
+ */
+internal fun NavDestination?.allowsTabNavigation(): Boolean =
+    this == null || isInGraph(Routes.MAIN_GRAPH)
 
 /**
  * Navigates to the given top-level [item], preserving sibling back stacks (Material multi-stack pattern).
@@ -55,7 +70,7 @@ fun mainNavItemForRoute(currentRoute: String?): MainNavItem = when {
  *   `restoreState = true` cannot resolve a saved destination in the current graph.
  */
 fun NavController.navigateToMainNavItem(item: MainNavItem) {
-    if (!currentDestination.isInGraph(Routes.MAIN_GRAPH)) return
+    if (!currentDestination.allowsTabNavigation()) return
     try {
         navigate(item.route) {
             popUpTo(Routes.BLOG_FEED) { saveState = true }
