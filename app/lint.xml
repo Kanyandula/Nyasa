@@ -28,4 +28,13 @@
     <issue id="UnusedResources" severity="informational" />
     <issue id="IconMissingDensityFolder" severity="informational" />
     <issue id="AllowBackup" severity="informational" />
+
+    <!--
+      Tooling workaround (nav Phase 1, lifecycle 2.7.x -> 2.9.0 via navigation-compose 2.9.0):
+      lifecycle 2.9.0 ships a NonNullableMutableLiveDataDetector compiled against a newer lint
+      API than this project's AGP bundles, so the detector throws IncompatibleClassChangeError
+      and crashes `lintAnalyzeDebug`. Disable it until AGP is upgraded. Low cost — the app is
+      StateFlow-based and barely uses MutableLiveData.
+    -->
+    <issue id="NullSafeMutableLiveData" severity="ignore" />
 </lint>

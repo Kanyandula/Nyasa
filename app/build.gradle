@@ -155,8 +155,8 @@ dependencies {
     implementation 'androidx.compose.material:material-icons-extended'
     implementation 'androidx.compose.ui:ui-text-google-fonts'
     implementation 'androidx.activity:activity-compose:1.9.3'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6'
-    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.6'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.9.0'
     implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
     implementation 'androidx.paging:paging-compose:3.3.6'
     debugImplementation 'androidx.compose.ui:ui-tooling'
@@ -169,11 +169,11 @@ dependencies {
     implementation 'com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc11'
 
     // Navigation
-    implementation 'androidx.navigation:navigation-compose:2.7.7'
+    implementation 'androidx.navigation:navigation-compose:2.9.0'
 
     // Lifecycle
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.6"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.9.0"
 
     // Room
     implementation "androidx.room:room-runtime:2.6.1"
@@ -236,7 +236,7 @@ dependencies {
     // Navigation testing (Robolectric + TestNavHostController)
     testImplementation "org.robolectric:robolectric:4.14.1"
     testImplementation "androidx.test:core:1.6.1"
-    testImplementation "androidx.navigation:navigation-testing:2.7.7"
+    testImplementation "androidx.navigation:navigation-testing:2.9.0"
 
     // Instrumented Tests
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
