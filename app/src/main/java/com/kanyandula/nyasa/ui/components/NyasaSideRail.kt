@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kanyandula.nyasa.ui.navigation.MainNavItem
-import com.kanyandula.nyasa.ui.navigation.mainNavItemForRoute
+import com.kanyandula.nyasa.ui.navigation.mainNavItemForDestination
 import com.kanyandula.nyasa.ui.navigation.navigateToMainNavItem
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 
@@ -22,7 +22,7 @@ fun NyasaSideRail(
     modifier: Modifier = Modifier
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentItem = mainNavItemForRoute(navBackStackEntry?.destination?.route)
+    val currentItem = mainNavItemForDestination(navBackStackEntry?.destination)
 
     NyasaSideRailContent(
         currentItem = currentItem,

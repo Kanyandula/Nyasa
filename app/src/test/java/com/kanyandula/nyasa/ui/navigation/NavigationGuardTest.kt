@@ -1,12 +1,14 @@
 package com.kanyandula.nyasa.ui.navigation
 
 import android.app.Application
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.createGraph
 import androidx.navigation.testing.TestNavHostController
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 import org.junit.Before
 import org.junit.Test
@@ -15,10 +17,11 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Phase 0 guard, graph-level: tab navigation must be allowed from a MAIN_GRAPH destination, ignored
- * from an AUTH_GRAPH destination (session-swap race), and a tap must land on a leaf — never a
- * NavGraph wrapper. Destinations are sourced from the real production graph builders so the topology
- * under test is the production topology. (The pure null-recovery case is covered in [MainNavItemTest].)
+ * Phase 0 guard + Phase 2 typed-route behaviour, graph-level: tab navigation is allowed from a
+ * MainGraph destination, ignored from an AuthGraph destination (session-swap race), a tap lands on
+ * a leaf (never a NavGraph wrapper), and tab-selection resolves correctly for every destination.
+ * Destinations come from the real production graph builders so the topology under test is the
+ * production topology. (The pure null-recovery case is covered in [MainNavItemTest].)
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [35])
@@ -32,21 +35,21 @@ class NavigationGuardTest {
         navController.navigatorProvider.addNavigator(ComposeNavigator())
         // Mirror RootNavHost: an unnamed root graph hosting authGraph + mainGraph.
         // TODO(Phase 5): drive the real RootNavHost instead of mirroring its assembly here.
-        navController.graph = navController.createGraph(startDestination = Routes.MAIN_GRAPH) {
+        navController.graph = navController.createGraph(startDestination = Routes.MainGraph) {
             authGraph(navController)
             mainGraph(navController, ThemePreference.SYSTEM) { /* onThemeChanged: not under test */ }
         }
     }
 
     @Test
-    fun `a destination inside MAIN_GRAPH allows tab navigation`() {
-        // setGraph resolves MAIN_GRAPH down to its leaf start destination (BLOG_FEED).
+    fun `a destination inside MainGraph allows tab navigation`() {
+        // setGraph resolves MainGraph down to its leaf start destination (BlogFeed).
         assertThat(navController.currentDestination.allowsTabNavigation()).isTrue()
     }
 
     @Test
-    fun `a destination inside AUTH_GRAPH is ignored`() {
-        navController.navigate(Routes.WELCOME)
+    fun `a destination inside AuthGraph is ignored`() {
+        navController.navigate(Routes.Welcome)
         assertThat(navController.currentDestination.allowsTabNavigation()).isFalse()
     }
 
@@ -56,7 +59,7 @@ class NavigationGuardTest {
 
         val landed = navController.currentDestination
         assertThat(landed).isNotInstanceOf(NavGraph::class.java)
-        assertThat(landed?.route).isEqualTo(Routes.BLOG_FEED)
+        assertThat(landed?.hasRoute<Routes.BlogFeed>()).isTrue()
     }
 
     @Test
@@ -65,6 +68,28 @@ class NavigationGuardTest {
 
         val landed = navController.currentDestination
         assertThat(landed).isNotInstanceOf(NavGraph::class.java)
-        assertThat(landed?.route).isEqualTo(Routes.ACCOUNT_PROFILE)
+        assertThat(landed?.hasRoute<Routes.AccountProfile>()).isTrue()
+    }
+
+    @Test
+    fun `destinations map to the expected highlighted tab`() {
+        val cases = listOf(
+            Routes.BlogFeed to MainNavItem.Home,
+            Routes.BlogDetail("s") to MainNavItem.Home,
+            Routes.BlogEdit("s") to MainNavItem.Home,
+            Routes.AuthorProfile("u") to MainNavItem.Home,
+            Routes.Create to MainNavItem.Home,
+            Routes.BlogSearch to MainNavItem.Search,
+            Routes.Bookmarks to MainNavItem.Bookmarks,
+            Routes.AccountProfile to MainNavItem.Profile,
+            Routes.AccountEdit to MainNavItem.Profile,
+            Routes.AccountChangePassword to MainNavItem.Profile
+        )
+        cases.forEach { (route, expected) ->
+            navController.navigate(route)
+            assertWithMessage("route=%s", route)
+                .that(mainNavItemForDestination(navController.currentDestination))
+                .isEqualTo(expected)
+        }
     }
 }

@@ -1,34 +1,71 @@
 package com.kanyandula.nyasa.ui.navigation
 
-import android.net.Uri
+import kotlinx.serialization.Serializable
 
+/**
+ * Type-safe navigation routes (navigation-compose 2.8+ `@Serializable` keys).
+ *
+ * Graph markers — [AuthGraph], [MainGraph], [BlogGraph], [AccountGraph] — are nested-graph
+ * wrappers used with `navigation<T>` / `getBackStackEntry<T>`; everything else is a leaf screen
+ * registered with `composable<T>`. Screens that carry arguments are `data class`es; argument-free
+ * screens are `object`s.
+ */
 object Routes {
-    const val AUTH_GRAPH = "auth"
-    const val MAIN_GRAPH = "main"
+    // Graph wrappers
+    @Serializable
+    object AuthGraph
 
-    const val BLOG_GRAPH = "blog"
-    const val BLOG_FEED = "blog/feed"
-    const val BLOG_SEARCH = "blog/search"
-    const val BLOG_DETAIL = "blog/detail/{slug}"
-    fun blogDetail(slug: String) = "blog/detail/${Uri.encode(slug)}"
-    const val BLOG_EDIT = "blog/edit/{slug}"
-    fun blogEdit(slug: String) = "blog/edit/${Uri.encode(slug)}"
+    @Serializable
+    object MainGraph
 
-    const val CREATE = "create"
+    @Serializable
+    object BlogGraph
 
-    const val AUTHOR_PROFILE = "author/{username}"
-    fun authorProfile(username: String) = "author/${Uri.encode(username)}"
+    @Serializable
+    object AccountGraph
 
-    const val BOOKMARKS = "bookmarks"
+    // Blog
+    @Serializable
+    object BlogFeed
 
-    const val ACCOUNT_GRAPH = "account"
-    const val ACCOUNT_PROFILE = "account/profile"
-    const val ACCOUNT_EDIT = "account/edit"
-    const val ACCOUNT_CHANGE_PASSWORD = "account/change-password"
+    @Serializable
+    object BlogSearch
+
+    @Serializable
+    data class BlogDetail(val slug: String)
+
+    @Serializable
+    data class BlogEdit(val slug: String)
+
+    @Serializable
+    object Create
+
+    @Serializable
+    data class AuthorProfile(val username: String)
+
+    @Serializable
+    object Bookmarks
+
+    // Account
+    @Serializable
+    object AccountProfile
+
+    @Serializable
+    object AccountEdit
+
+    @Serializable
+    object AccountChangePassword
 
     // Auth
-    const val WELCOME = "welcome"
-    const val LOGIN = "login"
-    const val REGISTER = "register"
-    const val FORGOT_PASSWORD = "forgot-password"
+    @Serializable
+    object Welcome
+
+    @Serializable
+    object Login
+
+    @Serializable
+    object Register
+
+    @Serializable
+    object ForgotPassword
 }

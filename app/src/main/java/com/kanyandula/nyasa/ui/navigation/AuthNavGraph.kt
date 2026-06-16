@@ -31,10 +31,10 @@ import com.kanyandula.nyasa.ui.components.LoadingOverlay
  */
 @Suppress("LongMethod")
 fun NavGraphBuilder.authGraph(navController: NavController) {
-    navigation(startDestination = Routes.WELCOME, route = Routes.AUTH_GRAPH) {
-        composable(Routes.WELCOME) { entry ->
+    navigation<Routes.AuthGraph>(startDestination = Routes.Welcome) {
+        composable<Routes.Welcome> { entry ->
             val parentEntry = remember(entry) {
-                navController.getBackStackEntry(Routes.AUTH_GRAPH)
+                navController.getBackStackEntry<Routes.AuthGraph>()
             }
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -43,19 +43,19 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
 
             Box(modifier = Modifier.fillMaxSize()) {
                 WelcomeScreen(
-                    onLoginClick = { navController.navigate(Routes.LOGIN) },
-                    onRegisterClick = { navController.navigate(Routes.REGISTER) },
+                    onLoginClick = { navController.navigate(Routes.Login) },
+                    onRegisterClick = { navController.navigate(Routes.Register) },
                     onForgotPasswordClick = {
-                        navController.navigate(Routes.FORGOT_PASSWORD)
+                        navController.navigate(Routes.ForgotPassword)
                     }
                 )
                 LoadingOverlay(isLoading = isLoading)
             }
         }
 
-        composable(Routes.LOGIN) { entry ->
+        composable<Routes.Login> { entry ->
             val parentEntry = remember(entry) {
-                navController.getBackStackEntry(Routes.AUTH_GRAPH)
+                navController.getBackStackEntry<Routes.AuthGraph>()
             }
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val state by viewModel.viewState.collectAsStateWithLifecycle()
@@ -70,9 +70,9 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
                             is LoginAction.Login ->
                                 viewModel.attemptLogin(action.email, action.password)
                             is LoginAction.ForgotPassword ->
-                                navController.navigate(Routes.FORGOT_PASSWORD)
+                                navController.navigate(Routes.ForgotPassword)
                             is LoginAction.NavigateToRegister ->
-                                navController.navigate(Routes.REGISTER)
+                                navController.navigate(Routes.Register)
                             is LoginAction.EmailChanged ->
                                 viewModel.setLoginFields(LoginFields(action.email))
                             is LoginAction.NavigateBack ->
@@ -84,9 +84,9 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             }
         }
 
-        composable(Routes.REGISTER) { entry ->
+        composable<Routes.Register> { entry ->
             val parentEntry = remember(entry) {
-                navController.getBackStackEntry(Routes.AUTH_GRAPH)
+                navController.getBackStackEntry<Routes.AuthGraph>()
             }
             val viewModel: AuthViewModel = hiltViewModel(parentEntry)
             val state by viewModel.viewState.collectAsStateWithLifecycle()
@@ -118,7 +118,7 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             }
         }
 
-        composable(Routes.FORGOT_PASSWORD) {
+        composable<Routes.ForgotPassword> {
             val context = LocalContext.current
             ForgotPasswordScreen(
                 onNavigateBack = { navController.popBackStack() },

@@ -13,10 +13,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.kanyandula.nyasa.models.BlogPost
 import com.kanyandula.nyasa.ui.Features
 import com.kanyandula.nyasa.ui.main.AccountProfileRoute
@@ -48,7 +47,7 @@ private val StringSetSaver: Saver<Set<String>, Any> = listSaver(
 /**
  * Binds the signed-in account's username into the supplied [BlogViewModel] so the
  * downstream BlogDetail / Feed flows can determine bookmark-as-author state. Shared by
- * every route in `BLOG_GRAPH` to avoid drifting copies.
+ * every route in [Routes.BlogGraph] to avoid drifting copies.
  */
 @Composable
 private fun BindCurrentUsernameToBlogVm(vm: BlogViewModel) {
@@ -112,7 +111,7 @@ private fun BlogFeedScaffold(
 ) {
     val featuredHero by vm.featuredHero.collectAsStateWithLifecycle()
     BlogListDetailScaffold(
-        onNavigateToDetailFullScreen = { slug -> navController.navigate(Routes.blogDetail(slug)) },
+        onNavigateToDetailFullScreen = { slug -> navController.navigate(Routes.BlogDetail(slug)) },
         visibleSlugs = visibleSlugs,
         mode = mode,
         listPane = { onBlogClicked ->
@@ -135,9 +134,9 @@ private fun BlogFeedScaffold(
                 slug = slug,
                 viewModel = vm,
                 onNavigateBack = onClose,
-                onEdit = { blogSlug -> navController.navigate(Routes.blogEdit(blogSlug)) },
+                onEdit = { blogSlug -> navController.navigate(Routes.BlogEdit(blogSlug)) },
                 onDeleted = onClose,
-                onAuthorClick = { username -> navController.navigate(Routes.authorProfile(username)) }
+                onAuthorClick = { username -> navController.navigate(Routes.AuthorProfile(username)) }
             )
         },
         expandedListPane = if (Features.ADAPTIVE_LAYOUT_ENABLED) {
@@ -160,17 +159,16 @@ private fun BlogFeedScaffold(
 
 /**
  * Registers a feed-style route (Home or Search) wrapped in [BlogListDetailScaffold]. On
- * Small windows the wrapper passes clicks through to a full-screen `BLOG_DETAIL`; on
+ * Small windows the wrapper passes clicks through to a full-screen [Routes.BlogDetail]; on
  * Medium it owns selection inside the scaffold's pane navigator.
  */
-private fun NavGraphBuilder.blogFeedRoute(
-    route: String,
+private inline fun <reified T : Any> NavGraphBuilder.blogFeedRoute(
     mode: FeedMode,
     navController: NavController
 ) {
-    composable(route) { entry ->
+    composable<T> { entry ->
         val parentEntry = remember(entry) {
-            navController.getBackStackEntry(Routes.BLOG_GRAPH)
+            navController.getBackStackEntry<Routes.BlogGraph>()
         }
         val vm: BlogViewModel = hiltViewModel(parentEntry)
         val state by vm.viewState.collectAsStateWithLifecycle()
@@ -200,17 +198,14 @@ fun NavGraphBuilder.mainGraph(
     currentTheme: ThemePreference,
     onThemeChanged: (ThemePreference) -> Unit
 ) {
-    navigation(startDestination = Routes.BLOG_GRAPH, route = Routes.MAIN_GRAPH) {
-        navigation(startDestination = Routes.BLOG_FEED, route = Routes.BLOG_GRAPH) {
-            blogFeedRoute(Routes.BLOG_FEED, FeedMode.Home, navController)
-            blogFeedRoute(Routes.BLOG_SEARCH, FeedMode.Search, navController)
-            composable(
-                route = Routes.BLOG_DETAIL,
-                arguments = listOf(navArgument("slug") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val slug = backStackEntry.arguments?.getString("slug").orEmpty()
+    navigation<Routes.MainGraph>(startDestination = Routes.BlogGraph) {
+        navigation<Routes.BlogGraph>(startDestination = Routes.BlogFeed) {
+            blogFeedRoute<Routes.BlogFeed>(FeedMode.Home, navController)
+            blogFeedRoute<Routes.BlogSearch>(FeedMode.Search, navController)
+            composable<Routes.BlogDetail> { backStackEntry ->
+                val slug = backStackEntry.toRoute<Routes.BlogDetail>().slug
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Routes.BLOG_GRAPH)
+                    navController.getBackStackEntry<Routes.BlogGraph>()
                 }
                 val vm: BlogViewModel = hiltViewModel(parentEntry)
                 BindCurrentUsernameToBlogVm(vm)
@@ -219,23 +214,20 @@ fun NavGraphBuilder.mainGraph(
                     viewModel = vm,
                     onNavigateBack = { navController.popBackStack() },
                     onEdit = { blogSlug ->
-                        navController.navigate(Routes.blogEdit(blogSlug))
+                        navController.navigate(Routes.BlogEdit(blogSlug))
                     },
                     onDeleted = { navController.popBackStack() },
                     onAuthorClick = { username ->
-                        navController.navigate(Routes.authorProfile(username))
+                        navController.navigate(Routes.AuthorProfile(username))
                     }
                 )
             }
-            composable(
-                route = Routes.BLOG_EDIT,
-                arguments = listOf(navArgument("slug") { type = NavType.StringType })
-            ) { backStackEntry ->
+            composable<Routes.BlogEdit> { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Routes.BLOG_GRAPH)
+                    navController.getBackStackEntry<Routes.BlogGraph>()
                 }
                 val vm: BlogViewModel = hiltViewModel(parentEntry)
-                val slug = backStackEntry.arguments?.getString("slug").orEmpty()
+                val slug = backStackEntry.toRoute<Routes.BlogEdit>().slug
                 EditBlogRoute(
                     slug = slug,
                     viewModel = vm,
@@ -245,29 +237,24 @@ fun NavGraphBuilder.mainGraph(
             }
         }
 
-        composable(
-            route = Routes.AUTHOR_PROFILE,
-            arguments = listOf(
-                navArgument("username") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val username = backStackEntry.arguments?.getString("username").orEmpty()
+        composable<Routes.AuthorProfile> { backStackEntry ->
+            val username = backStackEntry.toRoute<Routes.AuthorProfile>().username
             AuthorProfileRoute(
                 username = username,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.BOOKMARKS) {
+        composable<Routes.Bookmarks> {
             BookmarksRoute(
                 onBlogClick = { slug ->
-                    navController.navigate(Routes.blogDetail(slug))
+                    navController.navigate(Routes.BlogDetail(slug))
                 },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
-        composable(Routes.CREATE) {
+        composable<Routes.Create> {
             val vm: CreateBlogViewModel = hiltViewModel()
             CreateBlogRoute(
                 viewModel = vm,
@@ -275,31 +262,28 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        navigation(
-            startDestination = Routes.ACCOUNT_PROFILE,
-            route = Routes.ACCOUNT_GRAPH
-        ) {
-            composable(Routes.ACCOUNT_PROFILE) { entry ->
+        navigation<Routes.AccountGraph>(startDestination = Routes.AccountProfile) {
+            composable<Routes.AccountProfile> { entry ->
                 val parentEntry = remember(entry) {
-                    navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
+                    navController.getBackStackEntry<Routes.AccountGraph>()
                 }
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
                 AccountProfileRoute(
                     viewModel = vm,
                     currentTheme = currentTheme,
                     onThemeChanged = onThemeChanged,
-                    onEditProfile = { navController.navigate(Routes.ACCOUNT_EDIT) },
+                    onEditProfile = { navController.navigate(Routes.AccountEdit) },
                     onChangePassword = {
-                        navController.navigate(Routes.ACCOUNT_CHANGE_PASSWORD)
+                        navController.navigate(Routes.AccountChangePassword)
                     },
                     onBookmarks = {
-                        navController.navigate(Routes.BOOKMARKS)
+                        navController.navigate(Routes.Bookmarks)
                     }
                 )
             }
-            composable(Routes.ACCOUNT_EDIT) { entry ->
+            composable<Routes.AccountEdit> { entry ->
                 val parentEntry = remember(entry) {
-                    navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
+                    navController.getBackStackEntry<Routes.AccountGraph>()
                 }
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
                 EditAccountRoute(
@@ -307,9 +291,9 @@ fun NavGraphBuilder.mainGraph(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
-            composable(Routes.ACCOUNT_CHANGE_PASSWORD) { entry ->
+            composable<Routes.AccountChangePassword> { entry ->
                 val parentEntry = remember(entry) {
-                    navController.getBackStackEntry(Routes.ACCOUNT_GRAPH)
+                    navController.getBackStackEntry<Routes.AccountGraph>()
                 }
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
                 ChangePasswordRoute(
