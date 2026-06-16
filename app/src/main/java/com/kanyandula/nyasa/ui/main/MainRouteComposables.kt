@@ -55,7 +55,7 @@ internal fun handleBlogFeedAction(
 ): (BlogFeedAction) -> Unit = { action ->
     when (action) {
         is BlogFeedAction.BlogClicked ->
-            navController.navigate(Routes.blogDetail(action.slug))
+            navController.navigate(Routes.BlogDetail(action.slug))
         is BlogFeedAction.Search -> {
             vm.setQuery(action.query)
             vm.executeSearch()
@@ -71,7 +71,7 @@ internal fun handleBlogFeedAction(
         is BlogFeedAction.BookmarkClicked ->
             vm.bookmarkBlog(action.slug)
         is BlogFeedAction.CreateClicked ->
-            navController.navigate(Routes.CREATE)
+            navController.navigate(Routes.Create)
         is BlogFeedAction.BackClicked ->
             // Today only SearchTopBar dispatches this. Route through the bottom-bar helper so
             // we always land on Home in a single transition — `popBackStack()` could expose an

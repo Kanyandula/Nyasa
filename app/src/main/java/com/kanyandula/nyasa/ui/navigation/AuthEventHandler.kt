@@ -10,14 +10,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.kanyandula.nyasa.ui.auth.AuthViewModel
 
-/** Single collector for [AuthViewModel.events] for the entire AUTH_GRAPH. */
+/** Single collector for [AuthViewModel.events] for the entire [Routes.AuthGraph]. */
 @Composable
 fun AuthEventHandler(navController: NavController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
-    if (backStackEntry?.destination.isInGraph(Routes.AUTH_GRAPH) != true) return
+    if (!backStackEntry?.destination.isInGraph<Routes.AuthGraph>()) return
 
     val parentEntry = remember(navController) {
-        navController.getBackStackEntry(Routes.AUTH_GRAPH)
+        navController.getBackStackEntry<Routes.AuthGraph>()
     }
     val viewModel: AuthViewModel = hiltViewModel(parentEntry)
     val context = LocalContext.current

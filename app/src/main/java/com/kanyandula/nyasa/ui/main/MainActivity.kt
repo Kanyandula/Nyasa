@@ -82,22 +82,25 @@ class MainActivity : ComponentActivity() {
                     val themeScope = rememberCoroutineScope()
                     val token by sessionManager.cachedToken.collectAsStateWithLifecycle()
 
-                    val startDestination = remember {
+                    val startDestination: Any = remember {
                         if (sessionManager.cachedToken.value.isValid()) {
-                            Routes.MAIN_GRAPH
+                            Routes.MainGraph
                         } else {
-                            Routes.AUTH_GRAPH
+                            Routes.AuthGraph
                         }
                     }
 
                     LaunchedEffect(token) {
                         analyticsTracker.setUserId(token?.account_pk?.toString())
-                        val target = if (token.isValid()) {
-                            Routes.MAIN_GRAPH
+                        val signedIn = token.isValid()
+                        val target: Any = if (signedIn) Routes.MainGraph else Routes.AuthGraph
+                        // Reified isInGraph<T> forces the branch on the type; reuse `target` for navigate().
+                        val inTargetGraph = if (signedIn) {
+                            navController.currentDestination.isInGraph<Routes.MainGraph>()
                         } else {
-                            Routes.AUTH_GRAPH
+                            navController.currentDestination.isInGraph<Routes.AuthGraph>()
                         }
-                        if (!navController.currentDestination.isInGraph(target)) {
+                        if (!inTargetGraph) {
                             navController.navigate(target) {
                                 popUpTo(navController.graph.id) { inclusive = true }
                                 launchSingleTop = true
@@ -109,8 +112,7 @@ class MainActivity : ComponentActivity() {
                     AuthEventHandler(navController)
 
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val showNav = navBackStackEntry?.destination
-                        .isInGraph(Routes.MAIN_GRAPH) ?: false
+                    val showNav = navBackStackEntry?.destination.isInGraph<Routes.MainGraph>()
 
                     val onThemeChanged: (ThemePreference) -> Unit = { preference ->
                         themeScope.launch {
@@ -148,7 +150,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun RootNavHost(
     navController: NavHostController,
-    startDestination: String,
+    startDestination: Any,
     currentTheme: ThemePreference,
     onThemeChanged: (ThemePreference) -> Unit,
     modifier: Modifier = Modifier

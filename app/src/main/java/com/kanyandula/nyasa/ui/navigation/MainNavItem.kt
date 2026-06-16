@@ -12,39 +12,54 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import timber.log.Timber
 
-/** Top-level navigation destinations surfaced by [NyasaBottomBar] (phone) and [NyasaSideRail] (tablet). */
+/**
+ * Top-level navigation destinations surfaced by [NyasaBottomBar] (phone) and [NyasaSideRail] (tablet).
+ *
+ * [route] is the type-safe leaf route the tab navigates to (a `@Serializable` route key).
+ *
+ * TODO(Phase 3): once the graph is flat, replace `Any` with a sealed route supertype so the
+ * "tab points at a leaf, never a graph wrapper" invariant is compiler-checked, not test-checked.
+ */
 enum class MainNavItem(
     val label: String,
-    val route: String,
+    val route: Any,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    Home("Home", Routes.BLOG_FEED, Icons.Filled.Home, Icons.Outlined.Home),
-    Search("Search", Routes.BLOG_SEARCH, Icons.Filled.Search, Icons.Outlined.Search),
+    Home("Home", Routes.BlogFeed, Icons.Filled.Home, Icons.Outlined.Home),
+    Search("Search", Routes.BlogSearch, Icons.Filled.Search, Icons.Outlined.Search),
     Bookmarks(
         "Bookmarks",
-        Routes.BOOKMARKS,
+        Routes.Bookmarks,
         Icons.Filled.Bookmark,
         Icons.Outlined.BookmarkBorder
     ),
-    Profile("Profile", Routes.ACCOUNT_PROFILE, Icons.Filled.Person, Icons.Outlined.Person)
+    Profile("Profile", Routes.AccountProfile, Icons.Filled.Person, Icons.Outlined.Person)
 }
 
-/** Maps the current route string to the active [MainNavItem]; defaults to [MainNavItem.Home]. */
-fun mainNavItemForRoute(currentRoute: String?): MainNavItem = when {
-    currentRoute?.startsWith(Routes.BLOG_SEARCH) == true -> MainNavItem.Search
-    currentRoute?.startsWith(Routes.BOOKMARKS) == true -> MainNavItem.Bookmarks
-    currentRoute?.startsWith(Routes.ACCOUNT_GRAPH) == true -> MainNavItem.Profile
-    currentRoute?.startsWith(Routes.BLOG_GRAPH) == true -> MainNavItem.Home
+/**
+ * Maps the current [destination] to the active [MainNavItem]. Home is the catch-all default: every
+ * blog-browsing leaf (feed, detail, edit, author, create) highlights Home.
+ *
+ * TODO(Phase 3): when typed routes + a flat graph land, express this as an exhaustive
+ * `when (route) { is BlogFeed/BlogDetail/... -> Home }` so Home is matched positively rather than
+ * by elimination.
+ */
+fun mainNavItemForDestination(destination: NavDestination?): MainNavItem = when {
+    destination == null -> MainNavItem.Home
+    destination.hasRoute<Routes.BlogSearch>() -> MainNavItem.Search
+    destination.hasRoute<Routes.Bookmarks>() -> MainNavItem.Bookmarks
+    destination.isInGraph<Routes.AccountGraph>() -> MainNavItem.Profile
     else -> MainNavItem.Home
 }
 
 /**
  * Whether a bottom-bar tab tap should be allowed to navigate, given the current destination.
  *
- * A destination outside `MAIN_GRAPH` (e.g. `AUTH_GRAPH` the frame after a logout-driven graph swap)
+ * A destination outside `MainGraph` (e.g. `AuthGraph` the frame after a logout-driven graph swap)
  * is ignored — navigating would race the swap and crash. A `null` destination, however, means the
  * back stack is momentarily empty/dead (observed after process-death restore, and during the same
  * swap); in that case the tap must be allowed through so `navigate()` recovers the user instead of
@@ -53,14 +68,14 @@ fun mainNavItemForRoute(currentRoute: String?): MainNavItem = when {
  * @see navigateToMainNavItem — prefer that; this predicate is exposed for testing.
  */
 internal fun NavDestination?.allowsTabNavigation(): Boolean =
-    this == null || isInGraph(Routes.MAIN_GRAPH)
+    this == null || isInGraph<Routes.MainGraph>()
 
 /**
  * Navigates to the given top-level [item], preserving sibling back stacks (Material multi-stack pattern).
  *
- * Anchored on [Routes.BLOG_FEED] — the deepest start destination of `MAIN_GRAPH`, always present in
- * the back stack while the user is in `MAIN_GRAPH`. Anchoring on `MAIN_GRAPH` instead would collapse
- * Home and Search into a single save bucket because they share `BLOG_GRAPH`, causing tab switches to
+ * Anchored on [Routes.BlogFeed] — the deepest start destination of `MainGraph`, always present in
+ * the back stack while the user is in `MainGraph`. Anchoring on `MainGraph` instead would collapse
+ * Home and Search into a single save bucket because they share `BlogGraph`, causing tab switches to
  * restore each other and freeze navigation.
  *
  * Guards against two failure modes that surface as `IllegalStateException: Restore State failed` from
@@ -73,7 +88,7 @@ fun NavController.navigateToMainNavItem(item: MainNavItem) {
     if (!currentDestination.allowsTabNavigation()) return
     try {
         navigate(item.route) {
-            popUpTo(Routes.BLOG_FEED) { saveState = true }
+            popUpTo(Routes.BlogFeed) { saveState = true }
             launchSingleTop = true
             restoreState = true
         }
@@ -90,7 +105,7 @@ fun NavController.navigateToMainNavItem(item: MainNavItem) {
         }
         try {
             navigate(item.route) {
-                popUpTo(Routes.BLOG_FEED) { saveState = true }
+                popUpTo(Routes.BlogFeed) { saveState = true }
                 launchSingleTop = true
             }
         } catch (retryFailure: IllegalStateException) {
