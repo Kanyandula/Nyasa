@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * Type-safe navigation routes (navigation-compose 2.8+ `@Serializable` keys).
  *
- * Graph markers — [AuthGraph], [MainGraph], [BlogGraph], [AccountGraph] — are nested-graph
- * wrappers used with `navigation<T>` / `getBackStackEntry<T>`; everything else is a leaf screen
+ * Graph markers — [AuthGraph], [MainGraph], [AccountGraph] — are nested-graph wrappers used with
+ * `navigation<T>` / `getBackStackEntry<T>`; everything else is a leaf screen
  * registered with `composable<T>`. Screens that carry arguments are `data class`es; argument-free
  * screens are `object`s.
  */
@@ -17,9 +17,6 @@ object Routes {
 
     @Serializable
     object MainGraph
-
-    @Serializable
-    object BlogGraph
 
     @Serializable
     object AccountGraph
