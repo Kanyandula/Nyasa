@@ -35,6 +35,7 @@ import com.kanyandula.nyasa.ui.main.blog.composables.HomeFeedExpanded
 import com.kanyandula.nyasa.ui.main.blog.composables.SearchFeedExpanded
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.EditBlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.handleBlogFeedAction
 import com.kanyandula.nyasa.ui.theme.ThemePreference
@@ -226,10 +227,7 @@ fun NavGraphBuilder.mainGraph(
             )
         }
         composable<Routes.BlogEdit> { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry<Routes.MainGraph>()
-            }
-            val vm: BlogViewModel = hiltViewModel(parentEntry)
+            val vm: EditBlogViewModel = hiltViewModel()
             val slug = backStackEntry.toRoute<Routes.BlogEdit>().slug
             EditBlogRoute(
                 slug = slug,

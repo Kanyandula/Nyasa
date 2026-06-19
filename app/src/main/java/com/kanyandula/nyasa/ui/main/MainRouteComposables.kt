@@ -40,6 +40,7 @@ import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.AuthorProfileViewModel
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BlogViewModel
 import com.kanyandula.nyasa.ui.main.blog.viewmodel.BookmarksViewModel
+import com.kanyandula.nyasa.ui.main.blog.viewmodel.EditBlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.CreateBlogViewModel
 import com.kanyandula.nyasa.ui.main.create_blog.composables.CreateBlogScreen
 import com.kanyandula.nyasa.ui.main.create_blog.state.CreateBlogNavigationEvent
@@ -118,19 +119,8 @@ internal fun BlogDetailRoute(
         isLoading = isLoading,
         onAction = { action ->
             when (action) {
-                is BlogDetailAction.EditClicked -> {
-                    viewModel.getBlogPost()?.let { blogPost ->
-                        viewModel.clearUpdatedImageUri()
-                        viewModel.setUpdatedBlogFields(
-                            title = blogPost.title,
-                            originalImageUrl = blogPost.image,
-                            category = blogPost.category,
-                            tags = blogPost.tags
-                        )
-                        viewModel.editBodyState.setHtml(blogPost.body)
-                        onEdit(slug)
-                    }
-                }
+                // EditBlogViewModel reloads the post by slug, so no field seeding here.
+                is BlogDetailAction.EditClicked -> onEdit(slug)
                 is BlogDetailAction.DeleteClicked -> showDeleteDialog = true
                 is BlogDetailAction.NavigateBack -> onNavigateBack()
                 is BlogDetailAction.LikeClicked -> viewModel.likeBlog(slug)
@@ -157,15 +147,17 @@ internal fun BlogDetailRoute(
 @Composable
 internal fun EditBlogRoute(
     slug: String,
-    viewModel: BlogViewModel,
+    viewModel: EditBlogViewModel,
     onNavigateBack: () -> Unit,
     onSaved: () -> Unit
 ) {
     RequestNotificationPermissionEffect()
 
     val activity = LocalContext.current as Activity
-    val state by viewModel.updateBlogState.collectAsStateWithLifecycle()
+    val state by viewModel.viewState.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+    LaunchedEffect(slug) { viewModel.loadBlogForEdit(slug) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
