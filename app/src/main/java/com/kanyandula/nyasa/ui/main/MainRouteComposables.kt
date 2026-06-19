@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.kanyandula.nyasa.R
 import com.kanyandula.nyasa.models.ProfileUpdateRequest
@@ -46,12 +47,14 @@ import com.kanyandula.nyasa.ui.navigation.MainNavItem
 import com.kanyandula.nyasa.ui.navigation.Routes
 import com.kanyandula.nyasa.ui.navigation.createImagePickerIntent
 import com.kanyandula.nyasa.ui.navigation.handleStandardEvent
+import com.kanyandula.nyasa.ui.navigation.isResumed
 import com.kanyandula.nyasa.ui.navigation.navigateToMainNavItem
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 
 internal fun handleBlogFeedAction(
     vm: BlogViewModel,
-    navController: NavController
+    navController: NavController,
+    entry: NavBackStackEntry
 ): (BlogFeedAction) -> Unit = { action ->
     when (action) {
         is BlogFeedAction.BlogClicked ->
@@ -75,8 +78,9 @@ internal fun handleBlogFeedAction(
         is BlogFeedAction.BackClicked ->
             // Today only SearchTopBar dispatches this. Route through the bottom-bar helper so
             // we always land on Home in a single transition — `popBackStack()` could expose an
-            // intermediate NavGraph entry (no Composable) and render blank between taps.
-            navController.navigateToMainNavItem(MainNavItem.Home)
+            // intermediate NavGraph entry (no Composable) and render blank between taps. The
+            // RESUMED gate drops a second back tap that lands while the first is still settling.
+            if (entry.isResumed()) navController.navigateToMainNavItem(MainNavItem.Home)
         is BlogFeedAction.Refresh -> vm.executeSearch()
     }
 }

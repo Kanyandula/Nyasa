@@ -174,7 +174,9 @@ private inline fun <reified T : Any> NavGraphBuilder.blogFeedRoute(
         val state by vm.viewState.collectAsStateWithLifecycle()
         BindCurrentUsernameToBlogVm(vm)
 
-        val feedAction = remember(vm, navController) { handleBlogFeedAction(vm, navController) }
+        val feedAction = remember(vm, navController, entry) {
+            handleBlogFeedAction(vm, navController, entry)
+        }
 
         var visibleSlugs by rememberSaveable(stateSaver = StringSetSaver) {
             mutableStateOf(emptySet<String>())
@@ -213,11 +215,11 @@ fun NavGraphBuilder.mainGraph(
             BlogDetailRoute(
                 slug = slug,
                 viewModel = vm,
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStackOnce(backStackEntry) },
                 onEdit = { blogSlug ->
                     navController.navigate(Routes.BlogEdit(blogSlug))
                 },
-                onDeleted = { navController.popBackStack() },
+                onDeleted = { navController.popBackStackOnce(backStackEntry) },
                 onAuthorClick = { username ->
                     navController.navigate(Routes.AuthorProfile(username))
                 }
@@ -232,8 +234,8 @@ fun NavGraphBuilder.mainGraph(
             EditBlogRoute(
                 slug = slug,
                 viewModel = vm,
-                onNavigateBack = { navController.popBackStack() },
-                onSaved = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStackOnce(backStackEntry) },
+                onSaved = { navController.popBackStackOnce(backStackEntry) }
             )
         }
 
@@ -241,24 +243,24 @@ fun NavGraphBuilder.mainGraph(
             val username = backStackEntry.toRoute<Routes.AuthorProfile>().username
             AuthorProfileRoute(
                 username = username,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStackOnce(backStackEntry) }
             )
         }
 
-        composable<Routes.Bookmarks> {
+        composable<Routes.Bookmarks> { backStackEntry ->
             BookmarksRoute(
                 onBlogClick = { slug ->
                     navController.navigate(Routes.BlogDetail(slug))
                 },
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStackOnce(backStackEntry) }
             )
         }
 
-        composable<Routes.Create> {
+        composable<Routes.Create> { backStackEntry ->
             val vm: CreateBlogViewModel = hiltViewModel()
             CreateBlogRoute(
                 viewModel = vm,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStackOnce(backStackEntry) }
             )
         }
 
@@ -288,7 +290,7 @@ fun NavGraphBuilder.mainGraph(
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
                 EditAccountRoute(
                     viewModel = vm,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStackOnce(entry) }
                 )
             }
             composable<Routes.AccountChangePassword> { entry ->
@@ -298,7 +300,7 @@ fun NavGraphBuilder.mainGraph(
                 val vm: AccountViewModel = hiltViewModel(parentEntry)
                 ChangePasswordRoute(
                     viewModel = vm,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStackOnce(entry) }
                 )
             }
         }

@@ -1,6 +1,9 @@
 package com.kanyandula.nyasa.ui.navigation
 
 import android.app.Application
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph
 import androidx.navigation.compose.ComposeNavigator
@@ -32,6 +35,15 @@ class NavigationGuardTest {
     @Before
     fun setUp() {
         navController = TestNavHostController(ApplicationProvider.getApplicationContext())
+        // A RESUMED host lifecycle is what drives the topmost back-stack entry to RESUMED — without
+        // it TestNavHostController leaves entries at CREATED, so the double-pop gate can't be exercised.
+        val lifecycleOwner = object : LifecycleOwner {
+            val registry = LifecycleRegistry.createUnsafe(this).apply {
+                currentState = Lifecycle.State.RESUMED
+            }
+            override val lifecycle: Lifecycle get() = registry
+        }
+        navController.setLifecycleOwner(lifecycleOwner)
         navController.navigatorProvider.addNavigator(ComposeNavigator())
         // Mirror RootNavHost: an unnamed root graph hosting authGraph + mainGraph.
         // TODO(Phase 5): drive the real RootNavHost instead of mirroring its assembly here.
@@ -69,6 +81,33 @@ class NavigationGuardTest {
         val landed = navController.currentDestination
         assertThat(landed).isNotInstanceOf(NavGraph::class.java)
         assertThat(landed?.hasRoute<Routes.AccountProfile>()).isTrue()
+    }
+
+    /**
+     * Drives every entry's enter transition to completion, the way the real [NavHost] does after its
+     * animation settles. Without it [ComposeNavigator] parks entries mid-transition below RESUMED.
+     */
+    private fun settle() {
+        val navigator = navController.navigatorProvider.getNavigator(ComposeNavigator::class.java)
+        navigator.backStack.value.forEach { navigator.onTransitionComplete(it) }
+    }
+
+    @Test
+    fun `popBackStackOnce pops once then gates a repeat tap from the same entry`() {
+        navController.navigate(Routes.Bookmarks)
+        navController.navigate(Routes.BlogDetail("s"))
+        settle()
+
+        val detailEntry = navController.currentBackStackEntry!!
+        assertThat(detailEntry.isResumed()).isTrue()
+
+        // First tap: the entry is the live screen, so the pop commits.
+        assertThat(navController.popBackStackOnce(detailEntry)).isTrue()
+        assertThat(navController.currentDestination?.hasRoute<Routes.Bookmarks>()).isTrue()
+
+        // Second tap captured from the same (now non-resumed) entry is gated — no skipped screen.
+        assertThat(navController.popBackStackOnce(detailEntry)).isFalse()
+        assertThat(navController.currentDestination?.hasRoute<Routes.Bookmarks>()).isTrue()
     }
 
     @Test
