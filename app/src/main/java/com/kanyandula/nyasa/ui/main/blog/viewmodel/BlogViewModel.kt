@@ -124,7 +124,7 @@ constructor(
         }
         savedStateHandle.get<String>(SAVED_SEARCH_QUERY)?.let { setQuery(it) }
         executeSearch()
-        loadCategories()
+        collectIntoState(getCategoriesUseCase()) { copy(categories = it) }
         loadFeaturedHero()
     }
 
@@ -190,19 +190,6 @@ constructor(
         if (viewState.value.selectedCategory == category) return
         updateState { copy(selectedCategory = category) }
         executeSearch()
-    }
-
-    fun loadCategories() {
-        viewModelScope.launch {
-            getCategoriesUseCase().collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { categories ->
-                        updateState { copy(categories = categories) }
-                    }
-                )
-            }
-        }
     }
 
     // endregion

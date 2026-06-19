@@ -31,7 +31,7 @@ constructor(
     val createBodyState: RichTextState = RichTextState()
 
     init {
-        loadCategories()
+        collectIntoState(getCategoriesUseCase()) { copy(categories = it) }
     }
 
     fun createNewBlogPost(title: String, body: String, imageUri: Uri?) {
@@ -97,18 +97,5 @@ constructor(
         updateState { copy(blogFields = NewBlogFields()) }
         // Editor lives outside StateFlow; reset separately.
         createBodyState.setHtml("")
-    }
-
-    private fun loadCategories() {
-        viewModelScope.launch {
-            getCategoriesUseCase().collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { categories ->
-                        updateState { copy(categories = categories) }
-                    }
-                )
-            }
-        }
     }
 }

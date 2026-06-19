@@ -40,7 +40,7 @@ constructor(
     private var updateJob: Job? = null
 
     init {
-        loadCategories()
+        collectIntoState(getCategoriesUseCase()) { copy(categories = it) }
     }
 
     /**
@@ -113,19 +113,6 @@ constructor(
                 sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
             } finally {
                 setLoading(false)
-            }
-        }
-    }
-
-    private fun loadCategories() {
-        viewModelScope.launch {
-            getCategoriesUseCase().collect { resource ->
-                handleResource(
-                    resource,
-                    onSuccess = { categories ->
-                        updateState { copy(categories = categories) }
-                    }
-                )
             }
         }
     }
