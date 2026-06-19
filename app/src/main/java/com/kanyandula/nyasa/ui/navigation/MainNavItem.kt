@@ -18,15 +18,12 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 /**
  * Top-level navigation destinations surfaced by [NyasaBottomBar] (phone) and [NyasaSideRail] (tablet).
  *
- * [route] is the type-safe leaf route the tab navigates to (a `@Serializable` route key).
- *
- * TODO(follow-up): the graph is now flat (Phase 3a) — replace `Any` with a sealed route supertype
- * so the "tab points at a leaf, never a graph wrapper" invariant is compiler-checked, not
- * test-checked. Deferred polish, not part of the Phase 3 scope.
+ * [route] is the type-safe leaf route the tab navigates to. Typing it as [Routes.TabRoute] makes
+ * "a tab points at a leaf, never a graph wrapper" a compile-time guarantee.
  */
 enum class MainNavItem(
     val label: String,
-    val route: Any,
+    val route: Routes.TabRoute,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
@@ -42,18 +39,22 @@ enum class MainNavItem(
 }
 
 /**
- * Maps the current [destination] to the active [MainNavItem]. Home is the catch-all default: every
- * blog-browsing leaf (feed, detail, edit, author, create) highlights Home.
- *
- * TODO(follow-up): now that typed routes (Phase 2) and a flat graph (Phase 3a) have landed, express
- * this as an exhaustive `when (route) { is BlogFeed/BlogDetail/... -> Home }` so Home is matched
- * positively rather than by elimination. Deferred polish, not part of the Phase 3 scope.
+ * Maps the current [destination] to the active [MainNavItem]. Each tab is matched positively against
+ * the routes it owns: Home covers the blog-browsing leaves (feed, detail, edit, author, create),
+ * the Account graph maps to Profile. A `null` or otherwise unrecognized destination defaults to Home
+ * (the app's landing tab), which also keeps the smart-cast that the leading `null` guard provides.
  */
 fun mainNavItemForDestination(destination: NavDestination?): MainNavItem = when {
     destination == null -> MainNavItem.Home
     destination.hasRoute<Routes.BlogSearch>() -> MainNavItem.Search
     destination.hasRoute<Routes.Bookmarks>() -> MainNavItem.Bookmarks
     destination.isInGraph<Routes.AccountGraph>() -> MainNavItem.Profile
+    destination.hasRoute<Routes.BlogFeed>() ||
+        destination.hasRoute<Routes.BlogDetail>() ||
+        destination.hasRoute<Routes.BlogEdit>() ||
+        destination.hasRoute<Routes.AuthorProfile>() ||
+        destination.hasRoute<Routes.Create>() -> MainNavItem.Home
+    // Any future/unrecognized MainGraph leaf falls back to the landing tab.
     else -> MainNavItem.Home
 }
 

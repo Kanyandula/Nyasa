@@ -9,8 +9,19 @@ import kotlinx.serialization.Serializable
  * `navigation<T>` / `getBackStackEntry<T>`; everything else is a leaf screen
  * registered with `composable<T>`. Screens that carry arguments are `data class`es; argument-free
  * screens are `object`s.
+ *
+ * [TabRoute] marks the leaf destinations a bottom-bar tab may target, so the
+ * "a tab points at a leaf, never a graph wrapper" invariant is compiler-checked via
+ * `MainNavItem.route` rather than only test-checked.
  */
 object Routes {
+    /**
+     * A leaf route that [com.kanyandula.nyasa.ui.navigation.MainNavItem.route] directly navigates to
+     * on a tab tap. Subsidiary screens reached within a tab (e.g. [BlogDetail], [BlogEdit]) are not
+     * `TabRoute`s even though they highlight the same tab.
+     */
+    sealed interface TabRoute
+
     // Graph wrappers
     @Serializable
     object AuthGraph
@@ -23,10 +34,10 @@ object Routes {
 
     // Blog
     @Serializable
-    object BlogFeed
+    object BlogFeed : TabRoute
 
     @Serializable
-    object BlogSearch
+    object BlogSearch : TabRoute
 
     @Serializable
     data class BlogDetail(val slug: String)
@@ -41,11 +52,11 @@ object Routes {
     data class AuthorProfile(val username: String)
 
     @Serializable
-    object Bookmarks
+    object Bookmarks : TabRoute
 
     // Account
     @Serializable
-    object AccountProfile
+    object AccountProfile : TabRoute
 
     @Serializable
     object AccountEdit

@@ -10,6 +10,7 @@ import com.kanyandula.nyasa.repository.networkApiFlow
 import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.Resource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class CategoryRepositoryImpl
@@ -19,11 +20,33 @@ constructor(
     private val connectivityObserver: ConnectivityObserver
 ) : CategoryRepository {
 
-    override fun getCategories(): Flow<Resource<List<Category>>> = networkApiFlow(
-        connectivityObserver = connectivityObserver,
-        apiCall = { apiService.getCategories() },
-        onSuccess = { body -> Resource.Success(body.map { it.toCategory() }) }
-    )
+    // Session cache: categories change rarely, so once fetched they are served from memory.
+    // This repository is a @Singleton, so the cache is shared across every ViewModel that loads
+    // categories (feed, create, edit). Notes:
+    //  - Errors are never cached, so an offline first load still retries.
+    //  - The cache is never invalidated at runtime; new server-side categories appear only after
+    //    process death (acceptable: category management is a rare admin action).
+    //  - Two collectors racing the very first (cold) load may both fetch; the result is a benign
+    //    duplicate request, not stale/corrupt data, so the cheap @Volatile is preferred over a Mutex.
+    @Volatile
+    private var cachedCategories: List<Category>? = null
+
+    override fun getCategories(): Flow<Resource<List<Category>>> = flow {
+        cachedCategories?.let {
+            // Mirror networkApiFlow's leading Loading so collectors see a consistent emission shape.
+            emit(Resource.Loading())
+            emit(Resource.Success(it))
+            return@flow
+        }
+        networkApiFlow(
+            connectivityObserver = connectivityObserver,
+            apiCall = { apiService.getCategories() },
+            onSuccess = { body -> Resource.Success(body.map { it.toCategory() }) }
+        ).collect { resource ->
+            if (resource is Resource.Success) cachedCategories = resource.data
+            emit(resource)
+        }
+    }
 
     override fun getTags(): Flow<Resource<List<Tag>>> = networkApiFlow(
         connectivityObserver = connectivityObserver,

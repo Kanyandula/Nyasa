@@ -1,15 +1,18 @@
 package com.kanyandula.nyasa.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.toUserMessage
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
 
@@ -40,6 +43,22 @@ abstract class BaseViewModel<ViewState>(initialState: ViewState) : ViewModel() {
             sendEvent(UiEvent.ShowToast(error.toUserMessage()))
         } else {
             sendEvent(UiEvent.ShowErrorDialog(error.toUserMessage()))
+        }
+    }
+
+    /**
+     * Collects a `Resource` [flow] in [viewModelScope], routing each emission through
+     * [handleResource] and reducing a success payload into the view state via [onSuccess].
+     * Centralizes the launch/collect/reduce boilerplate shared by simple "load X into state" loads.
+     */
+    protected fun <T> collectIntoState(
+        flow: Flow<Resource<T>>,
+        onSuccess: ViewState.(T) -> ViewState
+    ) {
+        viewModelScope.launch {
+            flow.collect { resource ->
+                handleResource(resource, onSuccess = { data -> updateState { onSuccess(data) } })
+            }
         }
     }
 
