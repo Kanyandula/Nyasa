@@ -8,6 +8,7 @@ import com.kanyandula.nyasa.session.ConnectivityObserver
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,6 +52,38 @@ class CategoryRepositoryImplTest {
         assertThat(success.data).hasSize(2)
         assertThat(success.data[0].name).isEqualTo("Travel")
         assertThat(success.data[1].slug).isEqualTo("culture")
+    }
+
+    @Test
+    fun `getCategories caches the result and hits the api once across calls`() = runTest {
+        coEvery { apiService.getCategories() } returns Response.success(
+            listOf(CategoryResponse(pk = 1, name = "Travel", slug = "travel"))
+        )
+
+        val first = repository.getCategories().toList()
+        val second = repository.getCategories().toList()
+
+        assertThat((first.last() as Resource.Success).data[0].name).isEqualTo("Travel")
+        assertThat((second.last() as Resource.Success).data[0].name).isEqualTo("Travel")
+        coVerify(exactly = 1) { apiService.getCategories() }
+    }
+
+    @Test
+    fun `getCategories does not cache an error result`() = runTest {
+        val connected = MutableStateFlow(false)
+        every { connectivityObserver.isConnected } returns connected
+
+        // First call is offline -> error; must not be cached.
+        assertThat(repository.getCategories().toList().last()).isInstanceOf(Resource.Error::class.java)
+
+        connected.value = true
+        coEvery { apiService.getCategories() } returns Response.success(
+            listOf(CategoryResponse(pk = 1, name = "Travel", slug = "travel"))
+        )
+        val retry = repository.getCategories().toList()
+
+        assertThat((retry.last() as Resource.Success).data[0].name).isEqualTo("Travel")
+        coVerify(exactly = 1) { apiService.getCategories() }
     }
 
     @Test
