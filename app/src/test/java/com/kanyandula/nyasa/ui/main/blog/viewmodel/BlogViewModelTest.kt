@@ -19,7 +19,7 @@ import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.fakes.FakeCommentRepository
-import com.kanyandula.nyasa.models.BlogPost
+import com.kanyandula.nyasa.fakes.createTestBlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
@@ -28,9 +28,6 @@ import com.kanyandula.nyasa.util.BlogDetailPrefetch
 import com.kanyandula.nyasa.util.MainDispatcherRule
 import com.kanyandula.nyasa.util.Resource
 import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
-import com.kanyandula.nyasa.work.BlogUploadEnqueuer
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -52,18 +49,7 @@ class BlogViewModelTest {
     private lateinit var fakeCategoryRepository: FakeCategoryRepository
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
-    private lateinit var uploadEnqueuer: BlogUploadEnqueuer
     private lateinit var viewModel: BlogViewModel
-
-    private fun createTestBlogPost(
-        pk: Int = 1,
-        title: String = "Test Blog",
-        slug: String = "test-blog",
-        body: String = "Test body",
-        image: String = "https://example.com/image.jpg",
-        dateUpdated: Long = 1000L,
-        username: String = "testuser"
-    ) = BlogPost(pk, title, slug, body, image, dateUpdated, username)
 
     @Before
     fun setup() {
@@ -72,10 +58,6 @@ class BlogViewModelTest {
         fakeCategoryRepository = FakeCategoryRepository()
         sharedPreferences = mockk(relaxed = true)
         editor = mockk(relaxed = true)
-        uploadEnqueuer = mockk(relaxed = true)
-        coEvery {
-            uploadEnqueuer.enqueueUpdate(any(), any(), any(), any(), any(), any())
-        } returns java.util.UUID.randomUUID()
 
         every { sharedPreferences.getString(any(), any()) } answers { secondArg() }
         BlogDetailPrefetch.pendingPost = null
@@ -87,7 +69,6 @@ class BlogViewModelTest {
         searchBlogPostsUseCase = SearchBlogPostsUseCase(fakeRepository),
         isAuthorOfBlogPostUseCase = IsAuthorOfBlogPostUseCase(fakeRepository),
         deleteBlogPostUseCase = DeleteBlogPostUseCase(fakeRepository),
-        blogUploadEnqueuer = uploadEnqueuer,
         getBlogPostBySlugUseCase = GetBlogPostBySlugUseCase(fakeRepository),
         getFeaturedBlogPostUseCase = GetFeaturedBlogPostUseCase(fakeRepository),
         likeBlogPostUseCase = LikeBlogPostUseCase(fakeRepository),
@@ -356,51 +337,6 @@ class BlogViewModelTest {
             val event = awaitItem()
             assertThat(event).isInstanceOf(UiEvent.ShowErrorDialog::class.java)
             cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    // endregion
-
-    // region Update Blog
-
-    @Test
-    fun `setUpdatedBlogFields updates title`() {
-        viewModel.setUpdatedBlogFields(title = "New Title")
-
-        assertThat(viewModel.updateBlogState.value.updatedBlogTitle).isEqualTo("New Title")
-    }
-
-    @Test
-    fun `updateBlogPost enqueues upload and emits BlogUpdateSuccess`() = runTest {
-        viewModel.events.test {
-            viewModel.updateBlogPost("test-blog", "Updated Title", "Updated Body", null)
-            advanceUntilIdle()
-
-            val nav = awaitItem()
-            assertThat(nav).isEqualTo(BlogNavigationEvent.BlogUpdateSuccess)
-            cancelAndIgnoreRemainingEvents()
-        }
-
-        coVerify {
-            uploadEnqueuer.enqueueUpdate(
-                slug = "test-blog",
-                title = "Updated Title",
-                body = "Updated Body",
-                imageUri = null,
-                category = any(),
-                tagsCsv = any()
-            )
-        }
-    }
-
-    @Test
-    fun `updateBlogPost ignores re-entrant calls while loading`() = runTest {
-        viewModel.updateBlogPost("test-blog", "First", "First body", null)
-        viewModel.updateBlogPost("test-blog", "Second", "Second body", null)
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) {
-            uploadEnqueuer.enqueueUpdate(any(), any(), any(), any(), any(), any())
         }
     }
 

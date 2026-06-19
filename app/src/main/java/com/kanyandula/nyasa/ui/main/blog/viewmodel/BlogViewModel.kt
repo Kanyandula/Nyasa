@@ -1,7 +1,6 @@
 package com.kanyandula.nyasa.ui.main.blog.viewmodel
 
 import android.content.SharedPreferences
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -26,11 +25,9 @@ import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.components.optimisticAction
 import com.kanyandula.nyasa.ui.main.blog.state.BlogListUiState
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
-import com.kanyandula.nyasa.ui.main.blog.state.UpdateBlogUiState
 import com.kanyandula.nyasa.ui.main.blog.state.ViewBlogUiState
 import com.kanyandula.nyasa.util.AppError
 import com.kanyandula.nyasa.util.BlogDetailPrefetch
-import com.kanyandula.nyasa.util.BlogUtils
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_FILTER
 import com.kanyandula.nyasa.util.PreferenceKeys.BLOG_ORDER
 import com.kanyandula.nyasa.util.Resource
@@ -38,8 +35,6 @@ import com.kanyandula.nyasa.util.SuccessHandling.SUCCESS_BLOG_DELETED
 import com.kanyandula.nyasa.util.analytics.AnalyticsEvent
 import com.kanyandula.nyasa.util.analytics.AnalyticsTracker
 import com.kanyandula.nyasa.util.toUserMessage
-import com.kanyandula.nyasa.work.BlogUploadEnqueuer
-import com.mohamedrejeb.richeditor.model.RichTextState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -61,7 +56,6 @@ constructor(
     private val searchBlogPostsUseCase: SearchBlogPostsUseCase,
     private val isAuthorOfBlogPostUseCase: IsAuthorOfBlogPostUseCase,
     private val deleteBlogPostUseCase: DeleteBlogPostUseCase,
-    private val blogUploadEnqueuer: BlogUploadEnqueuer,
     private val getBlogPostBySlugUseCase: GetBlogPostBySlugUseCase,
     private val getFeaturedBlogPostUseCase: GetFeaturedBlogPostUseCase,
     private val likeBlogPostUseCase: LikeBlogPostUseCase,
@@ -80,20 +74,13 @@ constructor(
     private val _viewBlogState = MutableStateFlow(ViewBlogUiState())
     val viewBlogState: StateFlow<ViewBlogUiState> = _viewBlogState.asStateFlow()
 
-    private val _updateBlogState = MutableStateFlow(UpdateBlogUiState())
-    val updateBlogState: StateFlow<UpdateBlogUiState> = _updateBlogState.asStateFlow()
-
     private val _featuredHero = MutableStateFlow<BlogPost?>(null)
     val featuredHero: StateFlow<BlogPost?> = _featuredHero.asStateFlow()
     private var featuredHeroJob: Job? = null
 
-    // Hoisted: rememberSaveable can't serialize RichTextState.
-    val editBodyState: RichTextState = RichTextState()
-
     private var loadBlogJob: Job? = null
     private var authorCheckJob: Job? = null
     private var deleteJob: Job? = null
-    private var updateJob: Job? = null
     private var likeJob: Job? = null
     private var bookmarkJob: Job? = null
     private var commentsJob: Job? = null
@@ -120,10 +107,6 @@ constructor(
 
     private fun updateViewBlogState(reducer: ViewBlogUiState.() -> ViewBlogUiState) {
         _viewBlogState.value = _viewBlogState.value.reducer()
-    }
-
-    private fun updateUpdateBlogState(reducer: UpdateBlogUiState.() -> UpdateBlogUiState) {
-        _updateBlogState.value = _updateBlogState.value.reducer()
     }
 
     init {
@@ -216,7 +199,6 @@ constructor(
                     resource,
                     onSuccess = { categories ->
                         updateState { copy(categories = categories) }
-                        updateUpdateBlogState { copy(categories = categories) }
                     }
                 )
             }
@@ -231,44 +213,12 @@ constructor(
 
     fun getBlogPost(): BlogPost? = _viewBlogState.value.blogPost
 
-    fun getUpdatedBlogUri(): Uri? = _updateBlogState.value.updatedImageUri
-
     private fun setBlogPost(blogPost: BlogPost) {
         updateViewBlogState { copy(blogPost = blogPost) }
     }
 
     private fun setIsAuthorOfBlogPost(isAuthor: Boolean) {
         updateViewBlogState { copy(isAuthorOfBlogPost = isAuthor) }
-    }
-
-    fun setUpdatedBlogFields(
-        title: String? = null,
-        uri: Uri? = null,
-        originalImageUrl: String? = null,
-        category: String? = null,
-        tags: String? = null
-    ) {
-        updateUpdateBlogState {
-            copy(
-                updatedBlogTitle = title ?: updatedBlogTitle,
-                updatedImageUri = uri ?: updatedImageUri,
-                originalImageUrl = originalImageUrl ?: this.originalImageUrl,
-                updatedCategory = category ?: updatedCategory,
-                updatedTags = tags ?: updatedTags
-            )
-        }
-    }
-
-    fun clearUpdatedImageUri() {
-        updateUpdateBlogState { copy(updatedImageUri = null) }
-    }
-
-    fun setUpdatedCategory(category: String?) {
-        updateUpdateBlogState { copy(updatedCategory = category) }
-    }
-
-    fun setUpdatedTags(tags: String) {
-        updateUpdateBlogState { copy(updatedTags = tags) }
     }
 
     // endregion
@@ -338,36 +288,6 @@ constructor(
                         }
                     }
                 )
-            }
-        }
-    }
-
-    fun updateBlogPost(slug: String, title: String, body: String, imageUri: Uri?) {
-        if (isLoading.value) return // double-tap guard
-        setLoading(true)
-        val state = _updateBlogState.value
-        val tagsCsv = BlogUtils.parseTags(state.updatedTags)
-            .takeIf { it.isNotEmpty() }
-            ?.joinToString(",")
-
-        updateJob?.cancel()
-        updateJob = viewModelScope.launch {
-            try {
-                blogUploadEnqueuer.enqueueUpdate(
-                    slug = slug,
-                    title = title,
-                    body = body,
-                    imageUri = imageUri,
-                    category = state.updatedCategory,
-                    tagsCsv = tagsCsv
-                )
-                // H6 PR B: emit nav event on enqueue (attempt). Success/failure surfaces
-                // via the WorkInfo observer in MainActivity (Toast) and the DAO insert
-                // performed by the worker on success propagating through Paging.
-                clearUpdatedImageUri()
-                sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
-            } finally {
-                setLoading(false)
             }
         }
     }

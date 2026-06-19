@@ -27,7 +27,6 @@ class MainNavItemTest {
         val graphWrappers = setOf(
             Routes.MainGraph,
             Routes.AuthGraph,
-            Routes.BlogGraph,
             Routes.AccountGraph
         )
         MainNavItem.entries.forEach { item ->
