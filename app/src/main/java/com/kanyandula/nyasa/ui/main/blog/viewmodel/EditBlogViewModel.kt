@@ -46,15 +46,17 @@ constructor(
     /**
      * Loads the post for [slug] and seeds the draft once. A repeat call for the same slug (e.g. the
      * route's `LaunchedEffect` re-running after a config change) is ignored so in-progress edits and
-     * the editor body are preserved.
+     * the editor body are preserved. The slug is marked loaded only once the fetch returns — not on
+     * cancellation — so a missing post shows its error dialog once while an interrupted fetch can
+     * still be retried.
      */
     fun loadBlogForEdit(slug: String) {
         if (loadedSlug == slug) return
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             val blogPost = getBlogPostBySlugUseCase(slug)
+            loadedSlug = slug
             if (blogPost != null) {
-                loadedSlug = slug
                 updateState {
                     copy(
                         updatedBlogTitle = blogPost.title,

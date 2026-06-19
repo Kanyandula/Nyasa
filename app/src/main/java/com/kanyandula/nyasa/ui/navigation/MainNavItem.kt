@@ -20,8 +20,9 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
  *
  * [route] is the type-safe leaf route the tab navigates to (a `@Serializable` route key).
  *
- * TODO(Phase 3): once the graph is flat, replace `Any` with a sealed route supertype so the
- * "tab points at a leaf, never a graph wrapper" invariant is compiler-checked, not test-checked.
+ * TODO(follow-up): the graph is now flat (Phase 3a) — replace `Any` with a sealed route supertype
+ * so the "tab points at a leaf, never a graph wrapper" invariant is compiler-checked, not
+ * test-checked. Deferred polish, not part of the Phase 3 scope.
  */
 enum class MainNavItem(
     val label: String,
@@ -44,9 +45,9 @@ enum class MainNavItem(
  * Maps the current [destination] to the active [MainNavItem]. Home is the catch-all default: every
  * blog-browsing leaf (feed, detail, edit, author, create) highlights Home.
  *
- * TODO(Phase 3): when typed routes + a flat graph land, express this as an exhaustive
- * `when (route) { is BlogFeed/BlogDetail/... -> Home }` so Home is matched positively rather than
- * by elimination.
+ * TODO(follow-up): now that typed routes (Phase 2) and a flat graph (Phase 3a) have landed, express
+ * this as an exhaustive `when (route) { is BlogFeed/BlogDetail/... -> Home }` so Home is matched
+ * positively rather than by elimination. Deferred polish, not part of the Phase 3 scope.
  */
 fun mainNavItemForDestination(destination: NavDestination?): MainNavItem = when {
     destination == null -> MainNavItem.Home

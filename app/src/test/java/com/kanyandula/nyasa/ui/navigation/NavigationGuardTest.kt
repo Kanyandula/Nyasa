@@ -84,19 +84,35 @@ class NavigationGuardTest {
     }
 
     /**
-     * Drives every entry's enter transition to completion, the way the real [NavHost] does after its
-     * animation settles. Without it [ComposeNavigator] parks entries mid-transition below RESUMED.
+     * Drives the current (top) entry's enter transition to completion, the way the real [NavHost]
+     * does after its animation settles, so it reaches RESUMED. Only the top entry is completed —
+     * entries beneath it stay below RESUMED, mirroring real lifecycle. Without this [ComposeNavigator]
+     * parks the entering entry mid-transition below RESUMED.
      */
-    private fun settle() {
+    private fun settleCurrent() {
         val navigator = navController.navigatorProvider.getNavigator(ComposeNavigator::class.java)
-        navigator.backStack.value.forEach { navigator.onTransitionComplete(it) }
+        navController.currentBackStackEntry?.let { navigator.onTransitionComplete(it) }
+    }
+
+    @Test
+    fun `switching tabs away and back resets the tab to its root`() {
+        // Build a sub-stack under Home, then leave and return via the bottom bar.
+        navController.navigate(Routes.BlogDetail("s"))
+        assertThat(navController.currentDestination?.hasRoute<Routes.BlogDetail>()).isTrue()
+
+        navController.navigateToMainNavItem(MainNavItem.Bookmarks)
+        navController.navigateToMainNavItem(MainNavItem.Home)
+
+        // Phase 3b dropped saveState/restoreState: the BlogDetail sub-stack is not restored — Home
+        // lands back on its root leaf. Guards against a future re-introduction of restoreState.
+        assertThat(navController.currentDestination?.hasRoute<Routes.BlogFeed>()).isTrue()
     }
 
     @Test
     fun `popBackStackOnce pops once then gates a repeat tap from the same entry`() {
         navController.navigate(Routes.Bookmarks)
         navController.navigate(Routes.BlogDetail("s"))
-        settle()
+        settleCurrent()
 
         val detailEntry = navController.currentBackStackEntry!!
         assertThat(detailEntry.isResumed()).isTrue()

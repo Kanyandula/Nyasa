@@ -65,7 +65,9 @@ class EditBlogViewModelTest {
     fun `loadBlogForEdit seeds editable state from the repository`() = runTest {
         fakeRepository.blogPostBySlug = createTestBlogPost(
             title = "Original Title",
-            body = "Body text",
+            // HTML markup proves the body is parsed via setHtml (setText would leave the tags as
+            // literal text, so toText() would not strip them).
+            body = "<b>Body text</b>",
             image = "https://example.com/pic.jpg"
         ).copy(category = "Tech", tags = "a,b")
 
@@ -79,6 +81,23 @@ class EditBlogViewModelTest {
         assertThat(state.updatedTags).isEqualTo("a,b")
         assertThat(state.updatedImageUri).isNull()
         assertThat(viewModel.editBodyState.toText().trim()).isEqualTo("Body text")
+    }
+
+    @Test
+    fun `loadBlogForEdit emits a single error when the same missing slug is retried`() = runTest {
+        fakeRepository.blogPostBySlug = null
+
+        viewModel.events.test {
+            viewModel.loadBlogForEdit("missing")
+            advanceUntilIdle()
+            assertThat(awaitItem()).isInstanceOf(UiEvent.ShowErrorDialog::class.java)
+
+            // A retry of the same missing slug must not re-fetch or re-emit the error.
+            viewModel.loadBlogForEdit("missing")
+            advanceUntilIdle()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
