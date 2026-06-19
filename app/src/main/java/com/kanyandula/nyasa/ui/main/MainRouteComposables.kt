@@ -165,7 +165,7 @@ internal fun EditBlogRoute(
         if (result.resultCode == Activity.RESULT_OK) {
             val uri = result.data?.data
             if (uri != null) {
-                viewModel.setUpdatedBlogFields(uri = uri)
+                viewModel.setUpdatedImageUri(uri)
             }
         }
     }

@@ -19,7 +19,7 @@ import com.kanyandula.nyasa.fakes.FakeAnalyticsTracker
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
 import com.kanyandula.nyasa.fakes.FakeCommentRepository
-import com.kanyandula.nyasa.models.BlogPost
+import com.kanyandula.nyasa.fakes.createTestBlogPost
 import com.kanyandula.nyasa.persistance.BlogQueryUtils
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
@@ -50,16 +50,6 @@ class BlogViewModelTest {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
     private lateinit var viewModel: BlogViewModel
-
-    private fun createTestBlogPost(
-        pk: Int = 1,
-        title: String = "Test Blog",
-        slug: String = "test-blog",
-        body: String = "Test body",
-        image: String = "https://example.com/image.jpg",
-        dateUpdated: Long = 1000L,
-        username: String = "testuser"
-    ) = BlogPost(pk, title, slug, body, image, dateUpdated, username)
 
     @Before
     fun setup() {

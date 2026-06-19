@@ -75,26 +75,8 @@ constructor(
 
     fun getUpdatedBlogUri(): Uri? = viewState.value.updatedImageUri
 
-    fun setUpdatedBlogFields(
-        title: String? = null,
-        uri: Uri? = null,
-        originalImageUrl: String? = null,
-        category: String? = null,
-        tags: String? = null
-    ) {
-        updateState {
-            copy(
-                updatedBlogTitle = title ?: updatedBlogTitle,
-                updatedImageUri = uri ?: updatedImageUri,
-                originalImageUrl = originalImageUrl ?: this.originalImageUrl,
-                updatedCategory = category ?: updatedCategory,
-                updatedTags = tags ?: updatedTags
-            )
-        }
-    }
-
-    fun clearUpdatedImageUri() {
-        updateState { copy(updatedImageUri = null) }
+    fun setUpdatedImageUri(uri: Uri) {
+        updateState { copy(updatedImageUri = uri) }
     }
 
     fun setUpdatedCategory(category: String?) {
@@ -127,7 +109,7 @@ constructor(
                 // H6 PR B: emit nav event on enqueue (attempt). Success/failure surfaces via the
                 // WorkInfo observer in MainActivity (Toast) and the DAO insert the worker performs
                 // on success propagating through Paging.
-                clearUpdatedImageUri()
+                updateState { copy(updatedImageUri = null) }
                 sendEvent(BlogNavigationEvent.BlogUpdateSuccess)
             } finally {
                 setLoading(false)

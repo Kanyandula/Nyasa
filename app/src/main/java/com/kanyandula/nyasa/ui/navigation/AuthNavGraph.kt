@@ -76,7 +76,7 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
                             is LoginAction.EmailChanged ->
                                 viewModel.setLoginFields(LoginFields(action.email))
                             is LoginAction.NavigateBack ->
-                                navController.popBackStack()
+                                navController.popBackStackOnce(entry)
                         }
                     }
                 )
@@ -107,7 +107,7 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
                             confirmPassword
                         )
                     },
-                    onNavigateToLogin = { navController.popBackStack() },
+                    onNavigateToLogin = { navController.popBackStackOnce(entry) },
                     onFieldsChanged = { email, username ->
                         viewModel.setRegistrationFields(
                             RegistrationFields(email, username)
@@ -118,10 +118,10 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
             }
         }
 
-        composable<Routes.ForgotPassword> {
+        composable<Routes.ForgotPassword> { entry ->
             val context = LocalContext.current
             ForgotPasswordScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStackOnce(entry) },
                 onError = { message ->
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 },

@@ -6,7 +6,7 @@ import com.kanyandula.nyasa.domain.usecase.blog.GetBlogPostBySlugUseCase
 import com.kanyandula.nyasa.domain.usecase.category.GetCategoriesUseCase
 import com.kanyandula.nyasa.fakes.FakeBlogRepository
 import com.kanyandula.nyasa.fakes.FakeCategoryRepository
-import com.kanyandula.nyasa.models.BlogPost
+import com.kanyandula.nyasa.fakes.createTestBlogPost
 import com.kanyandula.nyasa.models.Category
 import com.kanyandula.nyasa.ui.UiEvent
 import com.kanyandula.nyasa.ui.main.blog.state.BlogNavigationEvent
@@ -33,16 +33,6 @@ class EditBlogViewModelTest {
     private lateinit var fakeCategoryRepository: FakeCategoryRepository
     private lateinit var uploadEnqueuer: BlogUploadEnqueuer
     private lateinit var viewModel: EditBlogViewModel
-
-    private fun createTestBlogPost(
-        pk: Int = 1,
-        title: String = "Test Blog",
-        slug: String = "test-blog",
-        body: String = "Test body",
-        image: String = "https://example.com/image.jpg",
-        dateUpdated: Long = 1000L,
-        username: String = "testuser"
-    ) = BlogPost(pk, title, slug, body, image, dateUpdated, username)
 
     @Before
     fun setup() {
@@ -125,12 +115,6 @@ class EditBlogViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.viewState.value.updatedBlogTitle).isEqualTo("First")
-    }
-
-    @Test
-    fun `setUpdatedBlogFields updates title`() {
-        viewModel.setUpdatedBlogFields(title = "New Title")
-        assertThat(viewModel.viewState.value.updatedBlogTitle).isEqualTo("New Title")
     }
 
     @Test
