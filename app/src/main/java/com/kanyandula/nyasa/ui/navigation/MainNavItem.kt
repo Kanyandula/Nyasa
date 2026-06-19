@@ -54,6 +54,7 @@ fun mainNavItemForDestination(destination: NavDestination?): MainNavItem = when 
         destination.hasRoute<Routes.BlogEdit>() ||
         destination.hasRoute<Routes.AuthorProfile>() ||
         destination.hasRoute<Routes.Create>() -> MainNavItem.Home
+    // Any future/unrecognized MainGraph leaf falls back to the landing tab.
     else -> MainNavItem.Home
 }
 

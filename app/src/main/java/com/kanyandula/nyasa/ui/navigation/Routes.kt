@@ -15,7 +15,11 @@ import kotlinx.serialization.Serializable
  * `MainNavItem.route` rather than only test-checked.
  */
 object Routes {
-    /** A leaf route that a bottom-bar tab is allowed to target. */
+    /**
+     * A leaf route that [com.kanyandula.nyasa.ui.navigation.MainNavItem.route] directly navigates to
+     * on a tab tap. Subsidiary screens reached within a tab (e.g. [BlogDetail], [BlogEdit]) are not
+     * `TabRoute`s even though they highlight the same tab.
+     */
     sealed interface TabRoute
 
     // Graph wrappers

@@ -70,6 +70,7 @@ class CategoryRepositoryImplTest {
 
     @Test
     fun `getCategories does not cache an error result`() = runTest {
+        // Re-stub the @Before connectivity mock with a flow we flip from offline to online mid-test.
         val connected = MutableStateFlow(false)
         every { connectivityObserver.isConnected } returns connected
 
