@@ -31,10 +31,9 @@ import com.kanyandula.nyasa.ui.components.NyasaBottomBar
 import com.kanyandula.nyasa.ui.components.NyasaSideRail
 import com.kanyandula.nyasa.ui.navigation.AuthEventHandler
 import com.kanyandula.nyasa.ui.navigation.Routes
-import com.kanyandula.nyasa.ui.navigation.authGraph
 import com.kanyandula.nyasa.ui.navigation.isInGraph
 import com.kanyandula.nyasa.ui.navigation.isValid
-import com.kanyandula.nyasa.ui.navigation.mainGraph
+import com.kanyandula.nyasa.ui.navigation.rootNavGraph
 import com.kanyandula.nyasa.ui.theme.NyasaTheme
 import com.kanyandula.nyasa.ui.theme.ThemePreference
 import com.kanyandula.nyasa.ui.theme.ThemePreferenceManager
@@ -160,8 +159,7 @@ private fun RootNavHost(
         startDestination = startDestination,
         modifier = modifier
     ) {
-        authGraph(navController)
-        mainGraph(
+        rootNavGraph(
             navController = navController,
             currentTheme = currentTheme,
             onThemeChanged = onThemeChanged

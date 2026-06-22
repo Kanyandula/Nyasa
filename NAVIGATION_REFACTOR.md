@@ -205,6 +205,7 @@ Each fixing phase ships its own regression test (Phase 0 covers null-recovery; P
 - **Risk:** low.
 - **Acceptance:** every navigation public API has a unit test; CI suite runs under 30s; tests fail if the Phase 3 fixes are reverted.
 - **Branch:** `nav/phase-5-test-harness`.
+- **Status:** ✅ Done (2026-06-22). The graph assembly is extracted into a shared `NavGraphBuilder.rootNavGraph(...)` builder used by both production `RootNavHost` and `NavigationGuardTest`, so the topology under test is the production topology — the hand-mirrored graph (and its `TODO(Phase 5)`) is gone. Two coverage gaps filled: process-death state save/restore lands on the pre-death leaf, and bottom-bar taps stay gated across a full login→logout→login swap. JVM/Robolectric only (instrumented smoke flow deferred, per the harness-scope decision). Full `:app` unit suite 227 tests green in ~28s.
 
 ### Phase 6 — Reassess Nav 3 (deferred)
 
