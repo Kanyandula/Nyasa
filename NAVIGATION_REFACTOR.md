@@ -207,9 +207,57 @@ Each fixing phase ships its own regression test (Phase 0 covers null-recovery; P
 - **Branch:** `nav/phase-5-test-harness`.
 - **Status:** ✅ Done (2026-06-22). The graph assembly is extracted into a shared `NavGraphBuilder.rootNavGraph(...)` builder used by both production `RootNavHost` and `NavigationGuardTest`, so the topology under test is the production topology — the hand-mirrored graph (and its `TODO(Phase 5)`) is gone. Two coverage gaps filled: process-death state save/restore lands on the pre-death leaf, and bottom-bar taps stay gated across a full login→logout→login swap. JVM/Robolectric only (instrumented smoke flow deferred, per the harness-scope decision). Full `:app` unit suite 227 tests green in ~28s.
 
-### Phase 6 — Reassess Nav 3 (deferred)
+### Phase 6 — Reassess Nav 3
 
-Not in scope for this work. Re-evaluate once Phases 0-5 have shipped and run in production for one release cycle. By then the route migration is done and Nav 3's `navigation3-compose` migration is mostly removing `NavController` ceremony.
+**Reassessment done 2026-06-22 (immediately after Phase 5 merged). Decision: NO-GO now — defer the migration; revisit on the trigger conditions below.** This section is the reassessment, not a migration plan to execute.
+
+#### Where Nav 3 stands (researched 2026-06-22)
+
+- **Stable since 2025-11-19.** Core `androidx.navigation3:navigation3-runtime` / `navigation3-ui` are **1.0.0**. Model: the back stack is plain Compose state you own (`NavBackStack<NavKey>`), rendered by `NavDisplay` (replaces `NavHost`); routes implement `NavKey` instead of just `@Serializable`; destinations move from the `NavHost` lambda into an `entryProvider`. This is exactly the "remove `NavController` ceremony" win the earlier draft anticipated.
+- **ViewModel scoping is not GA.** Scoping a VM to a back-stack entry needs `androidx.lifecycle:lifecycle-viewmodel-navigation3`, currently **`2.10.0-rc01`** (release candidate, not stable), via `rememberViewModelStoreNavEntryDecorator()` + plain `viewModel()`.
+- **No first-class Hilt story.** The official migration guide names **no Hilt artifact**; `hilt-navigation-compose` (1.3.0) targets Nav 2's `NavBackStackEntry`. Scoping our `@HiltViewModel`s to a `NavEntry` in Nav 3 means custom decorator/factory wiring (covered only by the nav3-recipes repo, not the core libs).
+- **Guide-stated gaps that touch us:** the basic migration explicitly does **not** cover *more than one level of nested navigation*, *shared destinations*, or *deep links*. Requires **compileSdk 36** (Android 16) and minSdk ≥ 23.
+
+#### Our migration surface (inventoried 2026-06-22)
+
+Size: **Medium**, but front-loaded with the one thing Nav 3 is weakest at for us.
+
+| Surface | Count | Note |
+|---|---|---|
+| Leaf destinations / graph wrappers | 13 / 3 | `AuthGraph`, `MainGraph`, `AccountGraph` |
+| `navigate()` / `popBackStack(Once)` callsites | 17 / 13 | the ceremony Nav 3 collapses |
+| **Shared-VM scoping via `hiltViewModel(getBackStackEntry<…Graph>())`** | **7 points, 3 VMs** | `AuthViewModel` (4 screens), `BlogViewModel` (Feed/Search/Detail), `AccountViewModel` (3 screens) — **the hard part** |
+| Data-class arg routes (`toRoute<T>()`) | 5 | mechanical |
+| Nav test files to rewrite | 2 | `NavigationGuardTest`, `MainNavItemTest` (built on `TestNavHostController` + `rootNavGraph`) |
+| Deep links / custom transitions | 0 / 0 | reduces risk |
+
+Friction concentrates in two places: (a) re-expressing the 7 Hilt-scoped shared ViewModels under Nav 3's decorator model with no turnkey Hilt support, and (b) the 2-level nest `MainGraph → AccountGraph`, which the basic migration path doesn't cover.
+
+#### Why NO-GO now
+
+1. **No bug forcing it.** The three failure classes that motivated this whole refactor (RestoreState crash, blank-stack dead-end, double-pop) are Nav-2-multistack-specific and were **fixed and tested in Phases 0–5, merged today**. Nav 3's value here is ceremony reduction / cleaner adaptive layout — a maintainability gain, not a user-facing fix. Low urgency.
+2. **Dependencies aren't ready for *our* shape.** Our heaviest surface is Hilt-scoped shared ViewModels (7 points); Nav 3's VM add-on is still RC and Hilt integration is DIY. Migrating onto an RC support lib + hand-rolled Hilt scoping trades freshly-tested code for new risk.
+3. **Prerequisite cost.** compileSdk 36 is its own bump with its own behavior-change surface; bundling it with a nav rewrite muddies the blast radius.
+4. **The plan's own gate.** "Run in production for one release cycle first" exists precisely so we don't discard just-shipped, just-stabilized navigation.
+
+#### Revisit when ALL of these hold
+
+- Phase 5 has baked one release cycle in production with **no nav-related Crashlytics regressions**.
+- `lifecycle-viewmodel-navigation3` is **GA (non-RC)** and there is a clear Hilt-on-Nav3 scoping recipe (or an official `hilt-navigation3` artifact).
+- compileSdk 36 has already landed for other reasons (so the nav migration isn't also an SDK bump).
+
+#### Migration outline (for when the trigger fires — not now)
+
+Sized so it can ship as its own sequenced sub-phases, mirroring 0–5:
+1. **Prereq:** compileSdk 36, add `navigation3-runtime`/`navigation3-ui` `1.0.0` + `lifecycle-viewmodel-navigation3` (GA by then). Keep Nav 2 in place.
+2. **Routes → `NavKey`:** make every `Routes.*` implement `NavKey` (additive; Nav 2 still works).
+3. **Spike the hard part first:** port one Hilt-scoped shared VM (e.g. `AccountViewModel` across `AccountGraph`) to a `NavEntry` decorator + Hilt factory. **Go/no-go gate** — if this is ugly, stop and reassess again.
+4. **`NavDisplay` + `entryProvider`:** replace `RootNavHost`'s `NavHost`; own the back stack as state; re-express the 2-level `AccountGraph` nest per the nav3-recipes nested pattern.
+5. **Port remaining VMs + the ~30 navigate/pop callsites** to back-stack-as-state ops.
+6. **Rewrite `NavigationGuardTest` / `MainNavItemTest`** against the Nav 3 harness; re-assert the Phase 3 invariants (single-pop, tab gating, process-death restore).
+7. Delete Nav 2 deps; retire `popBackStackOnce`, `navigateToMainNavItem`, `allowsTabNavigation`, `rootNavGraph`.
+
+References: [Nav 3 stable announcement](https://android-developers.googleblog.com/2025/11/jetpack-navigation-3-is-stable.html) · [official migration guide](https://developer.android.com/guide/navigation/navigation-3/migration-guide) · [nav3-recipes](https://github.com/android/nav3-recipes).
 
 ## What this work is NOT
 
