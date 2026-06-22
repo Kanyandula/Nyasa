@@ -20,11 +20,12 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Phase 0 guard + Phase 2 typed-route behaviour, graph-level: tab navigation is allowed from a
- * MainGraph destination, ignored from an AuthGraph destination (session-swap race), a tap lands on
- * a leaf (never a NavGraph wrapper), and tab-selection resolves correctly for every destination.
- * Destinations come from the real production graph builders so the topology under test is the
- * production topology. (The pure null-recovery case is covered in [MainNavItemTest].)
+ * Phase 0 guard + Phase 2 typed-route behaviour + Phase 5 coverage, graph-level: tab navigation is
+ * allowed from a MainGraph destination, ignored from an AuthGraph destination (session-swap race), a
+ * tap lands on a leaf (never a NavGraph wrapper), tab-selection resolves correctly for every
+ * destination, saved state survives process death, and bottom-bar taps stay gated across a full
+ * login→logout→login swap. Destinations come from the real production [rootNavGraph] builder so the
+ * topology under test is the production topology. (The pure null-recovery case is in [MainNavItemTest].)
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [35])
@@ -34,24 +35,37 @@ class NavigationGuardTest {
 
     @Before
     fun setUp() {
-        navController = TestNavHostController(ApplicationProvider.getApplicationContext())
-        // A RESUMED host lifecycle is what drives the topmost back-stack entry to RESUMED — without
-        // it TestNavHostController leaves entries at CREATED, so the double-pop gate can't be exercised.
+        navController = freshController().apply { graph = rootGraph(this) }
+    }
+
+    /**
+     * A [TestNavHostController] wired the way the real host wires it: a RESUMED host lifecycle (which
+     * drives the topmost back-stack entry to RESUMED — without it entries park at CREATED and the
+     * double-pop gate can't be exercised) plus a registered [ComposeNavigator]. No graph is attached,
+     * so callers either set a fresh [rootGraph] or restore saved state first (process-death case).
+     */
+    private fun freshController(): TestNavHostController {
+        val controller = TestNavHostController(ApplicationProvider.getApplicationContext())
         val lifecycleOwner = object : LifecycleOwner {
             val registry = LifecycleRegistry.createUnsafe(this).apply {
                 currentState = Lifecycle.State.RESUMED
             }
             override val lifecycle: Lifecycle get() = registry
         }
-        navController.setLifecycleOwner(lifecycleOwner)
-        navController.navigatorProvider.addNavigator(ComposeNavigator())
-        // Mirror RootNavHost: an unnamed root graph hosting authGraph + mainGraph.
-        // TODO(Phase 5): drive the real RootNavHost instead of mirroring its assembly here.
-        navController.graph = navController.createGraph(startDestination = Routes.MainGraph) {
-            authGraph(navController)
-            mainGraph(navController, ThemePreference.SYSTEM) { /* onThemeChanged: not under test */ }
-        }
+        controller.setLifecycleOwner(lifecycleOwner)
+        controller.navigatorProvider.addNavigator(ComposeNavigator())
+        return controller
     }
+
+    /**
+     * The production assembly under test: [rootNavGraph] is the exact builder `RootNavHost` uses, so
+     * there is no mirrored copy to drift out of sync (Phase 5). Start destination is MainGraph — the
+     * logged-in topology where bottom-bar navigation is exercised.
+     */
+    private fun rootGraph(controller: TestNavHostController) =
+        controller.createGraph(startDestination = Routes.MainGraph) {
+            rootNavGraph(controller, ThemePreference.SYSTEM) { /* onThemeChanged: not under test */ }
+        }
 
     @Test
     fun `a destination inside MainGraph allows tab navigation`() {
@@ -146,5 +160,44 @@ class NavigationGuardTest {
                 .that(mainNavItemForDestination(navController.currentDestination))
                 .isEqualTo(expected)
         }
+    }
+
+    @Test
+    fun `saved navigation state restores onto a valid leaf after process death`() {
+        // Build a non-trivial stack, then simulate process death: save state, drop the controller,
+        // and rehydrate a fresh one. restoreState must precede setGraph for the back stack to rebuild.
+        navController.navigate(Routes.Bookmarks)
+        navController.navigate(Routes.BlogDetail("s"))
+        val savedState = navController.saveState()
+
+        val restored = freshController()
+        restored.restoreState(savedState)
+        restored.graph = rootGraph(restored)
+
+        val landed = restored.currentDestination
+        assertThat(landed).isNotNull()
+        assertThat(landed).isNotInstanceOf(NavGraph::class.java)
+        // The user is put back exactly where they were, and the tab bar is live again — no blank stack.
+        assertThat(landed?.hasRoute<Routes.BlogDetail>()).isTrue()
+        assertThat(landed?.allowsTabNavigation()).isTrue()
+    }
+
+    @Test
+    fun `bottom-bar taps are gated across a login-logout-login swap`() {
+        // Logged in: a tab tap navigates normally.
+        navController.navigateToMainNavItem(MainNavItem.Bookmarks)
+        assertThat(navController.currentDestination?.hasRoute<Routes.Bookmarks>()).isTrue()
+
+        // Logout lands on the auth start leaf (Welcome). A bottom-bar tap racing the swap must be
+        // ignored — navigating into the just-removed MainGraph the next frame is what crashed pre-Phase-3.
+        navController.navigate(Routes.Welcome)
+        navController.navigateToMainNavItem(MainNavItem.Home)
+        assertThat(navController.currentDestination?.allowsTabNavigation()).isFalse()
+        assertThat(navController.currentDestination?.hasRoute<Routes.Welcome>()).isTrue()
+
+        // Login returns to the MainGraph start leaf (BlogFeed): taps flow again, landing on the tab leaf.
+        navController.navigate(Routes.BlogFeed)
+        navController.navigateToMainNavItem(MainNavItem.Profile)
+        assertThat(navController.currentDestination?.hasRoute<Routes.AccountProfile>()).isTrue()
     }
 }
